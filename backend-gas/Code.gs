@@ -27,7 +27,7 @@ function doPost(e) {
       return savePegawai(payload.data);
     }
     else if (action === "DELETE_PEGAWAI") {
-      return deletePegawai(payload.nip);
+      return deletePegawai(payload.row_number);
     }
 
     // === ADMIN MANAGEMENT ===

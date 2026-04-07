@@ -14,7 +14,8 @@
 // === GANTI ID INI SEBELUM MENJALANKAN ===
 const ARSIP_FOLDER_ID = "GANTI_DENGAN_ID_FOLDER_3_ARSIP_DOKUMEN";
 const TEMPLATE_SPTJM_ID = "GANTI_DENGAN_ID_TEMPLATE_SPTJM";
-const TEMPLATE_SPT_ID = "";  // Kosongkan jika belum ada
+const TEMPLATE_SPT_V1_ID = "";  // Kosongkan jika belum ada
+const TEMPLATE_SPT_V2_ID = "";  // Kosongkan jika belum ada (untuk peserta > 5)
 
 // Daftar Tim Poksi (harus sama persis dengan yang didaftarkan di DATA_ADMIN)
 const TIM_POKSI_LIST = [
@@ -47,15 +48,15 @@ function setupFolderStructure() {
   }
   
   // Set Header
-  configSheet.getRange(1, 1, 1, 5).setValues([[
-    "tim_poksi", "folder_id_spt", "folder_id_sptjm", "template_id_spt", "template_id_sptjm"
+  configSheet.getRange(1, 1, 1, 6).setValues([[
+    "tim_poksi", "folder_id_spt", "folder_id_sptjm", "template_id_spt_v1", "template_id_spt_v2", "template_id_sptjm"
   ]]);
-  configSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#d9ead3");
+  configSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#d9ead3");
   
   // Bersihkan data lama (baris 2 dan seterusnya)
   const lastRow = configSheet.getLastRow();
   if (lastRow > 1) {
-    configSheet.getRange(2, 1, lastRow - 1, 5).clearContent();
+    configSheet.getRange(2, 1, lastRow - 1, 6).clearContent();
   }
   
   const results = [];
@@ -75,18 +76,19 @@ function setupFolderStructure() {
       tim.name,                    // A: tim_poksi
       sptFolder.getId(),           // B: folder_id_spt
       sptjmFolder.getId(),         // C: folder_id_sptjm
-      TEMPLATE_SPT_ID || "",       // D: template_id_spt
-      TEMPLATE_SPTJM_ID           // E: template_id_sptjm (sama untuk semua tim)
+      TEMPLATE_SPT_V1_ID || "",   // D: template_id_spt_v1
+      TEMPLATE_SPT_V2_ID || "",   // E: template_id_spt_v2
+      TEMPLATE_SPTJM_ID           // F: template_id_sptjm
     ]);
     
     Logger.log("✅ " + tim.name + " → folder dibuat/ditemukan");
   }
   
   // Tulis ke CONFIG sheet sekaligus
-  configSheet.getRange(2, 1, results.length, 5).setValues(results);
+  configSheet.getRange(2, 1, results.length, 6).setValues(results);
   
   // Auto-resize kolom
-  configSheet.autoResizeColumns(1, 5);
+  configSheet.autoResizeColumns(1, 6);
   
   Logger.log("=================================");
   Logger.log("🎉 SETUP SELESAI!");

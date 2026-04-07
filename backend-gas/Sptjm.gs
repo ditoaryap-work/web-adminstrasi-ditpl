@@ -33,9 +33,9 @@ function getSptjmList(tim_poksi) {
       tiket_pulang: data[i][8],
       biaya_sbm: data[i][9],
       total_biaya: data[i][10],
-      tanggal_ttd: data[i][11],
       tim_poksi: data[i][12],
-      file_link: data[i][13] || ""
+      file_link: data[i][13] || "",
+      created_at: data[i][14] ? Utilities.formatDate(new Date(data[i][14]), Session.getScriptTimeZone(), "dd MMM yyyy HH:mm") : ""
     });
   }
   
@@ -65,6 +65,16 @@ function saveSptjm(sptjmData) {
     sptjmData.id_sptjm = targetId;
   }
   
+  var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+  var createdAt = nowStr;
+
+  if (rowIndex > 1) {
+    try {
+      var existingRow = sheet.getRange(rowIndex, 1, 1, 15).getValues()[0];
+      if (existingRow[14]) createdAt = existingRow[14];
+    } catch(e) {}
+  }
+  
   var rowData = [
     targetId,
     sptjmData.nama_lengkap || "",
@@ -79,11 +89,12 @@ function saveSptjm(sptjmData) {
     sptjmData.total_biaya || 0,
     sptjmData.tanggal_ttd || "",
     sptjmData.tim_poksi || "",
-    "" // file_link — akan diisi setelah PDF dibuat
+    "", // file_link — akan diisi setelah PDF dibuat
+    createdAt // kolom 15 (O)
   ];
 
   if (rowIndex > -1) {
-    sheet.getRange(rowIndex, 1, 1, 14).setValues([rowData]);
+    sheet.getRange(rowIndex, 1, 1, 15).setValues([rowData]);
   } else {
     sheet.appendRow(rowData);
     // Cari rowIndex yang baru di-append
@@ -161,11 +172,13 @@ function generateSptjmPdf(id_sptjm, knownRowIndex) {
   }
   if (!row) return "ERR: Data ID " + id_sptjm + " tidak ditemukan";
   
-  // Jika file_link sudah ada, kembalikan saja
+  // Jika sudah ada link lama, bersihkan dulu agar generate ulang
   var currentLink = String(row[13] || "").trim();
   if (currentLink !== "" && currentLink.indexOf("http") === 0) {
-    Logger.log("Sudah punya file link: " + currentLink);
-    return currentLink;
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex, 14).setValue("");
+      SpreadsheetApp.flush();
+    }
   }
   
   // === STEP 2: Cari config ===

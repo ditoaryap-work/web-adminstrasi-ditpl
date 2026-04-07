@@ -2,8 +2,9 @@
 // SPT: Surat Perintah Tugas
 // CRUD + Generate PDF dengan tabel dinamis
 // Sheet: A=id_spt B=no C=tanggal_surat D=maksud_perjalanan
-//        E=peserta(JSON) F=peserta_count G=status H=tim_poksi
-//        I=file_link J=mak
+//        E=peserta(JSON) F=peserta_count G=tim_poksi
+//        H=file_link I=mak J=created_at
+// Total: 10 kolom (A-J)
 // ==========================================
 
 function getSptList(tim_poksi) {
@@ -16,26 +17,26 @@ function getSptList(tim_poksi) {
   for (var i = 1; i < data.length; i++) {
     if (!data[i][0]) continue;
     
-    var rowTimPoksi = String(data[i][7] || "").trim();
+    var rowTimPoksi = String(data[i][6] || "").trim(); // G = index 6
     if (tim_poksi && rowTimPoksi !== tim_poksi) continue;
     
     var peserta = [];
     try {
-      var raw = data[i][4];
+      var raw = data[i][4]; // E = index 4
       peserta = typeof raw === 'string' ? JSON.parse(raw) : (raw || []);
     } catch(e) { peserta = []; }
     
     result.push({
-      id_spt: String(data[i][0]),
-      no: data[i][1],
-      tanggal_surat: data[i][2],
-      maksud_perjalanan: data[i][3],
-      peserta: peserta,
-      peserta_count: Number(data[i][5]) || 0,
-      status: data[i][6] || "Draft",
-      tim_poksi: rowTimPoksi,
-      file_link: data[i][8] || "",
-      mak: data[i][9] || ""
+      id_spt: String(data[i][0]),       // A = index 0
+      no: data[i][1],                    // B = index 1
+      tanggal_surat: data[i][2],         // C = index 2
+      maksud_perjalanan: data[i][3],     // D = index 3
+      peserta: peserta,                  // E = index 4
+      peserta_count: Number(data[i][5]) || 0, // F = index 5
+      tim_poksi: rowTimPoksi,            // G = index 6
+      file_link: data[i][7] || "",       // H = index 7
+      mak: data[i][8] || "",             // I = index 8
+      created_at: data[i][9] ? Utilities.formatDate(new Date(data[i][9]), Session.getScriptTimeZone(), "dd MMM yyyy HH:mm") : "" // J = index 9
     });
   }
   
@@ -67,21 +68,32 @@ function saveSpt(sptData) {
   var pesertaJson = JSON.stringify(sptData.peserta || []);
   var pesertaCount = Array.isArray(sptData.peserta) ? sptData.peserta.length : 0;
   
+  var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+  var createdAt = nowStr;
+
+  if (rowIndex > 1) {
+    try {
+      var existingRow = sheet.getRange(rowIndex, 1, 1, 10).getValues()[0]; // 10 kolom (A-J)
+      if (existingRow[9]) createdAt = existingRow[9]; // J = index 9 = created_at
+    } catch(e) {}
+  }
+  
+  // Total 10 kolom: A-J
   var rowData = [
-    targetId,
-    sptData.no || "",
-    sptData.tanggal_surat || "",
-    sptData.maksud_perjalanan || "",
-    pesertaJson,
-    pesertaCount,
-    sptData.status || "Final",
-    sptData.tim_poksi || "",
-    "", // file_link — diisi setelah PDF
-    sptData.mak || ""
+    targetId,                          // A = id_spt
+    sptData.no || "",                  // B = no
+    sptData.tanggal_surat || "",       // C = tanggal_surat
+    sptData.maksud_perjalanan || "",   // D = maksud_perjalanan
+    pesertaJson,                       // E = peserta (JSON)
+    pesertaCount,                      // F = peserta_count
+    sptData.tim_poksi || "",           // G = tim_poksi
+    "",                                // H = file_link — diisi setelah PDF
+    sptData.mak || "",                 // I = mak
+    createdAt                          // J = created_at
   ];
   
   if (rowIndex > 1) {
-    sheet.getRange(rowIndex, 1, 1, 10).setValues([rowData]);
+    sheet.getRange(rowIndex, 1, 1, 10).setValues([rowData]); // 10 kolom
   } else {
     sheet.appendRow(rowData);
     SpreadsheetApp.flush();
@@ -126,7 +138,7 @@ function deleteSpt(id_spt) {
 }
 
 // ==========================================
-// GENERATE PDF SPT
+// GENERATE PDF SPT (Robust - Direct Cell setText)
 // ==========================================
 
 function generateSptPdf(id_spt, knownRowIndex) {
@@ -149,19 +161,24 @@ function generateSptPdf(id_spt, knownRowIndex) {
   }
   if (!row) return "ERR: ID " + id_spt + " tidak ditemukan";
   
-  // Skip jika sudah ada link
-  var currentLink = String(row[8] || "").trim();
-  if (currentLink.indexOf("http") === 0) return currentLink;
+  // Jika sudah ada link lama, hapus PDF lama sebelum generate baru
+  var currentLink = String(row[7] || "").trim(); // H = index 7 = file_link
+  if (currentLink.indexOf("http") === 0) {
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex, 8).setValue(""); // Kolom H = kolom ke-8
+      SpreadsheetApp.flush();
+    }
+  }
   
   // STEP 2: Parse peserta
   var peserta = [];
   try {
-    peserta = typeof row[4] === 'string' ? JSON.parse(row[4]) : (row[4] || []);
+    peserta = typeof row[4] === 'string' ? JSON.parse(row[4]) : (row[4] || []); // E = index 4
   } catch(e) { peserta = []; }
   if (peserta.length === 0) return "ERR: Tidak ada peserta";
   
   // STEP 3: Cari config
-  var tim_poksi = String(row[7]).trim();
+  var tim_poksi = String(row[6]).trim(); // G = index 6 = tim_poksi
   var configData = configSheet.getDataRange().getValues();
   var templateId = "";
   var folderId = "";
@@ -181,7 +198,7 @@ function generateSptPdf(id_spt, knownRowIndex) {
   try {
     var templateFile = DriveApp.getFileById(templateId);
     var destinationFolder = DriveApp.getFolderById(folderId);
-    var noSurat = String(row[1] || "NoNomor").replace(/[\/\\]/g, '-');
+    var noSurat = String(row[1] || "NoNomor").replace(/[\/\\]/g, '-'); // B = index 1
     var fileName = "SPT-" + noSurat;
     
     // STEP 4: Copy template
@@ -193,40 +210,77 @@ function generateSptPdf(id_spt, knownRowIndex) {
     var body = doc.getBody();
     
     // Replace global placeholders
-    body.replaceText('\\{\\{nomor_surat\\}\\}', String(row[1] || "-"));
-    body.replaceText('\\{\\{tanggal_surat\\}\\}', formatTanggalIndonesia(row[2]));
-    body.replaceText('\\{\\{maksud_perjalanan\\}\\}', String(row[3] || "-"));
-    body.replaceText('\\{\\{mak\\}\\}', String(row[9] || "-"));
+    body.replaceText('\\{\\{nomor_surat\\}\\}', String(row[1] || "-"));        // B = no
+    body.replaceText('\\{\\{tanggal_surat\\}\\}', formatTanggalIndonesia(row[2])); // C = tanggal_surat
+    body.replaceText('\\{\\{maksud_perjalanan\\}\\}', String(row[3] || "-"));   // D = maksud_perjalanan
+    body.replaceText('\\{\\{mak\\}\\}', String(row[8] || "-"));                 // I = index 8 = mak
     
-    // Dynamic Table Manipulation
+    // Dynamic Table Manipulation - ROBUST method using direct setText per cell
     var tables = body.getTables();
-    if (tables.length > 0) {
-      var table = tables[0];
+    var table = null;
+    
+    // Cari tabel yang benar-benar mengandung placeholder peserta
+    for (var t = 0; t < tables.length; t++) {
+      var tableText = tables[t].getText() || "";
+      if (tableText.indexOf("nama_lengkap") > -1 || tableText.indexOf("nip") > -1) {
+        table = tables[t];
+        break;
+      }
+    }
+    
+    // Fallback jika tidak menemukan string placeholder: ambil tabel terakhir
+    if (!table && tables.length > 0) {
+      table = tables[tables.length - 1];
+    }
+    
+    if (table) {
       
       // Asumsi baris 0 adalah Header, baris 1 adalah Placeholder Data
       if (table.getNumRows() > 1) {
-        var placeholderRow = table.getRow(1);
         
-        // 1. Duplicate baris placeholder sesuai jumlah peserta tambahan
+        // 1. Duplikasi baris placeholder untuk peserta tambahan
         for (var r = 1; r < peserta.length; r++) {
-          var newRow = placeholderRow.copy();
-          table.insertTableRow(1 + r, newRow);
+          // Buat baris baru setelah baris terakhir yang ada
+          var sourceRow = table.getRow(1);
+          var numCells = sourceRow.getNumCells();
+          var newRow = table.insertTableRow(1 + r);
+          for (var c = 0; c < numCells; c++) {
+            var cell = newRow.appendTableCell("");
+            // Copy styling dari source cell
+            var srcCell = sourceRow.getCell(c);
+            var srcText = srcCell.editAsText();
+            var newText = cell.editAsText();
+            newText.setFontSize(srcText.getFontSize());
+            try { newText.setFontFamily(srcText.getFontFamily()); } catch(e) {}
+            try { 
+              var align = srcCell.getChild(0).getAlignment();
+              if (align) cell.getChild(0).setAlignment(align);
+            } catch(e) {}
+          }
         }
         
-        // 2. Isi data untuk masing-masing peserta
+        // 2. Isi data per cell secara langsung, tapi dengan aman (cek NumCells)
         for (var p = 0; p < peserta.length; p++) {
           var personRow = table.getRow(p + 1);
           var person = peserta[p];
+          var numCols = personRow.getNumCells();
           
-          // Kolom pertama di-fix angkanya (No)
-          personRow.getCell(0).setText(String(p + 1) + ".");
+          if (numCols > 0) personRow.getCell(0).setText(String(p + 1) + ".");
+          if (numCols > 1) personRow.getCell(1).setText(String(person.nama_lengkap || "-"));
           
-          // Replace placeholder di baris tersebut
-          personRow.replaceText('\\{\\{nama_lengkap\\}\\}', String(person.nama_lengkap || "-"));
-          personRow.replaceText('\\{\\{gol\\}\\}', String(person.pangkat_gol || "-"));
-          personRow.replaceText('\\{\\{nip\\}\\}', String(person.nip || "-"));
-          personRow.replaceText('\\{\\{tujuan\\}\\}', String(person.tujuan || "-"));
-          personRow.replaceText('\\{\\{tanggal_pelaksanaan\\}\\}', String(person.tanggal_pelaksanaan || "-"));
+          if (numCols >= 6) {
+             personRow.getCell(2).setText(String(person.pangkat_gol || "-"));
+             personRow.getCell(3).setText(String(person.nip || "-"));
+             personRow.getCell(4).setText(String(person.tujuan || "-"));
+             personRow.getCell(5).setText(String(person.tanggal_pelaksanaan || "-"));
+          } else if (numCols === 5) {
+             personRow.getCell(2).setText(String(person.nip || "-"));
+             personRow.getCell(3).setText(String(person.tujuan || "-"));
+             personRow.getCell(4).setText(String(person.tanggal_pelaksanaan || "-"));
+          } else if (numCols === 4) {
+             personRow.getCell(2).setText(String(person.tujuan || "-"));
+             personRow.getCell(3).setText(String(person.tanggal_pelaksanaan || "-"));
+          }
         }
       }
     } else {
@@ -241,9 +295,9 @@ function generateSptPdf(id_spt, knownRowIndex) {
     pdfFile.setName(fileName + ".pdf");
     var pdfUrl = pdfFile.getUrl();
     
-    // STEP 8: Simpan URL ke kolom I (kolom 9)
+    // STEP 7: Simpan URL ke kolom H (kolom ke-8)
     if (rowIndex > 0) {
-      sheet.getRange(rowIndex, 9).setValue(pdfUrl);
+      sheet.getRange(rowIndex, 8).setValue(pdfUrl); // H = kolom ke-8
       SpreadsheetApp.flush();
     }
     
