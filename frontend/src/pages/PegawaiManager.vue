@@ -58,7 +58,7 @@
         </div>
         
         <div v-else class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
                 <th class="py-5 px-6">Identitas Pegawai</th>
@@ -155,8 +155,8 @@
               <input type="text" v-model="formData.nama_lengkap" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Agus Setiawan, SE." />
             </div>
             <div>
-              <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">NIP <span class="text-red-400">*</span></label>
-              <input type="text" v-model="formData.nip" :readonly="isEditMode" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" :class="isEditMode ? 'bg-gray-100 cursor-not-allowed' : ''" placeholder="19XXXXXXXXXXXXX" />
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">NIP</label>
+              <input type="text" v-model="formData.nip" :readonly="isEditMode" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" :class="isEditMode ? 'bg-gray-100 cursor-not-allowed' : ''" placeholder="Kosongkan jika honorer" />
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Pangkat/Gol Ruang</label>
@@ -173,6 +173,14 @@
             <div class="md:col-span-2">
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Unit Kerja / Poksi</label>
               <input type="text" v-model="formData.poksi" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Poksi Perluasan Lahan" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Direktorat</label>
+              <input type="text" v-model="formData.direktorat" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Direktorat Penyediaan Lahan" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Tingkat Biaya</label>
+              <input type="text" v-model="formData.tingkat_biaya" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: A / B / C" />
             </div>
           </div>
 
@@ -218,7 +226,7 @@ const isEditMode = ref(false)
 const isSubmitting = ref(false)
 
 const formData = ref({
-  nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: ''
+  row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: ''
 })
 
 const notificationModal = ref({
@@ -270,7 +278,7 @@ const openForm = (p = null) => {
     formData.value = { ...p }
     isEditMode.value = true
   } else {
-    formData.value = { nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '' }
+    formData.value = { row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: '' }
     isEditMode.value = false
   }
   viewMode.value = 'form'
@@ -281,8 +289,8 @@ const closeForm = () => {
 }
 
 const handleSave = async () => {
-  if (!formData.value.nama_lengkap || !formData.value.nip) {
-    showNotification('warning', 'Data Belum Lengkap', 'Nama Lengkap dan NIP wajib diisi.')
+  if (!formData.value.nama_lengkap) {
+    showNotification('warning', 'Data Belum Lengkap', 'Nama Lengkap wajib diisi.')
     return
   }
   
@@ -312,17 +320,17 @@ const confirmDelete = (pegawai) => {
     'confirm',
     'Hapus Pegawai',
     `Apakah Anda yakin ingin menghapus data ${pegawai.nama_lengkap}? Tindakan ini tidak dapat dibatalkan.`,
-    () => handleDelete(pegawai.nip),
+    () => handleDelete(pegawai.row_number),
     'Ya, Hapus'
   )
 }
 
-const handleDelete = async (nip) => {
+const handleDelete = async (row_number) => {
   isLoading.value = true
   try {
     const response = await fetch(GAS_URL, {
       method: "POST",
-      body: JSON.stringify({ action: "DELETE_PEGAWAI", nip })
+      body: JSON.stringify({ action: "DELETE_PEGAWAI", row_number })
     })
     const result = await response.json()
     if (result.success) {

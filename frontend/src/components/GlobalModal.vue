@@ -4,45 +4,53 @@
       <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <!-- Overlay -->
         <div 
-          class="absolute inset-0 bg-black/40 backdrop-blur-md" 
+          class="absolute inset-0 bg-gray-900/50" 
           @click="type !== 'confirm' && close()"
         ></div>
         
         <!-- Modal Content -->
         <div 
           v-motion
-          :initial="{ opacity: 0, scale: 0.9, y: 20 }"
-          :enter="{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', damping: 25, stiffness: 300 } }"
-          class="relative bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100"
+          :initial="{ opacity: 0, scale: 0.95, y: 12 }"
+          :enter="{ opacity: 1, scale: 1, y: 0, transition: { duration: 200 } }"
+          class="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
         >
-          <!-- Header (Type-based) -->
-          <div :class="headerStyles" class="p-8 text-center relative overflow-hidden">
-             <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/leaf.png')"></div>
-             <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center border border-white/30 shadow-lg mb-4">
-                <component :is="iconComponent" :size="32" class="text-white" />
-             </div>
-             <h3 class="text-xl font-extrabold text-white mb-1 leading-tight">{{ title || defaultTitle }}</h3>
-             <p class="text-white/80 text-[11px] font-medium leading-relaxed tracking-wide px-4">
-               {{ message }}
-             </p>
+          <!-- Icon + Content -->
+          <div class="p-6 pb-2 text-center">
+            <div 
+              class="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-4"
+              :class="iconBgStyles"
+            >
+              <component :is="iconComponent" :size="28" :class="iconColorStyles" />
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-1.5">{{ title || defaultTitle }}</h3>
+            <p class="text-sm text-gray-500 leading-relaxed px-2">{{ message }}</p>
           </div>
 
           <!-- Actions -->
-          <div class="p-6 bg-white flex flex-col gap-2">
-             <button 
-               v-if="type === 'confirm'"
-               @click="confirmAction" 
-               class="w-full py-3.5 bg-red-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
-             >
-                {{ confirmText || 'Ya, Hapus' }}
-             </button>
-             <button 
-               @click="close" 
-               :class="type === 'confirm' ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-kementan-green text-white hover:bg-[#004d26] shadow-lg shadow-kementan-green/20'"
-               class="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
-             >
-                {{ type === 'confirm' ? 'Batal' : (closeText || 'Tutup') }}
-             </button>
+          <div class="p-5 pt-4 flex gap-3">
+            <button 
+              v-if="type === 'confirm'"
+              @click="close" 
+              class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+            >
+              Batal
+            </button>
+            <button 
+              v-if="type === 'confirm'"
+              @click="confirmAction" 
+              class="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors"
+            >
+              {{ confirmText || 'Ya, Hapus' }}
+            </button>
+            <button 
+              v-if="type !== 'confirm'"
+              @click="close" 
+              class="flex-1 py-3 rounded-xl font-semibold text-sm transition-colors"
+              :class="primaryBtnStyles"
+            >
+              {{ closeText || 'Mengerti' }}
+            </button>
           </div>
         </div>
       </div>
@@ -53,7 +61,7 @@
 <script setup>
 import { computed } from 'vue'
 import { 
-  CheckCircle, AlertCircle, Trash2, Info 
+  CheckCircle, AlertCircle, Trash2, Info, AlertTriangle
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -94,25 +102,44 @@ const iconComponent = computed(() => {
     case 'success': return CheckCircle
     case 'error': return AlertCircle
     case 'confirm': return Trash2
-    case 'warning': return AlertCircle
+    case 'warning': return AlertTriangle
     default: return Info
   }
 })
 
-const headerStyles = computed(() => {
+const iconBgStyles = computed(() => {
   switch (props.type) {
-    case 'success': return 'bg-gradient-to-br from-kementan-green to-emerald-600'
-    case 'error': return 'bg-gradient-to-br from-red-500 to-rose-600'
-    case 'confirm': return 'bg-gradient-to-br from-orange-500 to-red-600'
-    case 'warning': return 'bg-gradient-to-br from-amber-500 to-orange-600'
-    default: return 'bg-gradient-to-br from-blue-500 to-indigo-600'
+    case 'success': return 'bg-emerald-50'
+    case 'error': return 'bg-red-50'
+    case 'confirm': return 'bg-orange-50'
+    case 'warning': return 'bg-amber-50'
+    default: return 'bg-blue-50'
+  }
+})
+
+const iconColorStyles = computed(() => {
+  switch (props.type) {
+    case 'success': return 'text-emerald-500'
+    case 'error': return 'text-red-500'
+    case 'confirm': return 'text-orange-500'
+    case 'warning': return 'text-amber-500'
+    default: return 'text-blue-500'
+  }
+})
+
+const primaryBtnStyles = computed(() => {
+  switch (props.type) {
+    case 'success': return 'bg-emerald-500 text-white hover:bg-emerald-600'
+    case 'error': return 'bg-red-500 text-white hover:bg-red-600'
+    case 'warning': return 'bg-amber-500 text-white hover:bg-amber-600'
+    default: return 'bg-blue-500 text-white hover:bg-blue-600'
   }
 })
 </script>
 
 <style scoped>
 .modal-fade-enter-active, .modal-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 .modal-fade-enter-from, .modal-fade-leave-to {
   opacity: 0;

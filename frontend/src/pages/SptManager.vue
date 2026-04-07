@@ -17,9 +17,9 @@
 
         <button 
           @click="openForm()"
-          class="bg-kementan-green text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-3 hover:bg-[#004d26] transition-all"
+          class="bg-kementan-green text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-3 hover:bg-[#004d26] transition-all text-sm"
         >
-          <Plus :size="20" />
+          <Plus :size="18" />
           <span>Buat SPT Baru</span>
         </button>
       </div>
@@ -48,10 +48,10 @@
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
-                <th class="py-6 px-8">Data Dokumen</th>
-                <th class="py-6 px-8 text-center px-4">Peserta</th>
-                <th class="py-6 px-8">Maksud Perjalanan & Tujuan</th>
-                <th class="py-6 px-8 text-center">Aksi Dokumen</th>
+                <th class="py-5 px-6">Data Dokumen</th>
+                <th class="py-5 px-6 text-center">Peserta</th>
+                <th class="py-5 px-6">Maksud Perjalanan & Tujuan</th>
+                <th class="py-5 px-6 text-center">Aksi Dokumen</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white/40">
@@ -59,21 +59,27 @@
                 <tr 
                   v-for="(spt, i) in paginatedList" 
                   :key="spt.id_spt"
+                  v-motion
+                  :initial="{ opacity: 0, y: 5 }"
+                  :enter="{ opacity: 1, y: 0, transition: { delay: i * 30 } }"
                   class="group hover:bg-emerald-50/30 transition-colors"
                 >
-                  <td class="py-6 px-8">
+                  <td class="py-4 px-6">
                     <div>
                       <div 
                         class="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold mb-1 tracking-widest uppercase border"
-                        :class="spt.status === 'Draft' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'"
+                        :class="spt.file_link ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'"
                       >
-                        {{ spt.status }}
+                        {{ spt.file_link ? 'Selesai' : 'Belum Ada PDF' }}
                       </div>
                       <p class="text-sm font-bold text-gray-800">{{ spt.no || '[Nomor Belum Diisi]' }}</p>
-                      <p class="text-[10px] text-gray-500 font-bold tracking-widest mt-1 uppercase">{{ formatIndoDate(spt.tanggal_surat) }}</p>
+                      <p class="text-[10px] text-gray-500 font-bold tracking-widest mt-1 uppercase">{{ formatIndoDate(spt.tanggal_surat) }} 
+                        <span v-if="spt.created_at" class="mx-1 lowercase text-gray-300 font-normal">|</span> 
+                        <span v-if="spt.created_at" class="text-[9px] font-normal capitalize opacity-75">Dibuat: {{ spt.created_at }}</span>
+                      </p>
                     </div>
                   </td>
-                  <td class="py-6 px-8 text-center">
+                  <td class="py-4 px-6 text-center">
                     <div class="flex flex-col items-center gap-1">
                       <div class="inline-block px-3 py-1 rounded-full text-[10px] font-bold border border-gray-200 bg-gray-50 uppercase tracking-tighter">
                         {{ spt.peserta_count }} Peserta
@@ -83,30 +89,37 @@
                       </span>
                     </div>
                   </td>
-                  <td class="py-6 px-8">
+                  <td class="py-4 px-6">
                     <div class="max-w-md">
                       <p class="text-xs text-gray-600 leading-relaxed font-medium line-clamp-2">{{ spt.maksud_perjalanan }}</p>
                       <p class="text-[10px] text-kementan-green font-bold mt-1 uppercase tracking-widest">{{ spt.peserta?.[0]?.tujuan || '-' }}</p>
                     </div>
                   </td>
-                  <td class="py-6 px-8">
-                    <div class="flex items-center justify-center gap-3">
-                      <button v-if="spt.file_link" @click="openFile(spt.file_link)" class="px-3 py-2 bg-blue-50 text-blue-700 rounded-xl border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm">
+                  <td class="py-4 px-6 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <button v-if="spt.file_link" @click="openFile(spt.file_link)" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm">
                         <Download :size="14" /> Download
                       </button>
-                      <span v-else class="text-[9px] font-bold text-gray-400 uppercase">No PDF</span>
-                      <button @click="openForm(spt)" class="p-2.5 bg-white rounded-xl text-gray-400 border border-gray-200 hover:text-kementan-green shadow-sm transition-all">
-                        <Edit :size="16" />
+                      <span v-else class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-200 text-xs font-medium">
+                        Belum Ada
+                      </span>
+                      <button @click="openForm(spt)" class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green shadow-sm transition-all" title="Edit">
+                        <Edit :size="14" />
                       </button>
-                      <button @click="handleDelete(spt.id_spt)" class="p-2.5 bg-white rounded-xl text-gray-400 border border-gray-200 hover:text-red-500 shadow-sm transition-all">
-                        <Trash2 :size="16" />
+                      <button @click="handleDelete(spt.id_spt)" class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 shadow-sm transition-all" title="Hapus">
+                        <Trash2 :size="14" />
                       </button>
                     </div>
                   </td>
                 </tr>
               </template>
               <tr v-else>
-                <td colspan="4" class="py-16 text-center text-gray-400 font-medium">Berdasarkan pencarian, tidak ditemukan data SPT yang sesuai.</td>
+                <td colspan="4" class="py-16 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <FileText :size="32" class="text-gray-300" />
+                    <p class="text-gray-400 font-medium text-sm">Berdasarkan pencarian, tidak ditemukan data SPT yang sesuai.</p>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -206,30 +219,31 @@
                  <div 
                   v-for="(p, idx) in formData.peserta" 
                   :key="idx"
-                  class="bg-gray-50 border border-gray-100 p-5 rounded-2xl space-y-3"
+                  class="bg-white border-2 border-kementan-green/20 p-5 rounded-2xl shadow-sm relative group overflow-hidden"
                  >
-                    <div class="flex items-center justify-between">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-kementan-green/50"></div>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center pb-4 border-b border-gray-100 mb-4">
                       <div class="flex items-center gap-3 min-w-0">
-                         <div class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">
+                         <div class="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-sm font-black text-kementan-green shrink-0">
                             {{ idx + 1 }}
                          </div>
                          <div class="min-w-0">
-                            <p class="text-xs font-bold text-gray-800 truncate">{{ p.nama_lengkap }}</p>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase">{{ p.nip }} · {{ p.pangkat_gol || '-' }}</p>
+                            <p class="text-sm font-extrabold text-gray-800 truncate">{{ p.nama_lengkap }}</p>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">NIP: {{ p.nip || 'Tanpa NIP' }} <span class="mx-1">•</span> Gol: {{ p.pangkat_gol || '-' }} <span class="mx-1">•</span> {{ p.jabatan || '-' }}</p>
                          </div>
                       </div>
-                      <button @click="removeParticipant(idx)" class="p-2 text-gray-300 hover:text-red-500 transition-colors">
-                         <X :size="16" />
+                      <button @click="removeParticipant(idx)" class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-bold text-xs uppercase tracking-widest border border-red-100 hover:border-red-500 shrink-0">
+                         <Trash2 :size="14" /> Hapus
                       </button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Tujuan</label>
-                        <input type="text" v-model="p.tujuan" class="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-xs font-bold outline-none focus:border-kementan-green transition-all" placeholder="Contoh: Bogor" />
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Lokasi Tujuan</label>
+                        <input type="text" v-model="p.tujuan" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3.5 text-xs font-bold outline-none focus:border-kementan-green focus:bg-white transition-all focus:ring-4 focus:ring-kementan-green/10" placeholder="Contoh: Bogor" />
                       </div>
                       <div>
-                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Waktu Pelaksanaan</label>
-                        <input type="text" v-model="p.tanggal_pelaksanaan" class="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-xs font-bold outline-none focus:border-kementan-green transition-all" placeholder="24 – 30 Des 2025" />
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Waktu Pelaksanaan</label>
+                        <input type="text" v-model="p.tanggal_pelaksanaan" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3.5 text-xs font-bold outline-none focus:border-kementan-green focus:bg-white transition-all focus:ring-4 focus:ring-kementan-green/10" placeholder="Contoh: 24 – 30 Des 2025" />
                       </div>
                     </div>
                  </div>
@@ -254,7 +268,7 @@
                <h4 class="text-xs font-black text-gray-700 tracking-widest uppercase">Kode MAK</h4>
             </div>
             <div>
-              <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">MAK (Mata Anggaran Keluaran)</label>
+              <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">MAK (Mata Anggaran Keluaran) <span class="text-red-400">*</span></label>
               <input 
                 type="text" 
                 v-model="formData.mak" 
@@ -266,14 +280,14 @@
 
           <!-- FOOTER ACTIONS -->
           <div class="pt-8 border-t border-gray-100 flex gap-4">
-            <button @click="closeForm" type="button" class="px-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-colors text-xs uppercase tracking-widest w-40">Batal</button>
+            <button @click="closeForm" type="button" class="px-6 py-3.5 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm w-40">Batal</button>
             <button 
               @click="handleSave" 
-              :disabled="isSubmitting || !formData.no || formData.peserta.length === 0" 
-              class="flex-1 px-6 py-4 bg-kementan-green text-white font-black rounded-2xl hover:bg-[#004d26] transition-all flex justify-center items-center gap-3 shadow-xl shadow-kementan-green/30 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+              :disabled="isSubmitting || !formData.no || !formData.mak || formData.peserta.length === 0" 
+              class="flex-1 px-6 py-3.5 bg-kementan-green text-white font-bold rounded-xl hover:bg-[#004d26] transition-all flex justify-center items-center gap-3 shadow-md shadow-kementan-green/20 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed text-sm uppercase tracking-widest"
             >
               <template v-if="isSubmitting">
-                <div class="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Dalam Proses...</span>
               </template>
               <template v-else><Save :size="18" /> Simpan & Finalkan SPT</template>
@@ -285,54 +299,63 @@
 
     <!-- SUCCESS MODAL -->
     <Teleport to="body">
-      <transition name="modal-bounce">
-        <div v-if="successModal.isOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-6">
-          <div class="absolute inset-0 bg-black/60 backdrop-blur-xl" @click="successModal.isOpen = false"></div>
+      <transition name="modal-fade">
+        <div v-if="successModal.isOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-gray-900/50" @click="successModal.isOpen = false"></div>
           
           <div 
             v-motion
-            :initial="{ opacity: 0, scale: 0.8, y: 50 }"
-            :enter="{ opacity: 1, scale: 1, y: 0 }"
-            class="relative bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)]"
+            :initial="{ opacity: 0, scale: 0.95, y: 12 }"
+            :enter="{ opacity: 1, scale: 1, y: 0, transition: { duration: 200 } }"
+            class="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
           >
-            <div class="bg-gradient-to-br from-emerald-500 to-kementan-green p-12 text-center text-white relative">
-               <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/leaf.png')"></div>
-               <div class="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-[2.5rem] mx-auto flex items-center justify-center border border-white/40 shadow-2xl mb-8">
-                  <CheckCircle :size="54" />
+            <div class="p-6 pb-2 text-center">
+               <div class="w-14 h-14 rounded-full bg-emerald-50 mx-auto flex items-center justify-center mb-4">
+                  <CheckCircle :size="28" class="text-emerald-500" />
                </div>
-               <h3 class="text-3xl font-black mb-2 tracking-tight">SPT Berhasil!</h3>
-               <p class="text-emerald-50 text-sm font-medium opacity-80 uppercase tracking-widest whitespace-nowrap">Dokumen Telah Diarsipkan</p>
+               <h3 class="text-lg font-bold text-gray-800 mb-1">SPT Berhasil Disimpan!</h3>
+               <p class="text-sm text-gray-500">Dokumen telah diarsipkan ke sistem.</p>
             </div>
 
-            <div class="p-10 space-y-8">
-              <div class="grid grid-cols-2 gap-4">
-                 <div class="bg-gray-50/80 p-5 rounded-3xl border border-gray-100/50">
-                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">Nomor Surat</p>
-                    <p class="text-sm font-black text-gray-800">{{ successModal.item?.no }}</p>
+            <div class="px-6 pb-2">
+              <div class="grid grid-cols-2 gap-3">
+                 <div class="bg-gray-50 p-3.5 rounded-xl">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nomor Surat</p>
+                    <p class="text-xs font-bold text-gray-800 truncate">{{ successModal.item?.no }}</p>
                  </div>
-                 <div class="bg-blue-50/50 p-5 rounded-3xl border border-blue-100/50">
-                    <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 px-1">Peserta</p>
-                    <p class="text-sm font-black text-blue-700">{{ successModal.item?.peserta_count }} Orang</p>
+                 <div class="bg-emerald-50 p-3.5 rounded-xl">
+                    <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Peserta</p>
+                    <p class="text-xs font-bold text-emerald-700">{{ successModal.item?.peserta_count }} Orang</p>
                  </div>
-              </div>
-              <div class="space-y-3">
-                 <button 
-                  v-if="successModal.item?.file_link"
-                  @click="openFile(successModal.item.file_link)" 
-                  class="w-full py-5 bg-kementan-green text-white rounded-[1.5rem] font-bold flex items-center justify-center gap-4 shadow-lg shadow-kementan-green/20 hover:bg-[#004d26] transition-all active:scale-95 text-sm uppercase tracking-widest"
-                 >
-                    <Download :size="20" /> Download File PDF
-                 </button>
-                 <p v-else class="text-center text-xs text-gray-400 font-bold uppercase tracking-widest py-4">PDF sedang diproses...</p>
-                 <button 
-                   @click="successModal.isOpen = false" 
-                   class="w-full py-4 bg-gray-50 text-gray-500 border border-gray-100 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-red-500 transition-all shadow-sm"
-                 >
-                    Tutup
-                 </button>
               </div>
             </div>
+            <div class="p-5 pt-4 flex flex-col gap-2.5">
+               <button 
+                v-if="successModal.item?.file_link"
+                @click="openFile(successModal.item.file_link)" 
+                class="w-full py-3 bg-emerald-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2.5 hover:bg-emerald-600 transition-colors text-sm"
+               >
+                  <Download :size="18" /> Download PDF
+               </button>
+               <p v-else class="text-center text-xs text-gray-400 font-semibold py-3">PDF sedang diproses...</p>
+               <button 
+                 @click="successModal.isOpen = false" 
+                 class="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+               >
+                  Tutup
+               </button>
+            </div>
           </div>
+        </div>
+      </transition>
+    </Teleport>
+
+    <!-- Global Loading Overlay -->
+    <Teleport to="body">
+      <transition name="fade">
+        <div v-if="isProcessing" class="fixed inset-0 z-[11000] flex flex-col items-center justify-center p-6 bg-slate-900/80">
+          <div class="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+          <p class="mt-6 text-white font-bold tracking-widest uppercase animate-pulse">{{ processingMessage }}</p>
         </div>
       </transition>
     </Teleport>
@@ -371,6 +394,8 @@ const currentPage = ref(1)
 const viewMode = ref('list')
 const isEditMode = ref(false)
 const isSubmitting = ref(false)
+const isProcessing = ref(false)
+const processingMessage = ref('')
 const adminProfile = ref(null)
 
 const participantSelector = ref('')
@@ -381,7 +406,6 @@ const formData = ref({
   tanggal_surat: '',
   maksud_perjalanan: '',
   peserta: [],
-  status: 'Final',
   tim_poksi: '',
   mak: ''
 })
@@ -456,7 +480,6 @@ const openForm = (data = null) => {
       tanggal_surat: new Date().toISOString().split('T')[0],
       maksud_perjalanan: '',
       peserta: [],
-      status: 'Final',
       tim_poksi: adminProfile.value?.tim_poksi || '',
       mak: ''
     }
@@ -470,16 +493,18 @@ const closeForm = () => {
   viewMode.value = 'list'
 }
 
-const addParticipant = (nip) => {
-  if (!nip) return
-  // Check if exists
-  if (formData.value.peserta.some(p => p.nip === nip)) {
+const addParticipant = (strIdx) => {
+  if (!strIdx) return
+  const p = pegawaiList.value[parseInt(strIdx)]
+  if (!p) return
+
+  // Check if exists using NIP or Exact Object Ref
+  if (formData.value.peserta.some(existing => existing.nip === p.nip && existing.nama_lengkap === p.nama_lengkap)) {
     showNotification('warning', 'Duplikasi Peserta', 'Pegawai ini sudah ada di daftar peserta.')
     participantSelector.value = ''
     return
   }
 
-  const p = pegawaiList.value.find(p => p.nip === nip)
   if (p) {
     let extractedGol = '-'
     if (p.golongan) {
@@ -528,7 +553,7 @@ const handleSave = async () => {
       if (result.data?.file_link) savedItem.file_link = result.data.file_link
       successModal.value = { isOpen: true, item: savedItem }
       closeForm()
-      fetchData()
+      await fetchData()
     } else {
       showNotification('error', 'Gagal Menyimpan', result.message || 'Terjadi kesalahan pada server.')
     }
@@ -545,6 +570,8 @@ const handleDelete = (id) => {
     'Konfirmasi Hapus', 
     'Apakah Anda yakin ingin menghapus arsip SPT ini? Tindakan ini tidak dapat dibatalkan.',
     async () => {
+      isProcessing.value = true
+      processingMessage.value = 'Menghapus Data...'
       try {
         const response = await fetch(GAS_URL, {
           method: "POST",
@@ -552,13 +579,15 @@ const handleDelete = (id) => {
         })
         const result = await response.json()
         if (result.success) {
-          fetchData()
+          await fetchData()
           showNotification('success', 'Hapus Berhasil', 'Arsip SPT telah dihapus dari sistem.')
         } else {
           showNotification('error', 'Hapus Gagal', result.message)
         }
       } catch (error) {
         showNotification('error', 'Gagal', 'Terjadi kesalahan jaringan saat menghapus.')
+      } finally {
+        isProcessing.value = false
       }
     }
   )
@@ -567,10 +596,6 @@ const handleDelete = (id) => {
 const openFile = (url) => {
   if (!url) return
   window.open(url, '_blank')
-}
-
-const showSuccessModal = (item) => {
-  successModal.value = { isOpen: true, item: { ...item } }
 }
 
 const formatIndoDate = (isoDate) => {
@@ -595,23 +620,26 @@ const totalPages = computed(() => Math.ceil(filteredList.value.length / ITEMS_PE
 const safePage = computed(() => Math.min(currentPage.value, Math.max(1, totalPages.value)))
 const paginatedList = computed(() => filteredList.value.slice((safePage.value - 1) * ITEMS_PER_PAGE, safePage.value * ITEMS_PER_PAGE))
 
-const pegawaiOptions = computed(() => pegawaiList.value.map(p => ({
-  value: p.nip, 
-  label: `${p.nama_lengkap} - ${p.jabatan}` 
+const pegawaiOptions = computed(() => pegawaiList.value.map((p, idx) => ({
+  value: String(idx), 
+  label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}` 
 })))
 </script>
 
 <style scoped>
 /* Modal Transition */
-.modal-bounce-enter-active {
-  animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.2s ease;
 }
-.modal-bounce-leave-active {
-  animation: bounce-in 0.3s reverse ease-in;
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
 }
-@keyframes bounce-in {
-  0% { transform: scale(0.85); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 
 .line-clamp-2 {

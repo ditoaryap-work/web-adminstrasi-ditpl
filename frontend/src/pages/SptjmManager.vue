@@ -17,31 +17,11 @@
 
         <button 
           @click="openForm()"
-          class="bg-kementan-green text-white px-5 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-2 hover:bg-[#004d26] transition-all text-sm"
+          class="bg-kementan-green text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-3 hover:bg-[#004d26] transition-all text-sm"
         >
           <Plus :size="18" />
           <span>Tambah Dokumen (SPTJM)</span>
         </button>
-      </div>
-
-      <!-- Stats Bar -->
-      <div v-motion :initial="{ opacity: 0, y: 10 }" :enter="{ opacity: 1, y: 0 }" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass-card rounded-2xl p-4 border border-gray-100">
-          <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Total Dokumen</p>
-          <p class="text-2xl font-black text-gray-800">{{ sptjmList.length }}</p>
-        </div>
-        <div class="glass-card rounded-2xl p-4 border border-emerald-100">
-          <p class="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-1">Selesai</p>
-          <p class="text-2xl font-black text-kementan-green">{{ sptjmList.filter(s => s.file_link).length }}</p>
-        </div>
-        <div class="glass-card rounded-2xl p-4 border border-amber-100">
-          <p class="text-[9px] font-black text-amber-400 uppercase tracking-[0.2em] mb-1">Draft</p>
-          <p class="text-2xl font-black text-amber-600">{{ sptjmList.filter(s => !s.file_link).length }}</p>
-        </div>
-        <div class="glass-card rounded-2xl p-4 border border-blue-100">
-          <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Total Biaya</p>
-          <p class="text-lg font-black text-blue-700">Rp {{ formatNumber(totalBiayaAll) }}</p>
-        </div>
       </div>
 
       <!-- Filter & Search -->
@@ -92,7 +72,10 @@
                       </div>
                       <div>
                         <p class="text-sm font-bold text-gray-800">{{ item.nama_lengkap }}</p>
-                        <p class="text-[11px] text-gray-400 font-medium tracking-wider">{{ item.nip }}</p>
+                        <p class="text-[11px] text-gray-400 font-medium tracking-wider">{{ item.nip || 'Tak Ada NIP' }}
+                           <span v-if="item.created_at" class="mx-1 lowercase text-gray-300 font-normal">|</span> 
+                           <span v-if="item.created_at" class="text-[9px] font-normal opacity-75">Dibuat: {{ item.created_at }}</span>
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -100,9 +83,7 @@
                     <div>
                       <p class="text-xs font-bold text-gray-700 mb-1">Tujuan: {{ item.tujuan }}</p>
                       <div class="flex items-center gap-1.5 text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded w-max">
-                        <span>{{ formatIndoDate(item.tanggal_perjalanan) }}</span> 
-                        <span>sd</span>
-                        <span>{{ formatIndoDate(item.tanggal_kembali) }}</span>
+                        <span>{{ formatSmartDateRange(item.tanggal_perjalanan, item.tanggal_kembali) }}</span>
                       </div>
                     </div>
                   </td>
@@ -116,14 +97,14 @@
                       <CheckCircle :size="11" /> Selesai
                     </span>
                     <span v-else class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded-full text-[10px] font-bold">
-                      <Clock :size="11" /> Draft
+                      <Clock :size="11" /> Belum Ada PDF
                     </span>
                   </td>
                   <td class="py-4 px-6 text-center">
                     <div class="flex items-center justify-center gap-2">
-                      <a v-if="item.file_link" :href="item.file_link" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm" title="Download PDF">
+                      <button v-if="item.file_link" @click="openFile(item.file_link)" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm" title="Download PDF">
                         <Download :size="14" /> Download
-                      </a>
+                      </button>
                       <span v-else class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-200 text-xs font-medium">
                         Belum Ada
                       </span>
@@ -183,12 +164,12 @@
               <SearchableDropdown
                 label="Pilih Pegawai (Ketik untuk mencari)"
                 :options="pegawaiOptions"
-                v-model:value="formData.nip"
+                :value="selectedPegawaiIndex"
                 @change="handlePegawaiChange"
                 placeholder="Contoh: Budi Santoso..."
                 required
               />
-              <div class="grid grid-cols-2 gap-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">NIP</label>
                   <input type="text" readonly class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-600 outline-none" :value="formData.nip" placeholder="Otomatis" />
@@ -208,7 +189,7 @@
                 <input type="text" v-model="formData.tujuan" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 text-sm outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium" placeholder="Contoh: Bogor, Jawa Barat" />
               </div>
               
-              <div class="grid grid-cols-2 gap-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label class="block text-xs font-bold text-gray-600 uppercase mb-1.5">Mulai Tanggal <span class="text-red-400">*</span></label>
                   <input type="date" v-model="formData.tanggal_perjalanan" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 text-sm outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium" />
@@ -223,7 +204,7 @@
             <!-- Rincian Nominal -->
             <div class="space-y-5">
               <h4 class="text-xs font-bold text-kementan-green tracking-widest uppercase border-b border-gray-100 pb-2">Rincian Nominal Rill</h4>
-              <div class="grid grid-cols-2 gap-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label class="block text-[10px] font-bold text-gray-600 uppercase mb-1.5">Tiket Berangkat (Rp)</label>
                   <input type="text" :value="formatNumberForInput(formData.tiket_berangkat)" @input="e => updateNumberField('tiket_berangkat', e.target.value)" class="w-full bg-white border border-gray-300 rounded-xl py-3 px-4 text-sm outline-none focus:border-kementan-green font-medium" placeholder="contoh: 1.500.000" />
@@ -327,64 +308,53 @@
       </div>
     </div>
 
-    <!-- SUCCESS MODAL (PREMIUM) -->
+    <!-- SUCCESS MODAL -->
     <Teleport to="body">
-      <transition name="modal-bounce">
-        <div v-if="successModal.isOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-6">
-          <div class="absolute inset-0 bg-slate-900/80" @click="successModal.isOpen = false"></div>
+      <transition name="modal-fade">
+        <div v-if="successModal.isOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-gray-900/50" @click="successModal.isOpen = false"></div>
           
           <div 
             v-motion
-            :initial="{ opacity: 0, scale: 0.9, y: 30 }"
-            :enter="{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', damping: 25, stiffness: 300 } }"
-            class="relative bg-white rounded-[3rem] w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100"
+            :initial="{ opacity: 0, scale: 0.95, y: 12 }"
+            :enter="{ opacity: 1, scale: 1, y: 0, transition: { duration: 200 } }"
+            class="relative bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
           >
-            <!-- Top Decoration -->
-            <div class="bg-gradient-to-br from-kementan-green to-emerald-700 p-12 text-center relative overflow-hidden">
-               <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/leaf.png')"></div>
-               
-               <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-[2rem] mx-auto flex items-center justify-center border border-white/40 shadow-xl mb-8 transform hover:rotate-6 transition-transform">
-                  <CheckCircle :size="48" class="text-white" />
+            <div class="p-6 pb-2 text-center">
+               <div class="w-14 h-14 rounded-full bg-emerald-50 mx-auto flex items-center justify-center mb-4">
+                  <CheckCircle :size="28" class="text-emerald-500" />
                </div>
-               <h3 class="text-3xl font-black text-white mb-2 tracking-tight">Dokumen Siap!</h3>
-               <p class="text-emerald-50 text-sm font-medium opacity-90">SPTJM telah berhasil direkam ke database pusat.</p>
+               <h3 class="text-lg font-bold text-gray-800 mb-1">SPTJM Berhasil Disimpan!</h3>
+               <p class="text-sm text-gray-500">Dokumen telah direkam ke database pusat.</p>
             </div>
 
-            <!-- Content -->
-            <div class="p-10 space-y-8 bg-white">
-              <div class="grid grid-cols-2 gap-4">
-                 <div class="bg-gray-50/80 p-5 rounded-3xl border border-gray-100/50">
-                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">Pelaksana</p>
-                    <p class="text-sm font-extrabold text-gray-800 truncate">{{ successModal.item?.nama_lengkap || '???' }}</p>
-                    <p class="text-[10px] text-gray-400 font-bold mt-1 tracking-wider">{{ successModal.item?.nip || '---' }}</p>
+            <div class="px-6 pb-2">
+              <div class="grid grid-cols-2 gap-3">
+                 <div class="bg-gray-50 p-3.5 rounded-xl">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pelaksana</p>
+                    <p class="text-xs font-bold text-gray-800 truncate">{{ successModal.item?.nama_lengkap || '???' }}</p>
                  </div>
-                 <div class="bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100/50">
-                    <p class="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2 px-1">Total Biaya</p>
-                    <p class="text-xl font-black text-kementan-green tracking-tight">Rp {{ formatNumber(successModal.item?.total_biaya) }}</p>
+                 <div class="bg-emerald-50 p-3.5 rounded-xl">
+                    <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Total Biaya</p>
+                    <p class="text-xs font-bold text-emerald-700">Rp {{ formatNumber(successModal.item?.total_biaya) }}</p>
                  </div>
               </div>
-              
-              <div class="space-y-3">
-                 <a 
-                   v-if="successModal.item?.file_link"
-                   :href="successModal.item.file_link" 
-                   target="_blank"
-                   class="w-full py-5 bg-kementan-green text-white rounded-[1.5rem] font-bold flex items-center justify-center gap-4 shadow-lg shadow-kementan-green/20 hover:bg-[#004d26] transition-all active:scale-95 text-sm uppercase tracking-widest"
-                 >
-                    <Download :size="20" /> Download File PDF
-                 </a>
-                 <div v-else class="w-full py-5 bg-amber-50 text-amber-600 border border-amber-200 rounded-[1.5rem] font-bold flex items-center justify-center gap-4 text-xs uppercase tracking-widest">
-                    <Clock :size="16" /> PDF sedang diproses, cek kembali di tabel
-                 </div>
-                 <button 
-                   @click="successModal.isOpen = false" 
-                   class="w-full py-4 bg-gray-50 text-gray-500 border border-gray-100 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-red-500 transition-all shadow-sm"
-                 >
-                    Tutup
-                 </button>
-              </div>
-
-              <p class="text-center text-[9px] text-gray-300 font-bold uppercase tracking-widest">Sistem Manajemen PL - Kementan RI</p>
+            </div>
+            <div class="p-5 pt-4 flex flex-col gap-2.5">
+               <button 
+                v-if="successModal.item?.file_link"
+                @click="openFile(successModal.item.file_link)" 
+                class="w-full py-3 bg-emerald-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2.5 hover:bg-emerald-600 transition-colors text-sm"
+               >
+                  <Download :size="18" /> Download PDF
+               </button>
+               <p v-else class="text-center text-xs text-gray-400 font-semibold py-3">PDF sedang diproses...</p>
+               <button 
+                 @click="successModal.isOpen = false" 
+                 class="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+               >
+                  Tutup
+               </button>
             </div>
           </div>
         </div>
@@ -483,10 +453,15 @@ const totalPages = computed(() => Math.ceil(filteredList.value.length / ITEMS_PE
 const safePage = computed(() => Math.min(currentPage.value, Math.max(1, totalPages.value)))
 const paginatedList = computed(() => filteredList.value.slice((safePage.value - 1) * ITEMS_PER_PAGE, safePage.value * ITEMS_PER_PAGE))
 
-const pegawaiOptions = computed(() => pegawaiList.value.map(p => ({
-  value: p.nip, 
-  label: `${p.nama_lengkap} - ${p.jabatan}` 
+const pegawaiOptions = computed(() => pegawaiList.value.map((p, idx) => ({
+  value: String(idx), 
+  label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}` 
 })))
+
+const selectedPegawaiIndex = computed(() => {
+  const idx = pegawaiList.value.findIndex(p => p.nip === formData.value.nip && p.nama_lengkap === formData.value.nama_lengkap)
+  return idx >= 0 ? String(idx) : ''
+})
 
 const sbmOptions = computed(() => sbmList.value.map(s => ({ 
   value: s.ibu_kota, 
@@ -500,11 +475,6 @@ const selectedSbm = computed(() => sbmList.value.find(s => s.ibu_kota === sbmQue
 const totalSum = computed(() => {
   return Number(formData.value.tiket_berangkat || 0) + 
          Number(formData.value.tiket_pulang || 0)
-})
-
-// Stats computed
-const totalBiayaAll = computed(() => {
-  return sptjmList.value.reduce((sum, item) => sum + Number(item.total_biaya || 0), 0)
 })
 
 // Lifecycle
@@ -596,12 +566,18 @@ const closeForm = () => {
   viewMode.value = 'list'
 }
 
-const handlePegawaiChange = (nip) => {
-  const p = pegawaiList.value.find(p => p.nip === nip)
+const handlePegawaiChange = (strIdx) => {
+  if (!strIdx) {
+    formData.value.nama_lengkap = ''
+    formData.value.jabatan = ''
+    formData.value.nip = ''
+    return
+  }
+  const p = pegawaiList.value[parseInt(strIdx)]
   if (p) {
-    formData.value.nip = p.nip
     formData.value.nama_lengkap = p.nama_lengkap
     formData.value.jabatan = p.jabatan
+    formData.value.nip = p.nip
   }
 }
 
@@ -613,7 +589,6 @@ const handleApplySbm = () => {
 }
 
 const handleSave = async () => {
-  // BUG 5 FIX: Validasi lengkap termasuk tanggal_kembali dan tanggal_ttd
   if (!formData.value.nip) {
     showNotification('warning', 'Data Belum Lengkap', 'Mohon pilih pegawai pelaksana terlebih dahulu.')
     return
@@ -652,12 +627,11 @@ const handleSave = async () => {
       if (result.data?.file_link) {
         formData.value.file_link = result.data.file_link
       }
-      // Pastikan total_biaya di modal juga ter-update
       formData.value.total_biaya = totalSum.value
       
       successModal.value = { isOpen: true, item: { ...formData.value } }
       closeForm()
-      fetchData(adminProfile.value?.tim_poksi)
+      await fetchData(adminProfile.value?.tim_poksi)
     } else {
       showNotification('error', 'Gagal Menyimpan', result.message || 'Terjadi kesalahan saat menghubungi server.')
     }
@@ -683,7 +657,7 @@ const handleDelete = (id) => {
         })
         const result = await response.json()
         if (result.success) {
-          fetchData(adminProfile.value?.tim_poksi)
+          await fetchData(adminProfile.value?.tim_poksi)
           showNotification('success', 'Hapus Berhasil', 'Dokumen SPTJM telah dihapus dari sistem.')
         } else {
           showNotification('error', 'Hapus Gagal', result.message)
@@ -697,7 +671,10 @@ const handleDelete = (id) => {
   )
 }
 
-
+const openFile = (url) => {
+  if (!url) return
+  window.open(url, '_blank')
+}
 
 // Helpers
 const formatNumber = (val) => {
@@ -726,20 +703,47 @@ const formatIndoDate = (isoDate) => {
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
   } catch (e) { return isoDate }
 }
+
+const BULAN_INDO = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+
+const formatSmartDateRange = (startStr, endStr) => {
+  if (!startStr || !endStr) return `${formatIndoDate(startStr)} s/d ${formatIndoDate(endStr)}`
+  
+  try {
+    const start = new Date(startStr)
+    const end = new Date(endStr)
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return `${startStr} s/d ${endStr}`
+
+    const dStart = start.getDate()
+    const mStart = start.getMonth()
+    const yStart = start.getFullYear()
+    const dEnd = end.getDate()
+    const mEnd = end.getMonth()
+    const yEnd = end.getFullYear()
+    
+    if (yStart === yEnd && mStart === mEnd) {
+      // Bulan dan tahun sama: "1 s/d 3 April 2026"
+      return `${dStart} s/d ${dEnd} ${BULAN_INDO[mEnd]} ${yEnd}`
+    } else if (yStart === yEnd) {
+      // Beda bulan, tahun sama: "28 Maret s/d 3 April 2026"
+      return `${dStart} ${BULAN_INDO[mStart]} s/d ${dEnd} ${BULAN_INDO[mEnd]} ${yEnd}`
+    } else {
+      // Beda tahun: "28 Desember 2025 s/d 3 Januari 2026"
+      return `${dStart} ${BULAN_INDO[mStart]} ${yStart} s/d ${dEnd} ${BULAN_INDO[mEnd]} ${yEnd}`
+    }
+  } catch (e) {
+    return `${formatIndoDate(startStr)} s/d ${formatIndoDate(endStr)}`
+  }
+}
 </script>
 
 <style scoped>
 /* Modal Transition */
-.modal-bounce-enter-active {
-  animation: bounce-in 0.5s;
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.2s ease;
 }
-.modal-bounce-leave-active {
-  animation: bounce-in 0.3s reverse;
-}
-@keyframes bounce-in {
-  0% { transform: scale(0.9); opacity: 0; }
-  60% { transform: scale(1.03); opacity: 1; }
-  100% { transform: scale(1); }
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
 }
 
 .fade-enter-active, .fade-leave-active {
