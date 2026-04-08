@@ -37,9 +37,4 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 102, 51, 0.2);
 }
-
-/* Kementan Theme Helpers */
-.glass-card {
-  @apply bg-white/70 backdrop-blur-md border border-white/50 shadow-xl;
-}
 </style>

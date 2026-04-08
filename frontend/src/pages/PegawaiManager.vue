@@ -355,8 +355,8 @@ const filteredPegawai = computed(() => {
   if (!searchQuery.value) return pegawaiList.value
   const q = searchQuery.value.toLowerCase()
   return pegawaiList.value.filter(p => 
-    p.nama_lengkap.toLowerCase().includes(q) || 
-    p.nip.includes(q)
+    (p.nama_lengkap || '').toLowerCase().includes(q) || 
+    (p.nip || '').includes(q)
   )
 })
 

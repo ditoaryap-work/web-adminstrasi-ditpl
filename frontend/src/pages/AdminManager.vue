@@ -183,12 +183,37 @@
 
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Kata Sandi <span class="text-red-400">*</span></label>
-              <input
-                type="text" required
-                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all bg-white"
-                v-model="formData.password"
-                placeholder="Kata sandi standar"
-              />
+              <div class="relative">
+                <input
+                  :type="showFormPassword ? 'text' : 'password'" required
+                  class="w-full border border-gray-300 rounded-xl py-3 pl-4 pr-12 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all bg-white"
+                  v-model="formData.password"
+                  placeholder="Masukkan kata sandi"
+                  minlength="6"
+                  autocomplete="new-password"
+                />
+                <button 
+                  type="button" 
+                  @click="showFormPassword = !showFormPassword"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-kementan-green transition-colors focus:outline-none"
+                  tabindex="-1"
+                  :title="showFormPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+                >
+                  <EyeOff v-if="showFormPassword" :size="18" />
+                  <Eye v-else :size="18" />
+                </button>
+              </div>
+              <!-- Password Strength Indicator -->
+              <div v-if="formData.password" class="mt-2 space-y-1.5">
+                <div class="flex gap-1">
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300" :class="passwordStrength >= 1 ? passwordStrengthColor : 'bg-gray-200'"></div>
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300" :class="passwordStrength >= 2 ? passwordStrengthColor : 'bg-gray-200'"></div>
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300" :class="passwordStrength >= 3 ? passwordStrengthColor : 'bg-gray-200'"></div>
+                  <div class="h-1 flex-1 rounded-full transition-all duration-300" :class="passwordStrength >= 4 ? passwordStrengthColor : 'bg-gray-200'"></div>
+                </div>
+                <p class="text-[10px] font-semibold" :class="passwordStrengthTextColor">{{ passwordStrengthLabel }}</p>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1.5 font-medium">Min. 6 karakter, disarankan kombinasi huruf &amp; angka.</p>
             </div>
 
             <div>
@@ -250,7 +275,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { GAS_URL } from '../config/api'
-import { Users, Search, Plus, Edit, Trash2, X, RefreshCw, AlertCircle, Save, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Users, Search, Plus, Edit, Trash2, X, RefreshCw, AlertCircle, Save, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-vue-next'
 import CustomDropdown from '../components/CustomDropdown.vue'
 import GlobalModal from '../components/GlobalModal.vue'
 
@@ -273,6 +298,7 @@ const currentPage = ref(1)
 const viewMode = ref('list')
 const isEditMode = ref(false)
 const isSubmitting = ref(false)
+const showFormPassword = ref(false)
 
 const formData = ref({
   username: '', password: '', nama_admin: '', tim_poksi: ''
@@ -337,6 +363,7 @@ const openForm = (admin = null) => {
     isEditMode.value = false
   }
   viewMode.value = 'form'
+  showFormPassword.value = false
 }
 
 const closeForm = () => {
@@ -346,6 +373,10 @@ const closeForm = () => {
 const handleSave = async () => {
   if (!formData.value.username || !formData.value.password || !formData.value.nama_admin || !formData.value.tim_poksi) {
     showNotification('warning', 'Data Belum Lengkap', 'Semua kolom bertanda bintang wajib diisi.')
+    return
+  }
+  if (formData.value.password.length < 6) {
+    showNotification('warning', 'Kata Sandi Terlalu Pendek', 'Kata sandi minimal harus 6 karakter untuk keamanan akun.')
     return
   }
   isSubmitting.value = true
@@ -424,4 +455,31 @@ const filteredAdmins = computed(() => {
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredAdmins.value.length / ITEMS_PER_PAGE)))
 const safePage = computed(() => Math.min(currentPage.value, Math.max(1, totalPages.value)))
 const paginatedAdmins = computed(() => filteredAdmins.value.slice((safePage.value - 1) * ITEMS_PER_PAGE, safePage.value * ITEMS_PER_PAGE))
+
+// Password Strength Calculator
+const passwordStrength = computed(() => {
+  const pw = formData.value.password
+  if (!pw) return 0
+  let score = 0
+  if (pw.length >= 6) score++
+  if (pw.length >= 8 && /[A-Z]/.test(pw)) score++
+  if (/\d/.test(pw)) score++
+  if (/[^A-Za-z0-9]/.test(pw) || pw.length >= 12) score++
+  return score
+})
+
+const passwordStrengthColor = computed(() => {
+  const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-500']
+  return colors[Math.max(0, passwordStrength.value - 1)] || 'bg-gray-200'
+})
+
+const passwordStrengthTextColor = computed(() => {
+  const colors = ['text-red-500', 'text-orange-500', 'text-yellow-600', 'text-emerald-600']
+  return colors[Math.max(0, passwordStrength.value - 1)] || 'text-gray-400'
+})
+
+const passwordStrengthLabel = computed(() => {
+  const labels = ['Sangat Lemah', 'Lemah', 'Cukup Kuat', 'Kuat']
+  return labels[Math.max(0, passwordStrength.value - 1)] || ''
+})
 </script>

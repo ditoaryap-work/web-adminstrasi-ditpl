@@ -8,6 +8,10 @@
     --kementan-gold: #FFCC00;
   }
 
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
   body {
     @apply bg-[#f8fafc] text-gray-800 antialiased overflow-x-hidden transition-colors duration-500;
     background-image: 
@@ -18,7 +22,7 @@
     background-attachment: fixed;
   }
 
-  /* Custom Scrollbar Futuristik */
+  /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -27,7 +31,14 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full hover:bg-kementan-green/50 transition-colors;
+    @apply bg-gray-300 rounded-full hover:bg-kementan-green/50;
+  }
+
+  /* Fix iOS touch scrolling */
+  .custom-scrollbar,
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
   }
 }
 

@@ -17,8 +17,8 @@
     >
       <div class="p-6 flex justify-between items-center">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-kementan-green to-emerald-600 flex items-center justify-center shadow-lg shadow-kementan-green/20 border border-transparent">
-            <span class="font-bold text-white tracking-widest text-sm">PL</span>
+          <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 border border-gray-100">
+            <img src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png" alt="Logo Kementan" class="w-full h-full object-contain" />
           </div>
           <div>
             <h2 class="text-lg font-extrabold tracking-tight text-gray-800 leading-none">E-OFFICE</h2>
@@ -88,7 +88,7 @@
         </div>
       </header>
 
-      <section class="p-4 lg:p-8 xl:p-10 overflow-y-auto flex-1 bg-transparent relative custom-scrollbar">
+      <section class="p-4 lg:p-8 xl:p-10 overflow-y-auto flex-1 bg-transparent relative custom-scrollbar" style="-webkit-overflow-scrolling: touch;">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <div :key="$route.path" class="h-full max-w-7xl mx-auto">
@@ -103,14 +103,13 @@
 
 <script setup>
 import { ref, onMounted, h } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { 
   LayoutDashboard, FileText, FileSignature, Settings, 
   LogOut, ChevronRight, Menu, X, Users 
 } from 'lucide-vue-next'
 
 const router = useRouter()
-const route = useRoute()
 const adminProfile = ref(null)
 const isSidebarOpen = ref(false)
 
@@ -127,10 +126,11 @@ const handleLogout = () => {
 }
 
 
-// NavItem as a nested functional component for simplicity
+// NavItem as a nested functional component
+// Uses router.currentRoute.value.path for reactive highlighting
 const NavItem = (props) => {
-  // Use exact match for items to avoid /spt matching /sptjm
-  const isActive = route.path === props.to
+  const currentPath = router.currentRoute.value.path
+  const isActive = currentPath === props.to
   
   return h('button', {
     onClick: () => {

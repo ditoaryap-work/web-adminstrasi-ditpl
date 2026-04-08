@@ -48,10 +48,8 @@
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
-                <th class="py-5 px-6 w-[30%]">Informasi Pelaksana</th>
+                <th class="py-5 px-6 w-[40%]">Informasi Pelaksana</th>
                 <th class="py-5 px-6">Rincian Perjalanan</th>
-                <th class="py-5 px-6">Biaya Total</th>
-                <th class="py-5 px-6 text-center">Status</th>
                 <th class="py-5 px-6 text-center">Aksi Dokumen</th>
               </tr>
             </thead>
@@ -87,19 +85,6 @@
                       </div>
                     </div>
                   </td>
-                  <td class="py-4 px-6">
-                     <span class="text-xs font-bold text-kementan-green bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg whitespace-nowrap">
-                        Rp {{ formatNumber(item.total_biaya) }}
-                     </span>
-                  </td>
-                  <td class="py-4 px-6 text-center">
-                    <span v-if="item.file_link" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold">
-                      <CheckCircle :size="11" /> Selesai
-                    </span>
-                    <span v-else class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded-full text-[10px] font-bold">
-                      <Clock :size="11" /> Belum Ada PDF
-                    </span>
-                  </td>
                   <td class="py-4 px-6 text-center">
                     <div class="flex items-center justify-center gap-2">
                       <button v-if="item.file_link" @click="openFile(item.file_link)" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm" title="Download PDF">
@@ -119,7 +104,7 @@
                 </tr>
               </template>
               <tr v-else>
-                <td colspan="5" class="py-16 text-center">
+                <td colspan="3" class="py-16 text-center">
                   <div class="flex flex-col items-center gap-3">
                     <FileSignature :size="32" class="text-gray-300" />
                     <p class="text-gray-400 font-medium text-sm">Berdasarkan pencarian, tidak ditemukan data SPTJM yang sesuai.</p>

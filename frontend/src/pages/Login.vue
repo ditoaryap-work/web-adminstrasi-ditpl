@@ -1,100 +1,133 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-cover bg-center" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png')">
-    <!-- Background Ornaments (Light) -->
-    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-kementan-green/10 blur-[120px] rounded-full animate-pulse"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-kementan-gold/20 blur-[120px] rounded-full animate-pulse" style="animation-delay: 1s"></div>
+  <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-emerald-50/30">
+    <!-- Background Ornaments (Pure CSS — no external deps) -->
+    <div class="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-kementan-green/8 blur-[100px] rounded-full animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-kementan-gold/15 blur-[100px] rounded-full animate-pulse pointer-events-none" style="animation-delay: 1.5s"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] bg-emerald-500/5 blur-[80px] rounded-full pointer-events-none"></div>
 
     <div 
       v-motion
-      :initial="{ opacity: 0, scale: 0.9, y: 20 }"
-      :enter="{ opacity: 1, scale: 1, y: 0, transition: { duration: 600, ease: 'easeOut' } }"
-      class="max-w-4xl w-full glass-card rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-[0_20px_50px_rgba(0,102,51,0.1)]"
+      :initial="{ opacity: 0, scale: 0.95, y: 16 }"
+      :enter="{ opacity: 1, scale: 1, y: 0, transition: { duration: 500, ease: 'easeOut' } }"
+      class="w-full max-w-[420px] md:max-w-4xl"
     >
-      <!-- Left Side - Visual -->
-      <div class="md:w-1/2 bg-gradient-to-br from-kementan-green to-emerald-700 p-12 flex flex-col justify-between relative shadow-inner">
-        <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png')"></div>
-        
-        <div class="relative z-10">
-          <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 mb-8 shadow-xl">
-            <ShieldCheck class="text-white" :size="32" />
+      <!-- Mobile-Only Brand Header -->
+      <div class="md:hidden text-center mb-6">
+        <div class="inline-flex items-center gap-2.5 bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white/80">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-white to-gray-50 flex items-center justify-center shadow-md p-1 border border-gray-100">
+            <img src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png" alt="Logo Kementan" class="w-full h-full object-contain drop-shadow-sm" />
           </div>
-          <h1 class="text-4xl font-extrabold text-white leading-tight mb-4 drop-shadow-md">
-            Portal <span class="text-kementan-gold">E-Office</span> <br /> 
-            Satu Data Lahan
-          </h1>
-          <div class="h-1.5 w-20 bg-kementan-gold rounded-full shadow-sm"></div>
-        </div>
-
-        <div class="relative z-10 text-white/80 text-sm italic font-medium">
-          "Mewujudkan Tata Kelola Administrasi PL yang Modern dan Terintegrasi"
+          <span class="text-sm font-extrabold text-gray-800 tracking-tight">E-Office PL</span>
         </div>
       </div>
 
-      <!-- Right Side - Form -->
-      <div class="md:w-1/2 bg-white/80 p-12 flex flex-col justify-center">
-        <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Otentikasi Admin</h2>
-        <p class="text-gray-500 mb-10 text-sm font-medium">Silakan masukkan identitas keamanan Anda.</p>
-
-        <form class="space-y-6" @submit.prevent="handleLogin">
-          <transition name="shake">
-            <div 
-              v-if="errorMsg"
-              class="bg-red-500/10 text-red-400 p-4 rounded-xl text-xs border border-red-500/20 flex items-center gap-3"
-            >
-              <div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-              {{ errorMsg }}
-            </div>
-          </transition>
-
-          <div class="space-y-1 relative">
-            <label class="text-xs font-bold text-gray-600 uppercase tracking-widest ml-1">Username / Email</label>
-            <div class="relative mt-1">
-              <User class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
-              <input 
-                type="text" 
-                v-model="username"
-                class="w-full bg-white border border-gray-200 rounded-xl py-4 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-400 shadow-sm"
-                placeholder="admin.poksiA"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="space-y-1 relative">
-            <label class="text-xs font-bold text-gray-600 uppercase tracking-widest ml-1">Kata Sandi</label>
-            <div class="relative mt-1">
-              <Lock class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
-              <input 
-                type="password" 
-                v-model="password"
-                class="w-full bg-white border border-gray-200 rounded-xl py-4 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-400 shadow-sm"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
+      <div class="bg-white/80 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-white/60 ring-1 ring-black/5">
+        <!-- Left Side - Visual (Hidden on mobile) -->
+        <div class="hidden md:flex md:w-[45%] bg-gradient-to-br from-kementan-green via-emerald-700 to-emerald-800 p-10 lg:p-12 flex-col justify-between relative overflow-hidden">
+          <!-- Pattern overlay -->
+          <div class="absolute inset-0 opacity-[0.06]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;20&quot; height=&quot;20&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Ccircle cx=&quot;1&quot; cy=&quot;1&quot; r=&quot;1&quot; fill=&quot;white&quot;/%3E%3C/svg%3E'); background-size: 20px 20px;"></div>
           
-          <button 
-            type="submit" 
-            :disabled="isLoading"
-            class="w-full py-4 rounded-xl font-bold tracking-widest uppercase text-sm shadow-lg transition-all duration-300 flex justify-center items-center gap-3"
-            :class="[
-              isLoading 
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                : 'bg-kementan-green text-white hover:bg-[#004d26] hover:shadow-[0_8px_20px_rgba(0,102,51,0.3)] hover:-translate-y-1 active:translate-y-0'
-            ]"
-          >
-            <template v-if="isLoading">
-              <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              Memverifikasi...
-            </template>
-            <template v-else>Masuk Ke Sistem</template>
-          </button>
-        </form>
+          <div class="relative z-10">
+            <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-white/20 mb-8 shadow-xl p-2.5 relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 pointer-events-none"></div>
+              <img src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png" alt="Logo Kementan" class="w-full h-full object-contain drop-shadow-md z-10" />
+            </div>
+            <h1 class="text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-3">
+              Portal <span class="text-kementan-gold">E-Office</span>
+            </h1>
+            <p class="text-lg font-bold text-white/90 leading-snug">Satu Data Lahan</p>
+            <div class="h-1 w-16 bg-kementan-gold/80 rounded-full mt-4"></div>
+          </div>
 
-        <div class="mt-12 pt-8 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-          <span>v1.0 MVP Edition</span>
-          <span>Ditjen Lahan & Irigasi</span>
+          <div class="relative z-10 text-white/60 text-xs font-medium leading-relaxed">
+            Direktorat Penyediaan Lahan<br/>
+            Kementerian Pertanian RI
+          </div>
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="flex-1 p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-center">
+          <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800 mb-1">Masuk ke Sistem</h2>
+          <p class="text-gray-400 mb-8 text-sm font-medium">Silakan masukkan akun admin Anda.</p>
+
+          <form class="space-y-5" @submit.prevent="handleLogin">
+            <transition name="shake">
+              <div 
+                v-if="errorMsg"
+                class="bg-red-50 text-red-600 p-3.5 rounded-xl text-xs border border-red-100 flex items-center gap-2.5 font-semibold"
+              >
+                <AlertCircle :size="16" class="shrink-0" />
+                {{ errorMsg }}
+              </div>
+            </transition>
+
+            <div class="space-y-1.5">
+              <label class="text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Username</label>
+              <div class="relative">
+                <User class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" :size="17" />
+                <input 
+                  type="text" 
+                  v-model="username"
+                  class="w-full bg-gray-50/80 border border-gray-200 rounded-xl py-3.5 pl-11 pr-4 text-gray-800 outline-none focus:bg-white focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-400 text-sm"
+                  placeholder="admin.poksiA"
+                  required
+                  autocomplete="username"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Kata Sandi</label>
+              <div class="relative">
+                <Lock class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" :size="17" />
+                <input 
+                  :type="showPassword ? 'text' : 'password'" 
+                  v-model="password"
+                  class="w-full bg-gray-50/80 border border-gray-200 rounded-xl py-3.5 pl-11 pr-11 text-gray-800 outline-none focus:bg-white focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-400 text-sm"
+                  placeholder="••••••••"
+                  required
+                  minlength="6"
+                  autocomplete="current-password"
+                />
+                <button 
+                  type="button" 
+                  @click="showPassword = !showPassword"
+                  class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-kementan-green transition-colors focus:outline-none"
+                  tabindex="-1"
+                  :title="showPassword ? 'Sembunyikan' : 'Tampilkan'"
+                >
+                  <EyeOff v-if="showPassword" :size="17" />
+                  <Eye v-else :size="17" />
+                </button>
+              </div>
+              <p v-if="password && password.length < 6 && password.length > 0" class="text-[11px] text-orange-500 ml-1 font-medium">Minimal 6 karakter.</p>
+            </div>
+            
+            <button 
+              type="submit" 
+              :disabled="isLoading"
+              class="w-full py-3.5 rounded-xl font-bold tracking-wide text-sm shadow-lg transition-all duration-300 flex justify-center items-center gap-2.5 mt-2"
+              :class="[
+                isLoading 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' 
+                  : 'bg-kementan-green text-white hover:bg-[#005529] hover:shadow-[0_8px_24px_rgba(0,102,51,0.25)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
+              ]"
+            >
+              <template v-if="isLoading">
+                <div class="w-4.5 h-4.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Memverifikasi...
+              </template>
+              <template v-else>
+                <LogIn :size="17" />
+                Masuk ke Sistem
+              </template>
+            </button>
+          </form>
+
+          <div class="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+            <span>v1.0</span>
+            <span>Dit. Penyediaan Lahan</span>
+          </div>
         </div>
       </div>
     </div>
@@ -105,15 +138,26 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { GAS_URL } from '../config/api'
-import { Lock, User, ShieldCheck } from 'lucide-vue-next'
+import { Lock, User, ShieldCheck, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-vue-next'
 
 const router = useRouter()
 const username = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMsg = ref('')
 
 const handleLogin = async () => {
+  // Validasi sebelum submit
+  if (!username.value.trim()) {
+    errorMsg.value = 'Username tidak boleh kosong.'
+    return
+  }
+  if (password.value.length < 6) {
+    errorMsg.value = 'Kata sandi minimal 6 karakter.'
+    return
+  }
+
   isLoading.value = true
   errorMsg.value = ''
 
@@ -136,7 +180,7 @@ const handleLogin = async () => {
       errorMsg.value = result.message
     }
   } catch (err) {
-    errorMsg.value = 'Gagal terhubung ke server database. Periksa koneksi internet Anda.'
+    errorMsg.value = 'Gagal terhubung ke server. Periksa koneksi internet Anda.'
   } finally {
     isLoading.value = false
   }
