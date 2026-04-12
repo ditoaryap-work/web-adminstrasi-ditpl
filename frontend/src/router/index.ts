@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../pages/Login.vue'
-import Dashboard from '../pages/Dashboard.vue'
-import SptManager from '../pages/SptManager.vue'
-import SptjmManager from '../pages/SptjmManager.vue'
-import PegawaiManager from '../pages/PegawaiManager.vue'
-import AdminManager from '../pages/AdminManager.vue'
 import Layout from '../components/Layout.vue'
+
+const Login = () => import('../pages/Login.vue')
+const Dashboard = () => import('../pages/Dashboard.vue')
+const SptManager = () => import('../pages/SptManager.vue')
+const SptjmManager = () => import('../pages/SptjmManager.vue')
+const PegawaiManager = () => import('../pages/PegawaiManager.vue')
+const AdminManager = () => import('../pages/AdminManager.vue')
+const ArsipSuratManager = () => import('../pages/ArsipSuratManager.vue')
 
 const routes = [
   { path: '/login', name: 'Login', component: Login },
@@ -17,6 +19,7 @@ const routes = [
       { path: 'dashboard', name: 'Dashboard', component: Dashboard },
       { path: 'spt', name: 'SptManager', component: SptManager },
       { path: 'sptjm', name: 'SptjmManager', component: SptjmManager },
+      { path: 'arsip-surat', name: 'ArsipSuratManager', component: ArsipSuratManager },
       { path: 'pegawai', name: 'PegawaiManager', component: PegawaiManager },
       { path: 'admin', name: 'AdminManager', component: AdminManager },
     ]

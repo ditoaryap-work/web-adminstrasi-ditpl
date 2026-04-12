@@ -1,14 +1,22 @@
 <template>
-  <div ref="dropdownRef" class="relative">
-    <label v-if="label" class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5">
-      {{ label }} <span v-if="required" class="text-red-400">*</span>
+  <div
+    ref="dropdownRef"
+    class="relative"
+  >
+    <label
+      v-if="label"
+      class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5"
+    >
+      {{ label }} <span
+        v-if="required"
+        class="text-red-400"
+      >*</span>
     </label>
 
     <!-- Trigger -->
     <button
       type="button"
       :disabled="disabled"
-      @click="toggleDropdown"
       class="w-full flex items-center justify-between gap-2 border rounded-xl py-2.5 px-4 text-left transition-all duration-200"
       :class="[
         disabled
@@ -17,15 +25,19 @@
             ? 'bg-white border-kementan-green ring-4 ring-kementan-green/10 shadow-sm'
             : 'bg-white border-gray-300 hover:border-gray-400 shadow-sm'
       ]"
+      @click="toggleDropdown"
     >
-      <span class="text-sm font-medium truncate" :class="selectedOption ? 'text-gray-800' : 'text-gray-400'">
+      <span
+        class="text-sm font-medium truncate"
+        :class="selectedOption ? 'text-gray-800' : 'text-gray-400'"
+      >
         {{ selectedOption ? selectedOption.label : placeholder }}
       </span>
       <div class="flex items-center gap-1 shrink-0">
         <span 
           v-if="selectedOption && !disabled" 
-          @click.stop="handleClear" 
-          class="p-0.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+          class="p-0.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors cursor-pointer" 
+          @click.stop="handleClear"
         >
           <X :size="14" />
         </span>
@@ -46,15 +58,18 @@
         <!-- Search Input -->
         <div class="p-2 border-b border-gray-100">
           <div class="relative">
-            <Search :size="15" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search
+              :size="15"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               ref="inputRef"
-              type="text"
               v-model="query"
+              type="text"
               placeholder="Ketik nama untuk mencari..."
               class="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-kementan-green focus:bg-white transition-all placeholder:text-gray-400 font-medium"
               @keydown.esc="isOpen = false"
-            />
+            >
           </div>
         </div>
 
@@ -65,22 +80,36 @@
               v-for="opt in filtered.slice(0, 50)"
               :key="opt.value"
               type="button"
-              @click="handleSelect(opt.value)"
               class="w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors"
               :class="[
                 opt.value === value
                   ? 'bg-kementan-green/5 text-kementan-green'
                   : 'text-gray-700 hover:bg-gray-50'
               ]"
+              @click="handleSelect(opt.value)"
             >
               <div class="min-w-0">
-                <p class="text-sm font-medium truncate">{{ opt.label }}</p>
-                <p v-if="opt.subtitle" class="text-[10px] text-gray-400 truncate">{{ opt.subtitle }}</p>
+                <p class="text-sm font-medium truncate">
+                  {{ opt.label }}
+                </p>
+                <p
+                  v-if="opt.subtitle"
+                  class="text-[10px] text-gray-400 truncate"
+                >
+                  {{ opt.subtitle }}
+                </p>
               </div>
-              <Check v-if="opt.value === value" :size="16" class="text-kementan-green shrink-0 ml-2" />
+              <Check
+                v-if="opt.value === value"
+                :size="16"
+                class="text-kementan-green shrink-0 ml-2"
+              />
             </button>
           </template>
-          <div v-else class="px-4 py-6 text-center text-sm text-gray-400 font-medium">
+          <div
+            v-else
+            class="px-4 py-6 text-center text-sm text-gray-400 font-medium"
+          >
             Tidak ditemukan hasil untuk "{{ query }}"
           </div>
         </div>
@@ -95,12 +124,12 @@
       style="position: absolute; opacity: 0; width: 0; height: 0;"
       :value="value"
       :required="required"
-    />
+    >
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+<script setup lang="ts">
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { Search, ChevronDown, Check, X } from 'lucide-vue-next'
 
 const props = defineProps({

@@ -17,8 +17,10 @@ function getSptList(tim_poksi) {
   for (var i = 1; i < data.length; i++) {
     if (!data[i][0]) continue;
     
-    var rowTimPoksi = String(data[i][6] || "").trim(); // G = index 6
-    if (tim_poksi && rowTimPoksi !== tim_poksi) continue;
+    var rowTimPoksi = String(data[i][6] || "").trim();    // Bypass filter jika role adalah Super Admin atau tim_poksi adalah 'SEMUA'
+    if (tim_poksi !== "SEMUA" && rowTimPoksi !== tim_poksi) {
+      continue;
+    }
     
     var peserta = [];
     try {

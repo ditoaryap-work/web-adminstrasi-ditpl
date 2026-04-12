@@ -15,9 +15,10 @@ function getSptjmList(tim_poksi) {
   
   for (var i = 1; i < data.length; i++) {
     if (!data[i][0]) continue;
-    var rowPoksi = String(data[i][12]).trim();
+    var rowTimPoksi = String(data[i][12] || "").trim(); // M = index 12
     
-    if (tim_poksi && tim_poksi !== "Semua" && tim_poksi !== "Super Admin" && rowPoksi !== tim_poksi) {
+    // Bypass filter jika role adalah Super Admin atau tim_poksi adalah 'SEMUA'
+    if (tim_poksi !== "SEMUA" && rowTimPoksi !== tim_poksi) {
       continue;
     }
 

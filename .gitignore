@@ -1,5 +1,51 @@
+# Dependencies
 node_modules/
-frontend/node_modules/
-frontend/dist/
-.DS_Store
+**/node_modules/
+
+# Build & Outputs
+dist/
+**/dist/
+dist-ssr
+**/dist-ssr/
+build/
+**/build/
+
+# Logs
 *.log
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs & Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local Environment
+.env
+.env.local
+*.local
+
+# Project Specific (Root)
+db.dbml
+db.dbdiagram
+PROGRESS_LOG.md
+RENCANA_PENGEMBANGAN.md
+example_sptjmscript.gs

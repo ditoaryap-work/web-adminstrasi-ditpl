@@ -6,6 +6,13 @@ function getAdmins() {
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DATA_ADMIN");
   if (!sheet) return createResponse(false, "Tab DATA_ADMIN tidak ditemukan!");
   
+  // Pastikan header kolom G (index 7) ada
+  if (sheet.getLastColumn() < 7) {
+    sheet.getRange(1, 7).setValue("role");
+  } else if (String(sheet.getRange(1, 7).getValue()).toLowerCase() !== "role") {
+    sheet.getRange(1, 7).setValue("role");
+  }
+
   let data = sheet.getDataRange().getValues();
   let result = [];
   
@@ -16,7 +23,8 @@ function getAdmins() {
       password: String(data[i][1]).trim(),
       nama_admin: data[i][2],
       tim_poksi: data[i][3],
-      profile_image_url: data[i][4] || ""
+      profile_image_url: data[i][4] || "",
+      role: data[i][6] || "Admin" // Kolom G index 6
     });
   }
   
@@ -59,6 +67,7 @@ function saveAdmin(adminData) {
     sheet.getRange(rowIndex, 3).setValue(adminData.nama_admin);
     sheet.getRange(rowIndex, 4).setValue(adminData.tim_poksi);
     sheet.getRange(rowIndex, 5).setValue(adminData.profile_image_url || "");
+    sheet.getRange(rowIndex, 7).setValue(adminData.role || "Admin");
     return createResponse(true, "Data Admin berhasil diperbarui");
   } else {
     sheet.appendRow([
@@ -66,7 +75,9 @@ function saveAdmin(adminData) {
       adminData.password,
       adminData.nama_admin,
       adminData.tim_poksi,
-      adminData.profile_image_url || ""
+      adminData.profile_image_url || "",
+      "", // last_login
+      adminData.role || "Admin"
     ]);
     return createResponse(true, "Admin baru berhasil ditambahkan");
   }

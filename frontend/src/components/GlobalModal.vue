@@ -1,12 +1,15 @@
 <template>
   <Teleport to="body">
     <transition name="modal-fade">
-      <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      >
         <!-- Overlay -->
         <div 
           class="absolute inset-0 bg-gray-900/50" 
           @click="type !== 'confirm' && close()"
-        ></div>
+        />
         
         <!-- Modal Content -->
         <div 
@@ -21,33 +24,41 @@
               class="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-4"
               :class="iconBgStyles"
             >
-              <component :is="iconComponent" :size="28" :class="iconColorStyles" />
+              <component
+                :is="iconComponent"
+                :size="28"
+                :class="iconColorStyles"
+              />
             </div>
-            <h3 class="text-lg font-bold text-gray-800 mb-1.5">{{ title || defaultTitle }}</h3>
-            <p class="text-sm text-gray-500 leading-relaxed px-2">{{ message }}</p>
+            <h3 class="text-lg font-bold text-gray-800 mb-1.5">
+              {{ title || defaultTitle }}
+            </h3>
+            <p class="text-sm text-gray-500 leading-relaxed px-2">
+              {{ message }}
+            </p>
           </div>
 
           <!-- Actions -->
           <div class="p-5 pt-4 flex gap-3">
             <button 
               v-if="type === 'confirm'"
-              @click="close" 
-              class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors"
+              class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-colors" 
+              @click="close"
             >
               Batal
             </button>
             <button 
               v-if="type === 'confirm'"
-              @click="confirmAction" 
-              class="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors"
+              class="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold text-sm hover:bg-red-600 transition-colors" 
+              @click="confirmAction"
             >
               {{ confirmText || 'Ya, Hapus' }}
             </button>
             <button 
               v-if="type !== 'confirm'"
-              @click="close" 
-              class="flex-1 py-3 rounded-xl font-semibold text-sm transition-colors"
+              class="flex-1 py-3 rounded-xl font-semibold text-sm transition-colors" 
               :class="primaryBtnStyles"
+              @click="close"
             >
               {{ closeText || 'Mengerti' }}
             </button>
@@ -58,7 +69,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { 
   CheckCircle, AlertCircle, Trash2, Info, AlertTriangle
@@ -70,10 +81,10 @@ const props = defineProps({
     type: String, // success, error, warning, confirm, info
     default: 'success'
   },
-  title: String,
-  message: String,
-  confirmText: String,
-  closeText: String
+  title: { type: String, default: '' },
+  message: { type: String, default: '' },
+  confirmText: { type: String, default: '' },
+  closeText: { type: String, default: '' }
 })
 
 const emit = defineEmits(['close', 'confirm'])

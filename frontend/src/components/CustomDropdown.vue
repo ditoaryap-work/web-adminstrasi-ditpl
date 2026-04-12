@@ -1,14 +1,22 @@
 <template>
-  <div ref="dropdownRef" class="relative">
-    <label v-if="label" class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5">
-      {{ label }} <span v-if="required" class="text-red-400">*</span>
+  <div
+    ref="dropdownRef"
+    class="relative"
+  >
+    <label
+      v-if="label"
+      class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1.5"
+    >
+      {{ label }} <span
+        v-if="required"
+        class="text-red-400"
+      >*</span>
     </label>
 
     <!-- Trigger Button -->
     <button
       type="button"
       :disabled="disabled"
-      @click="toggleDropdown"
       class="w-full flex items-center justify-between gap-3 border rounded-xl py-2.5 px-4 text-left transition-all duration-200"
       :class="[
         disabled 
@@ -17,8 +25,12 @@
             ? 'bg-white border-kementan-green ring-4 ring-kementan-green/10 shadow-sm' 
             : 'bg-white border-gray-300 hover:border-gray-400 shadow-sm'
       ]"
+      @click="toggleDropdown"
     >
-      <span class="text-sm font-medium truncate" :class="selectedOption ? 'text-gray-800' : 'text-gray-400'">
+      <span
+        class="text-sm font-medium truncate"
+        :class="selectedOption ? 'text-gray-800' : 'text-gray-400'"
+      >
         {{ selectedOption ? selectedOption.label : placeholder }}
       </span>
       <ChevronDown 
@@ -39,16 +51,20 @@
             v-for="opt in options"
             :key="opt.value"
             type="button"
-            @click="selectOption(opt.value)"
             class="w-full flex items-center justify-between px-4 py-2.5 text-left text-sm font-medium transition-colors"
             :class="[
               opt.value === value 
                 ? 'bg-kementan-green/5 text-kementan-green' 
                 : 'text-gray-700 hover:bg-gray-50'
             ]"
+            @click="selectOption(opt.value)"
           >
             <span>{{ opt.label }}</span>
-            <Check v-if="opt.value === value" :size="16" class="text-kementan-green shrink-0" />
+            <Check
+              v-if="opt.value === value"
+              :size="16"
+              class="text-kementan-green shrink-0"
+            />
           </button>
         </div>
       </div>
@@ -62,27 +78,42 @@
       style="position: absolute; opacity: 0; width: 0; height: 0;"
       :value="value"
       :required="required"
-    />
+    >
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ChevronDown, Check } from 'lucide-vue-next'
 
-const props = defineProps({
-  options: { type: Array, default: () => [] },
-  value: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: 'Pilih opsi...' },
-  label: { type: String, default: '' },
-  required: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false }
+interface DropdownOption {
+  value: string | number;
+  label: string;
+}
+
+const props = withDefaults(defineProps<{
+  options?: DropdownOption[];
+  value?: string | number;
+  placeholder?: string;
+  label?: string;
+  required?: boolean;
+  disabled?: boolean;
+}>(), {
+  options: () => [],
+  value: '',
+  placeholder: 'Pilih opsi...',
+  label: '',
+  required: false,
+  disabled: false
 })
 
-const emit = defineEmits(['update:value', 'change'])
+const emit = defineEmits<{
+  (e: 'update:value', val: string | number): void;
+  (e: 'change', val: string | number): void;
+}>()
 
 const isOpen = ref(false)
-const dropdownRef = ref(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 
 const selectedOption = computed(() => 
   props.options.find(opt => opt.value === props.value)
@@ -94,15 +125,15 @@ const toggleDropdown = () => {
   }
 }
 
-const selectOption = (val) => {
+const selectOption = (val: string | number) => {
   emit('update:value', val)
   emit('change', val)
   isOpen.value = false
 }
 
 // Close on click outside
-const handleClickOutside = (e) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+const handleClickOutside = (e: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
     isOpen.value = false
   }
 }

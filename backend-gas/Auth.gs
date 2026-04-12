@@ -24,7 +24,8 @@ function handleLogin(username, password) {
         nama_admin: data[i][2],
         tim_poksi: data[i][3],
         profile_image_url: data[i][4],
-        last_login: formattedDate
+        last_login: formattedDate,
+        role: data[i][6] || 'Admin' // Kolom G index 6 (0-indexed)
       });
     }
   }

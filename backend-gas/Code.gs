@@ -72,6 +72,17 @@ function doPost(e) {
       return deleteSpt(payload.id_spt);
     }
 
+    // === SURAT (Arsip Persuratan) ===
+    else if (action === "GET_SURAT_LIST") {
+      return getSuratList(payload.tim_poksi, payload.role);
+    }
+    else if (action === "SAVE_SURAT") {
+      return saveSurat(payload.data, payload.fileDetails);
+    }
+    else if (action === "DELETE_SURAT") {
+      return deleteSurat(payload.id_surat);
+    }
+
     // === DEBUG: Test Permissions ===
     else if (action === "TEST_PERMISSIONS") {
       return testPermissions();

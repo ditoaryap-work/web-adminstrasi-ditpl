@@ -19,7 +19,10 @@ function getConfig() {
       folder_id_sptjm: data[i][2] || "",
       template_id_spt_v1: data[i][3] || "",
       template_id_spt_v2: data[i][4] || "",
-      template_id_sptjm: data[i][5] || ""
+      template_id_sptjm: data[i][5] || "",
+      folder_id_surat_masuk: data[i][6] || "",
+      folder_id_surat_keluar: data[i][7] || "",
+      folder_id_notulensi: data[i][8] || ""
     });
   }
   

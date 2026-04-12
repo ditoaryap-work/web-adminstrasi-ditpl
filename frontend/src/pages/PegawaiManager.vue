@@ -1,7 +1,10 @@
 <template>
   <div class="space-y-6 pb-12">
     <!-- View Mode: LIST -->
-    <div v-if="viewMode === 'list'" class="space-y-6">
+    <div
+      v-if="viewMode === 'list'"
+      class="space-y-6"
+    >
       <!-- Header Section -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div 
@@ -13,7 +16,9 @@
             <Users :size="20" />
             <span class="text-xs font-bold tracking-[0.3em] uppercase">Database Personel</span>
           </div>
-          <h1 class="text-3xl font-extrabold text-gray-800">Manajemen Pegawai</h1>
+          <h1 class="text-3xl font-extrabold text-gray-800">
+            Manajemen Pegawai
+          </h1>
           <p class="text-gray-500 mt-2 text-sm max-w-lg font-medium">
             Kelola data induk pegawai, pangkat, dan jabatan untuk otomasi penugasan.
           </p>
@@ -24,8 +29,8 @@
           :initial="{ scale: 1 }"
           :hovered="{ scale: 1.02 }"
           :tapped="{ scale: 0.98 }"
-          @click="openForm()"
           class="bg-kementan-green text-white px-5 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-2 hover:bg-[#004d26] transition-all text-sm"
+          @click="openForm()"
         >
           <Plus :size="18" />
           <span>Tambah Pegawai</span>
@@ -40,31 +45,50 @@
         class="glass-card p-4 rounded-2xl flex flex-col lg:flex-row gap-4"
       >
         <div class="relative flex-1">
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
-          <input 
-            type="text" 
-            placeholder="Cari berdasarkan Nama atau NIP..." 
-            v-model="searchQuery"
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400"
+          <Search
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            :size="18"
           />
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Cari berdasarkan Nama atau NIP..."
+            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400"
+          >
         </div>
       </div>
 
       <!-- Table Section -->
       <div class="glass-card rounded-3xl overflow-hidden relative shadow-md border-gray-200 min-h-[400px]">
-        <div v-if="isLoading && pegawaiList.length === 0" class="flex flex-col items-center justify-center py-20 bg-white/50 h-full absolute inset-0">
-          <div class="w-10 h-10 border-4 border-kementan-green/20 border-t-kementan-green rounded-full animate-spin"></div>
-          <p class="mt-4 text-sm font-bold text-gray-500 uppercase tracking-widest animate-pulse">Memuat Data...</p>
+        <div
+          v-if="isLoading && pegawaiList.length === 0"
+          class="flex flex-col items-center justify-center py-20 bg-white/50 h-full absolute inset-0"
+        >
+          <div class="w-10 h-10 border-4 border-kementan-green/20 border-t-kementan-green rounded-full animate-spin" />
+          <p class="mt-4 text-sm font-bold text-gray-500 uppercase tracking-widest animate-pulse">
+            Memuat Data...
+          </p>
         </div>
         
-        <div v-else class="overflow-x-auto custom-scrollbar">
+        <div
+          v-else
+          class="overflow-x-auto custom-scrollbar"
+        >
           <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
-                <th class="py-5 px-6">Identitas Pegawai</th>
-                <th class="py-5 px-6 min-w-[200px]">Pangkat / Gol</th>
-                <th class="py-5 px-6">Jabatan & Unit</th>
-                <th class="py-5 px-6 text-center">Aksi</th>
+                <th class="py-5 px-6">
+                  Identitas Pegawai
+                </th>
+                <th class="py-5 px-6 min-w-[200px]">
+                  Pangkat / Gol
+                </th>
+                <th class="py-5 px-6">
+                  Jabatan & Unit
+                </th>
+                <th class="py-5 px-6 text-center">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white/40">
@@ -83,14 +107,20 @@
                         {{ p.nama_lengkap.charAt(0) }}
                       </div>
                       <div class="min-w-0">
-                        <p class="text-sm font-bold text-gray-800 truncate">{{ p.nama_lengkap }}</p>
-                        <p class="text-[11px] text-gray-400 font-medium tracking-wider">{{ p.nip }}</p>
+                        <p class="text-sm font-bold text-gray-800 truncate">
+                          {{ p.nama_lengkap }}
+                        </p>
+                        <p class="text-[11px] text-gray-400 font-medium tracking-wider">
+                          {{ p.nip }}
+                        </p>
                       </div>
                     </div>
                   </td>
                   <td class="py-4 px-6">
                     <div>
-                      <p class="text-xs font-bold text-gray-600">{{ p.pangkat_gol_ruang || '-' }}</p>
+                      <p class="text-xs font-bold text-gray-600">
+                        {{ p.pangkat_gol_ruang || '-' }}
+                      </p>
                       <div class="inline-block px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[9px] font-bold text-emerald-700 mt-1 uppercase tracking-wider">
                         Gol {{ p.golongan }}
                       </div>
@@ -98,16 +128,26 @@
                   </td>
                   <td class="py-4 px-6">
                     <div class="max-w-xs">
-                      <p class="text-xs text-gray-600 leading-relaxed truncate font-medium">{{ p.jabatan }}</p>
-                      <p class="text-[10px] text-kementan-green font-bold mt-1 uppercase tracking-widest">{{ p.poksi }}</p>
+                      <p class="text-xs text-gray-600 leading-relaxed truncate font-medium">
+                        {{ p.jabatan }}
+                      </p>
+                      <p class="text-[10px] text-kementan-green font-bold mt-1 uppercase tracking-widest">
+                        {{ p.poksi }}
+                      </p>
                     </div>
                   </td>
                   <td class="py-4 px-6">
                     <div class="flex items-center justify-center gap-2">
-                      <button @click="openForm(p)" class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 shadow-sm transition-all">
+                      <button
+                        class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 shadow-sm transition-all"
+                        @click="openForm(p)"
+                      >
                         <Edit :size="15" />
                       </button>
-                      <button @click="confirmDelete(p)" class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 hover:border-red-200 hover:bg-red-50 shadow-sm transition-all">
+                      <button
+                        class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 hover:border-red-200 hover:bg-red-50 shadow-sm transition-all"
+                        @click="confirmDelete(p)"
+                      >
                         <Trash2 :size="15" />
                       </button>
                     </div>
@@ -115,7 +155,10 @@
                 </tr>
               </template>
               <tr v-else>
-                <td colspan="4" class="py-16 text-center text-gray-400 font-medium">
+                <td
+                  colspan="4"
+                  class="py-16 text-center text-gray-400 font-medium"
+                >
                   Tidak ditemukan data pegawai yang cocok.
                 </td>
               </tr>
@@ -123,72 +166,163 @@
           </table>
         </div>
 
-        <div v-if="filteredPegawai.length > 0 && !isLoading" class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+        <div
+          v-if="filteredPegawai.length > 0 && !isLoading"
+          class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50"
+        >
           <p class="text-xs text-gray-500 font-medium">
             Menampilkan <span class="font-bold text-gray-700">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{ Math.min(safePage * ITEMS_PER_PAGE, filteredPegawai.length) }}</span> dari <span class="font-bold text-gray-700">{{ filteredPegawai.length }}</span> pegawai
           </p>
           <div class="flex items-center gap-1">
-            <button :disabled="safePage <= 1" @click="handlePageChange(safePage - 1)" class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"><ChevronLeft :size="16" /></button>
-            <button v-for="page in visiblePages" :key="page" @click="handlePageChange(page)" class="w-8 h-8 rounded-lg text-xs font-bold transition-all" :class="page === safePage ? 'bg-kementan-green text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'">{{ page }}</button>
-            <button :disabled="safePage >= totalPages" @click="handlePageChange(safePage + 1)" class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"><ChevronRight :size="16" /></button>
+            <button
+              :disabled="safePage <= 1"
+              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
+              @click="handlePageChange(safePage - 1)"
+            >
+              <ChevronLeft :size="16" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+              :class="page === safePage ? 'bg-kementan-green text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'"
+              @click="handlePageChange(page)"
+            >
+              {{ page }}
+            </button>
+            <button
+              :disabled="safePage >= totalPages"
+              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
+              @click="handlePageChange(safePage + 1)"
+            >
+              <ChevronRight :size="16" />
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- View Mode: FORM -->
-    <div v-else v-motion :initial="{ opacity: 0, y: 10 }" :enter="{ opacity: 1, y: 0 }" class="max-w-4xl mx-auto space-y-6 pb-12">
-      <button @click="closeForm" class="flex items-center gap-2 text-gray-500 hover:text-kementan-green transition-colors font-semibold text-sm bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 w-max">
+    <div
+      v-else
+      v-motion
+      :initial="{ opacity: 0, y: 10 }"
+      :enter="{ opacity: 1, y: 0 }"
+      class="max-w-4xl mx-auto space-y-6 pb-12"
+    >
+      <button
+        class="flex items-center gap-2 text-gray-500 hover:text-kementan-green transition-colors font-semibold text-sm bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 w-max"
+        @click="closeForm"
+      >
         <ChevronLeft :size="18" /> Kembali ke Daftar
       </button>
 
       <div class="glass-card rounded-3xl overflow-hidden shadow-lg border border-gray-200">
         <div class="bg-gradient-to-r from-kementan-green to-emerald-700 px-8 py-6 text-white">
-          <h2 class="text-2xl font-extrabold">{{ isEditMode ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru' }}</h2>
-          <p class="text-emerald-100 font-medium text-sm mt-1">Lengkapi informasi biodata dan kepangkatan pegawai.</p>
+          <h2 class="text-2xl font-extrabold">
+            {{ isEditMode ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru' }}
+          </h2>
+          <p class="text-emerald-100 font-medium text-sm mt-1">
+            Lengkapi informasi biodata dan kepangkatan pegawai.
+          </p>
         </div>
 
         <div class="p-8 space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Nama Lengkap <span class="text-red-400">*</span></label>
-              <input type="text" v-model="formData.nama_lengkap" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Agus Setiawan, SE." />
+              <input
+                v-model="formData.nama_lengkap"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: Agus Setiawan, SE."
+              >
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">NIP</label>
-              <input type="text" v-model="formData.nip" :readonly="isEditMode" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" :class="isEditMode ? 'bg-gray-100 cursor-not-allowed' : ''" placeholder="Kosongkan jika honorer" />
+              <input
+                v-model="formData.nip"
+                type="text"
+                :readonly="isEditMode"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                :class="isEditMode ? 'bg-gray-100 cursor-not-allowed' : ''"
+                placeholder="Kosongkan jika honorer"
+              >
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Pangkat/Gol Ruang</label>
-              <input type="text" v-model="formData.pangkat_gol_ruang" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Penata / IIIc" />
+              <input
+                v-model="formData.pangkat_gol_ruang"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: Penata / IIIc"
+              >
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Golongan</label>
-              <input type="text" v-model="formData.golongan" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: III/c" />
+              <input
+                v-model="formData.golongan"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: III/c"
+              >
             </div>
             <div class="md:col-span-2">
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Jabatan</label>
-              <input type="text" v-model="formData.jabatan" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Analis Kebijakan Ahli Muda" />
+              <input
+                v-model="formData.jabatan"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: Analis Kebijakan Ahli Muda"
+              >
             </div>
             <div class="md:col-span-2">
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Unit Kerja / Poksi</label>
-              <input type="text" v-model="formData.poksi" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Poksi Perluasan Lahan" />
+              <input
+                v-model="formData.poksi"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: Poksi Perluasan Lahan"
+              >
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Direktorat</label>
-              <input type="text" v-model="formData.direktorat" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: Direktorat Penyediaan Lahan" />
+              <input
+                v-model="formData.direktorat"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: Direktorat Penyediaan Lahan"
+              >
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Tingkat Biaya</label>
-              <input type="text" v-model="formData.tingkat_biaya" class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm" placeholder="Contoh: A / B / C" />
+              <input
+                v-model="formData.tingkat_biaya"
+                type="text"
+                class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
+                placeholder="Contoh: A / B / C"
+              >
             </div>
           </div>
 
           <div class="pt-6 border-t border-gray-100 flex gap-4">
-            <button @click="closeForm" class="px-6 py-3.5 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm w-40">Batal</button>
-            <button @click="handleSave" :disabled="isSubmitting" class="flex-1 px-6 py-3.5 bg-kementan-green text-white font-bold rounded-xl hover:bg-[#004d26] transition-colors flex justify-center items-center gap-2 shadow-md shadow-kementan-green/20 disabled:opacity-70 text-sm">
-              <template v-if="isSubmitting"><div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div><span>Menyimpan...</span></template>
-              <template v-else><Save :size="18" /> Simpan Data Pegawai</template>
+            <button
+              class="px-6 py-3.5 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm w-40"
+              @click="closeForm"
+            >
+              Batal
+            </button>
+            <button
+              :disabled="isSubmitting"
+              class="flex-1 px-6 py-3.5 bg-kementan-green text-white font-bold rounded-xl hover:bg-[#004d26] transition-colors flex justify-center items-center gap-2 shadow-md shadow-kementan-green/20 disabled:opacity-70 text-sm"
+              @click="handleSave"
+            >
+              <template v-if="isSubmitting">
+                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>Menyimpan...</span>
+              </template>
+              <template v-else>
+                <Save :size="18" /> Simpan Data Pegawai
+              </template>
             </button>
           </div>
         </div>
@@ -197,31 +331,36 @@
 
     <!-- Notification Modal -->
     <GlobalModal 
-      :isOpen="notificationModal.isOpen"
+      :is-open="notificationModal.isOpen"
       :type="notificationModal.type"
       :title="notificationModal.title"
       :message="notificationModal.message"
-      :confirmText="notificationModal.confirmText"
+      :confirm-text="notificationModal.confirmText"
       @close="notificationModal.isOpen = false"
       @confirm="notificationModal.onConfirm"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { GAS_URL } from '../config/api'
+import { fetchApi } from '../config/api'
+import { useDataStore } from '../stores/useDataStore'
+import { PegawaiData } from '../types/api'
 import { Users, Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Save } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
 
 const ITEMS_PER_PAGE = 10
 
+// Store
+const dataStore = useDataStore()
+
 // State
-const pegawaiList = ref([])
+const pegawaiList = ref<PegawaiData[]>([])
 const isLoading = ref(true)
 const searchQuery = ref('')
 const currentPage = ref(1)
-const viewMode = ref('list')
+const viewMode = ref<'list'|'form'>('list')
 const isEditMode = ref(false)
 const isSubmitting = ref(false)
 
@@ -231,14 +370,20 @@ const formData = ref({
 
 const notificationModal = ref({
   isOpen: false,
-  type: 'success',
+  type: 'success' as 'success' | 'error' | 'warning' | 'info' | 'confirm',
   title: '',
   message: '',
   confirmText: '',
   onConfirm: () => {}
 })
 
-const showNotification = (type, title, message, onConfirm = null, confirmText = '') => {
+const showNotification = (
+  type: 'success' | 'error' | 'warning' | 'info' | 'confirm', 
+  title: string, 
+  message: string, 
+  onConfirm: (() => void) | null = null, 
+  confirmText = ''
+) => {
   notificationModal.value = {
     isOpen: true,
     type, title, message, onConfirm, confirmText
@@ -258,22 +403,23 @@ watch(searchQuery, () => {
 const fetchPegawai = async () => {
   isLoading.value = true
   try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "GET_PEGAWAI" })
-    })
-    const result = await response.json()
-    if (result.success) {
-      pegawaiList.value = result.data
+    if (dataStore.isCacheValid('pegawai')) {
+      pegawaiList.value = dataStore.pegawaiData
+    } else {
+      const response = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
+      if (response.status && response.data) {
+        pegawaiList.value = response.data
+        dataStore.setPegawaiData(response.data)
+      }
     }
-  } catch (error) {
-    console.error("Error fetching pegawai:", error)
+  } catch {
+    console.error("Error fetching pegawai")
   } finally {
     isLoading.value = false
   }
 }
 
-const openForm = (p = null) => {
+const openForm = (p: PegawaiData | null = null) => {
   if (p) {
     formData.value = { ...p }
     isEditMode.value = true
@@ -296,26 +442,23 @@ const handleSave = async () => {
   
   isSubmitting.value = true
   try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "SAVE_PEGAWAI", data: formData.value })
-    })
-    const result = await response.json()
-    if (result.success) {
+    const result = await fetchApi("SAVE_PEGAWAI", { data: formData.value })
+    if (result.status) {
+      dataStore.invalidateCache('pegawai')
       await fetchPegawai()
       closeForm()
       showNotification('success', 'Berhasil Disimpan', `Data pegawai ${formData.value.nama_lengkap} telah diperbarui di sistem.`)
     } else {
       showNotification('error', 'Gagal', result.message)
     }
-  } catch (error) {
+  } catch {
     showNotification('error', 'Jaringan Error', 'Terjadi kesalahan saat menghubungkan ke server.')
   } finally {
     isSubmitting.value = false
   }
 }
 
-const confirmDelete = (pegawai) => {
+const confirmDelete = (pegawai: PegawaiData) => {
   showNotification(
     'confirm',
     'Hapus Pegawai',
@@ -325,28 +468,25 @@ const confirmDelete = (pegawai) => {
   )
 }
 
-const handleDelete = async (row_number) => {
+const handleDelete = async (row_number: number) => {
   isLoading.value = true
   try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "DELETE_PEGAWAI", row_number })
-    })
-    const result = await response.json()
-    if (result.success) {
+    const result = await fetchApi("DELETE_PEGAWAI", { row_number })
+    if (result.status) {
+      dataStore.invalidateCache('pegawai')
       await fetchPegawai()
       showNotification('success', 'Berhasil Dihapus', 'Data pegawai telah dihapus dari database.')
     } else {
       showNotification('error', 'Gagal', result.message)
     }
-  } catch (error) {
+  } catch {
     showNotification('error', 'Gagal', 'Terjadi kesalahan jaringan.')
   } finally {
     isLoading.value = false
   }
 }
 
-const handlePageChange = (p) => {
+const handlePageChange = (p: number) => {
   currentPage.value = p
 }
 
@@ -354,7 +494,7 @@ const handlePageChange = (p) => {
 const filteredPegawai = computed(() => {
   if (!searchQuery.value) return pegawaiList.value
   const q = searchQuery.value.toLowerCase()
-  return pegawaiList.value.filter(p => 
+  return pegawaiList.value.filter((p: PegawaiData) =>  
     (p.nama_lengkap || '').toLowerCase().includes(q) || 
     (p.nip || '').includes(q)
   )
@@ -368,7 +508,7 @@ const paginatedPegawai = computed(() => {
 })
 
 const visiblePages = computed(() => {
-  const pages = []
+  const pages: number[] = []
   const start = Math.max(1, safePage.value - 2)
   const end = Math.min(totalPages.value, start + 4)
   const finalStart = Math.max(1, end - 4)
