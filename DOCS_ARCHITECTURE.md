@@ -166,3 +166,30 @@ Untuk mendukung akses lintas unit bagi Super Admin, sistem menggunakan logika kh
 - **Session Management**: Data role disimpan dalam `localStorage` saat login.
 - **Form Authorization**: Pilihan role hanya dapat diubah oleh admin yang memiliki akses ke modul Manajer Admin.
 - **Context Refresh**: Saat admin mengubah role mereka sendiri, sistem akan memicu pembaruan sesi dan muat ulang halaman (`window.location.reload()`) untuk memastikan perubahan hak akses diterapkan secara instan di tatap muka pengguna.
+
+---
+
+## 4. Logika & Konvensi Frontend
+
+Bagian ini mendokumentasikan pola teknis yang digunakan di sisi Client (Vue.js) untuk memastikan pengalaman pengguna yang premium dan fungsionalitas yang kuat.
+
+### 4.1. Utilitas Download Langsung (Direct Download)
+File: `src/utils/drive.ts`
+
+Sistem mengimplementasikan konversi URL Google Drive secara otomatis untuk menghindari tab viewer default browser yang lambat.
+- **Mekanisme**: Mengambil File ID dari URL `/file/d/[ID]/view` dan mengubahnya menjadi endpoint `/uc?export=download&id=[ID]`.
+- **Trigger**: Menggunakan elemen `<a>` tersembunyi dengan atribut `download` untuk memicu penyimpanan file langsung ke sistem operasi pengguna.
+
+### 4.2. Standarisasi Hirarki Tombol Aksi
+Seluruh modul manajer (SPT, SPJ, SPTJM, Arsip) mengikuti hirarki tombol aksi yang terpadu:
+1. **Preview (Primary)**: Warna Biru (`bg-blue-600`), Ikon `Eye`. Membuka modal pratinjau internal.
+2. **Download (Secondary)**: Warna Indigo (`bg-indigo-50`), Ikon `Download`. Memicu unduhan file langsung.
+3. **Edit (Management)**: Warna Emerald (`bg-emerald-50`), Ikon `Edit`. Membuka form modifikasi data.
+4. **Hapus (Destructive)**: Warna Rose (`bg-rose-50`), Ikon `Trash2`. Menghapus data dengan konfirmasi.
+
+### 4.3. Pola Navigasi Sidebar (Re-mount)
+File: `src/components/Layout.vue`
+
+Untuk memastikan user dapat mereset tampilan halaman (misalnya keluar dari Form Mode kembali ke List Mode) hanya dengan mengklik menu yang sama di sidebar:
+- **Timestamp Query**: Klik pada menu yang sedang aktif akan menambahkan parameter unik `_t=[timestamp]` ke URL.
+- **Full-Path Key**: `router-view` menggunakan `:key="$route.fullPath"` sehingga setiap perubahan parameter (termasuk timestamp) akan memaksa komponen halaman untuk melakukan insialisasi ulang (re-mount).
