@@ -140,16 +140,16 @@
                     <div class="flex items-center justify-center gap-2">
                       <button
                         v-if="spt.file_link"
-                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm"
+                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
                         title="Preview Dokumen"
                         @click="openPreview(spt.file_link)"
                       >
-                        <Download :size="14" /> Preview
+                        <Eye :size="14" /> Preview
                       </button>
                       <button
                         v-if="spt.file_link"
-                        class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-blue-600 shadow-sm transition-all"
-                        title="Buka di Tab Baru"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-blue-600 hover:bg-blue-50 shadow-sm transition-all"
+                        title="Buka / Download di Tab Baru"
                         @click="openFile(spt.file_link)"
                       >
                         <ExternalLink :size="14" />
@@ -161,15 +161,15 @@
                         Belum Ada
                       </span>
                       <button
-                        class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green shadow-sm transition-all"
-                        title="Edit"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
+                        title="Edit SPT"
                         @click="openForm(spt)"
                       >
                         <Edit :size="14" />
                       </button>
                       <button
-                        class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 shadow-sm transition-all"
-                        title="Hapus"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-red-600 hover:bg-red-50 shadow-sm transition-all"
+                        title="Hapus SPT"
                         @click="handleDelete(spt.id_spt)"
                       >
                         <Trash2 :size="14" />
@@ -561,7 +561,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { 
   FileText, Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, 
-  Save, Download, CheckCircle, Users, UserPlus, ExternalLink
+  Save, Download, CheckCircle, Users, UserPlus, ExternalLink, Eye
 } from 'lucide-vue-next'
 import { fetchApi } from '../config/api'
 import { useDataStore } from '../stores/useDataStore'

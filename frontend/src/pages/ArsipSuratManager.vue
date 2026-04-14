@@ -181,20 +181,36 @@
                     <div class="flex items-center justify-center gap-2">
                       <button
                         v-if="surat.file_surat"
-                        class="p-1.5 bg-white rounded-lg text-blue-600 border border-gray-200 hover:bg-blue-50 hover:border-blue-200 shadow-sm transition-all"
+                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
                         title="Preview Surat"
                         @click="openPreview(surat.file_surat)"
                       >
-                        <FileText :size="14" />
+                        <Eye :size="14" /> Surat
+                      </button>
+                      <button
+                        v-if="surat.file_surat"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-blue-600 hover:bg-blue-50 shadow-sm transition-all"
+                        title="Buka / Download Surat di Tab Baru"
+                        @click="openFile(surat.file_surat)"
+                      >
+                        <ExternalLink :size="14" />
                       </button>
 
                       <button
                         v-if="surat.file_notulensi"
-                        class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm"
+                        class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
                         title="Preview Notulensi"
                         @click="openPreview(surat.file_notulensi)"
                       >
-                        <Download :size="14" /> Notulensi
+                        <Eye :size="14" /> Ntl
+                      </button>
+                      <button
+                        v-if="surat.file_notulensi"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
+                        title="Buka / Download Notulensi di Tab Baru"
+                        @click="openFile(surat.file_notulensi)"
+                      >
+                        <ExternalLink :size="14" />
                       </button>
                       <button
                         v-else
@@ -206,14 +222,14 @@
                       </button>
 
                       <button
-                        class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green shadow-sm transition-all"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
                         title="Edit Data"
                         @click="openForm(surat)"
                       >
                         <Edit :size="14" />
                       </button>
                       <button
-                        class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 shadow-sm transition-all"
+                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-red-600 hover:bg-red-50 shadow-sm transition-all"
                         title="Hapus Data"
                         @click="handleDelete(surat.id_surat)"
                       >
@@ -871,7 +887,7 @@ import { fetchApi } from '../config/api'
 import type { SuratData, PegawaiData } from '../types/api'
 import {
   Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown,
-  Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save
+  Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save, Eye, ExternalLink
 } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
