@@ -183,15 +183,16 @@ function buildSubFlat_(row, startIdx, maxItems, fieldsPerItem, fieldNames) {
 // ==========================================
 function saveSpj(spjData, fileDetails) {
   var sheet = ensurePerjadinSheet_();
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
   var rowIndex = -1;
   var targetId = String(spjData.id_perjadin || "").trim();
 
-  if (targetId) {
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === targetId) { rowIndex = i + 1; break; }
+  if (targetId && lastRow > 1) {
+    var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+    for (var i = 1; i < idList.length; i++) {
+      if (String(idList[i][0]).trim() === targetId) { rowIndex = i + 1; break; }
     }
-  } else {
+  } else if (!targetId) {
     targetId = "SPJ-" + new Date().getTime();
     spjData.id_perjadin = targetId;
   }
@@ -370,10 +371,14 @@ function saveSpj(spjData, fileDetails) {
 // ==========================================
 function deleteSpj(id_perjadin) {
   var sheet = ensurePerjadinSheet_();
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(false, "Data SPJ tidak ditemukan.");
+  
   var targetId = String(id_perjadin).trim();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === targetId) {
+  var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+  
+  for (var i = 1; i < idList.length; i++) {
+    if (String(idList[i][0]).trim() === targetId) {
       sheet.deleteRow(i + 1);
       return createResponse(true, "Data SPJ berhasil dihapus.");
     }
@@ -391,14 +396,23 @@ function generateSpjPdf_(id_perjadin, knownRowIndex, fileDetails) {
   var configSheet = ss.getSheetByName("CONFIG");
   if (!sheet || !configSheet) return "ERR: Sheet PERJADIN/CONFIG tidak ditemukan";
 
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
   var row = null;
   var rowIndex = knownRowIndex || -1;
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === String(id_perjadin).trim()) {
-      row = data[i]; if (!knownRowIndex) rowIndex = i + 1; break;
+
+  if (rowIndex > 0) {
+     row = sheet.getRange(rowIndex, 1, 1, PERJADIN_HEADERS.length).getValues()[0];
+  } else {
+    var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+    for (var i = 1; i < idList.length; i++) {
+      if (String(idList[i][0]).trim() === String(id_perjadin).trim()) {
+        rowIndex = i + 1;
+        row = sheet.getRange(rowIndex, 1, 1, PERJADIN_HEADERS.length).getValues()[0];
+        break;
+      }
     }
   }
+  
   if (!row) return "ERR: Data ID " + id_perjadin + " tidak ditemukan";
 
   var tim_poksi = String(row[COL.TIM_POKSI]).trim();

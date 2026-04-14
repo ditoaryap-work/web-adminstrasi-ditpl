@@ -52,18 +52,19 @@ function saveSptjm(sptjmData) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SPTJM");
   if (!sheet) return createResponse(false, "Tab SPTJM tidak ditemukan!");
   
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
   var rowIndex = -1;
   var targetId = String(sptjmData.id_sptjm || "").trim();
   
-  if (targetId) {
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === targetId) {
+  if (targetId && lastRow > 1) {
+    var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+    for (var i = 1; i < idList.length; i++) {
+      if (String(idList[i][0]).trim() === targetId) {
         rowIndex = i + 1;
         break;
       }
     }
-  } else {
+  } else if (!targetId) {
     targetId = "SPTJM-" + new Date().getTime();
     sptjmData.id_sptjm = targetId;
   }
@@ -136,11 +137,14 @@ function deleteSptjm(id_sptjm) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SPTJM");
   if (!sheet) return createResponse(false, "Tab SPTJM tidak ditemukan!");
   
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(false, "ID tidak ditemukan");
+
   var targetId = String(id_sptjm).trim();
+  var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
   
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === targetId) {
+  for (var i = 1; i < idList.length; i++) {
+    if (String(idList[i][0]).trim() === targetId) {
       sheet.deleteRow(i + 1);
       return createResponse(true, "Data SPTJM dihapus");
     }

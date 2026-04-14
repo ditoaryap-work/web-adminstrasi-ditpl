@@ -58,6 +58,11 @@
           label="SPTJM (Biaya Rill)"
         />
         <NavItem
+          to="/kwitansi-spj"
+          :icon="Receipt"
+          label="Kwitansi & SPD"
+        />
+        <NavItem
           to="/arsip-surat"
           :icon="Inbox"
           label="Arsip Persuratan"
@@ -145,7 +150,7 @@
             mode="out-in"
           >
             <div
-              :key="$route.path"
+              :key="$route.fullPath"
               class="h-full max-w-7xl mx-auto"
             >
               <component :is="Component" />
@@ -162,7 +167,7 @@ import { ref, onMounted, h, type Component as VueComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   LayoutDashboard, FileText, FileSignature, Settings, 
-  LogOut, ChevronRight, Menu, X, Users, Inbox 
+  LogOut, ChevronRight, Menu, X, Users, Inbox, Receipt 
 } from 'lucide-vue-next'
 import { AdminData } from '../types/api'
 
@@ -197,7 +202,12 @@ const NavItem = (props: NavItemProps) => {
   
   return h('button', {
     onClick: () => {
-      router.push(props.to)
+      if (isActive) {
+        // Force re-mount even if already on the same page
+        router.push({ path: props.to, query: { _t: Date.now() } })
+      } else {
+        router.push(props.to)
+      }
       isSidebarOpen.value = false
     },
     class: `flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold ${

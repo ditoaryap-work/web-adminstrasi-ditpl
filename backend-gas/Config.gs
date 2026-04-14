@@ -2,6 +2,8 @@
 // CONFIG: Pengaturan Folder & Template (tab CONFIG)
 // Kolom: A=tim_poksi | B=folder_id_spt | C=folder_id_sptjm 
 //        D=template_id_spt_v1 | E=template_id_spt_v2 | F=template_id_sptjm
+//        G=folder_id_surat_masuk | H=folder_id_surat_keluar | I=folder_id_notulensi
+//        J=folder_id_spj | K=template_id_spj_sheet
 // ==========================================
 
 function getConfig() {
@@ -22,7 +24,9 @@ function getConfig() {
       template_id_sptjm: data[i][5] || "",
       folder_id_surat_masuk: data[i][6] || "",
       folder_id_surat_keluar: data[i][7] || "",
-      folder_id_notulensi: data[i][8] || ""
+      folder_id_notulensi: data[i][8] || "",
+      folder_id_spj: data[i][9] || "",
+      template_id_spj_sheet: data[i][10] || ""
     });
   }
   

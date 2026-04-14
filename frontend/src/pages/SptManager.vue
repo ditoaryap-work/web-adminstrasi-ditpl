@@ -52,6 +52,15 @@
             class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400"
           >
         </div>
+        <button 
+          class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
+          :disabled="isLoading"
+          title="Refresh Data dari Server"
+          @click="handleRefresh"
+        >
+          <RefreshCw :size="18" :class="{ 'animate-spin': isLoading }" />
+          <span class="hidden sm:inline">Refresh Data</span>
+        </button>
       </div>
 
       <!-- Table Section -->
@@ -138,42 +147,48 @@
                   </td>
                   <td class="py-4 px-6 text-center">
                     <div class="flex items-center justify-center gap-2">
-                      <button
-                        v-if="spt.file_link"
-                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
-                        title="Preview Dokumen"
-                        @click="openPreview(spt.file_link)"
-                      >
-                        <Eye :size="14" /> Preview
-                      </button>
-                      <button
-                        v-if="spt.file_link"
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-blue-600 hover:bg-blue-50 shadow-sm transition-all"
-                        title="Buka / Download di Tab Baru"
-                        @click="openFile(spt.file_link)"
-                      >
-                        <ExternalLink :size="14" />
-                      </button>
+                      <!-- Primary Actions Group -->
+                      <div v-if="spt.file_link" class="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                        <button
+                          class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Preview Dokumen"
+                          @click="openPreview(spt.file_link)"
+                        >
+                          <Eye :size="13" /> Preview
+                        </button>
+                        <button
+                          class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Download File Langsung"
+                          @click="triggerDownload(spt.file_link, `SPT_${spt.no.replace(/\//g, '_')}`)"
+                        >
+                          <Download :size="13" /> Download
+                        </button>
+                      </div>
+
                       <span
                         v-if="!spt.file_link"
-                        class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-200 text-xs font-medium"
+                        class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-100 text-[10px] font-bold uppercase tracking-wider"
                       >
                         Belum Ada
                       </span>
-                      <button
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
-                        title="Edit SPT"
-                        @click="openForm(spt)"
-                      >
-                        <Edit :size="14" />
-                      </button>
-                      <button
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-red-600 hover:bg-red-50 shadow-sm transition-all"
-                        title="Hapus SPT"
-                        @click="handleDelete(spt.id_spt)"
-                      >
-                        <Trash2 :size="14" />
-                      </button>
+
+                      <!-- Admin Actions Group -->
+                      <div class="flex items-center gap-2 ml-2 pl-3 border-l border-gray-100">
+                        <button
+                          class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Edit SPT"
+                          @click="openForm(spt)"
+                        >
+                          <Edit :size="13" /> Edit
+                        </button>
+                        <button
+                          class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Hapus SPT"
+                          @click="handleDelete(spt.id_spt)"
+                        >
+                          <Trash2 :size="13" /> Hapus
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -561,7 +576,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { 
   FileText, Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, 
-  Save, Download, CheckCircle, Users, UserPlus, ExternalLink, Eye
+  Save, Download, CheckCircle, Users, UserPlus, ExternalLink, Eye, RefreshCw
 } from 'lucide-vue-next'
 import { fetchApi } from '../config/api'
 import { useDataStore } from '../stores/useDataStore'
@@ -570,6 +585,7 @@ import { formatIndoDate } from '../utils/date'
 import GlobalModal from '../components/GlobalModal.vue'
 import SearchableDropdown from '../components/SearchableDropdown.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
+import { triggerDownload } from '../utils/drive'
 
 const ITEMS_PER_PAGE = 10
 
@@ -802,6 +818,11 @@ const handleDelete = (id: string) => {
       }
     }
   )
+}
+
+const handleRefresh = async () => {
+  dataStore.invalidateCache('spt')
+  await fetchData()
 }
 
 const openFile = (url: string) => {

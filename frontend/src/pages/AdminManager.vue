@@ -149,21 +149,20 @@
               </span>
             </div>
 
-            <!-- Right: Actions -->
             <div class="flex items-center gap-2 shrink-0">
               <button
-                class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 shadow-sm transition-all"
+                class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
                 title="Edit Admin"
                 @click="openForm(admin)"
               >
-                <Edit :size="15" />
+                <Edit :size="13" /> Edit
               </button>
               <button
-                class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 hover:border-red-500 hover:bg-red-50 shadow-sm transition-all"
+                class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
                 title="Hapus Admin"
                 @click="handleDelete(admin.username!)"
               >
-                <Trash2 :size="15" />
+                <Trash2 :size="13" /> Hapus
               </button>
             </div>
           </div>

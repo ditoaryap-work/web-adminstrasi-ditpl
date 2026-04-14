@@ -52,12 +52,12 @@ function saveSpt(sptData) {
   if (!sheet) return createResponse(false, "Tab SPT tidak ditemukan!");
   
   var targetId = String(sptData.id_spt || "").trim();
-  var rowIndex = -1;
+  var lastRow = sheet.getLastRow();
   
-  if (targetId) {
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === targetId) {
+  if (targetId && lastRow > 1) {
+    var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+    for (var i = 1; i < idList.length; i++) {
+      if (String(idList[i][0]).trim() === targetId) {
         rowIndex = i + 1;
         break;
       }
@@ -131,9 +131,12 @@ function deleteSpt(id_spt) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SPT");
   if (!sheet) return createResponse(false, "Tab SPT tidak ditemukan!");
   
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === String(id_spt).trim()) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(false, "ID tidak ditemukan");
+
+  var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+  for (var i = 1; i < idList.length; i++) {
+    if (String(idList[i][0]).trim() === String(id_spt).trim()) {
       sheet.deleteRow(i + 1);
       return createResponse(true, "Data SPT dihapus");
     }
@@ -151,16 +154,20 @@ function generateSptPdf(id_spt, knownRowIndex) {
   var configSheet = ss.getSheetByName("CONFIG");
   if (!sheet || !configSheet) return "ERR: Sheet tidak ditemukan";
   
-  // STEP 1: Cari data
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
   var row = null;
   var rowIndex = knownRowIndex || -1;
   
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === String(id_spt).trim()) {
-      row = data[i];
-      if (!knownRowIndex) rowIndex = i + 1;
-      break;
+  if (rowIndex > 0) {
+    row = sheet.getRange(rowIndex, 1, 1, 10).getValues()[0];
+  } else {
+    var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
+    for (var i = 1; i < idList.length; i++) {
+      if (String(idList[i][0]).trim() === String(id_spt).trim()) {
+        rowIndex = i + 1;
+        row = sheet.getRange(rowIndex, 1, 1, 10).getValues()[0];
+        break;
+      }
     }
   }
   if (!row) return "ERR: ID " + id_spt + " tidak ditemukan";

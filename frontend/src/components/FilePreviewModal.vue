@@ -26,17 +26,27 @@
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <button
+                class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-200"
+                title="Download file ini"
+                @click="triggerDownload(fileUrl, 'Dokumen_Download')"
+              >
+                <Download :size="14" />
+                <span>Download</span>
+              </button>
               <a
                 :href="fileUrl"
                 target="_blank"
                 rel="noopener"
-                class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors border border-blue-100"
+                class="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-xl text-[10px] font-bold hover:bg-gray-200 transition-colors"
+                title="Buka di tab baru"
               >
-                <ExternalLink :size="14" />
-                Tab Baru
+                <ExternalLink :size="12" />
+                <span>Buka Tab</span>
               </a>
               <button
                 class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+                title="Tutup Preview"
                 @click="$emit('close')"
               >
                 <X :size="20" />
@@ -72,7 +82,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { FileText, ExternalLink, X } from 'lucide-vue-next'
+import { FileText, ExternalLink, X, Download } from 'lucide-vue-next'
+import { triggerDownload } from '../utils/drive'
 
 const props = defineProps<{
   isOpen: boolean

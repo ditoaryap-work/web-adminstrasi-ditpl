@@ -138,17 +138,19 @@
                   </td>
                   <td class="py-4 px-6">
                     <div class="flex items-center justify-center gap-2">
-                      <button
-                        class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 shadow-sm transition-all"
+                       <button
+                        class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                        title="Edit Data Pegawai"
                         @click="openForm(p)"
                       >
-                        <Edit :size="15" />
+                        <Edit :size="13" /> Edit
                       </button>
                       <button
-                        class="p-2 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-red-500 hover:border-red-200 hover:bg-red-50 shadow-sm transition-all"
+                        class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                        title="Hapus Data Pegawai"
                         @click="confirmDelete(p)"
                       >
-                        <Trash2 :size="15" />
+                        <Trash2 :size="13" /> Hapus
                       </button>
                     </div>
                   </td>
@@ -337,7 +339,7 @@
       :message="notificationModal.message"
       :confirm-text="notificationModal.confirmText"
       @close="notificationModal.isOpen = false"
-      @confirm="notificationModal.onConfirm"
+      @confirm="() => { if(notificationModal.onConfirm) notificationModal.onConfirm(); notificationModal.isOpen = false }"
     />
   </div>
 </template>
@@ -364,7 +366,17 @@ const viewMode = ref<'list'|'form'>('list')
 const isEditMode = ref(false)
 const isSubmitting = ref(false)
 
-const formData = ref({
+const formData = ref<{
+  row_number: number | null;
+  nama_lengkap: string;
+  nip: string;
+  pangkat_gol_ruang: string;
+  golongan: string;
+  jabatan: string;
+  poksi: string;
+  direktorat: string;
+  tingkat_biaya: string;
+}>({
   row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: ''
 })
 
@@ -374,7 +386,7 @@ const notificationModal = ref({
   title: '',
   message: '',
   confirmText: '',
-  onConfirm: () => {}
+  onConfirm: null as (() => void) | null
 })
 
 const showNotification = (
@@ -386,7 +398,7 @@ const showNotification = (
 ) => {
   notificationModal.value = {
     isOpen: true,
-    type, title, message, onConfirm, confirmText
+    type, title, message, onConfirm: onConfirm || null, confirmText
   }
 }
 
@@ -421,7 +433,17 @@ const fetchPegawai = async () => {
 
 const openForm = (p: PegawaiData | null = null) => {
   if (p) {
-    formData.value = { ...p }
+    formData.value = { 
+      row_number: p.row_number ?? null,
+      nama_lengkap: p.nama_lengkap,
+      nip: p.nip,
+      pangkat_gol_ruang: p.pangkat_gol_ruang || '',
+      golongan: p.golongan || '',
+      jabatan: p.jabatan || '',
+      poksi: p.poksi || '',
+      direktorat: p.direktorat || '',
+      tingkat_biaya: p.tingkat_biaya || ''
+    }
     isEditMode.value = true
   } else {
     formData.value = { row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: '' }
@@ -463,7 +485,7 @@ const confirmDelete = (pegawai: PegawaiData) => {
     'confirm',
     'Hapus Pegawai',
     `Apakah Anda yakin ingin menghapus data ${pegawai.nama_lengkap}? Tindakan ini tidak dapat dibatalkan.`,
-    () => handleDelete(pegawai.row_number),
+    () => { if(pegawai.row_number) handleDelete(pegawai.row_number) },
     'Ya, Hapus'
   )
 }

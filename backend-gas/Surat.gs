@@ -146,10 +146,14 @@ function saveSurat(data, fileDetails) {
   let oldData = sheet.getDataRange().getValues();
   
   if (isEdit) {
-    for (let i = 1; i < oldData.length; i++) {
-      if (oldData[i][0] === data.id_surat) {
-        row = i + 1;
-        break;
+    let lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      let ids = sheet.getRange(1, 1, lastRow, 1).getValues();
+      for (let i = 1; i < ids.length; i++) {
+        if (ids[i][0] === data.id_surat) {
+          row = i + 1;
+          break;
+        }
       }
     }
     if (row === -1) return createResponse(false, "Surat dengan ID tersebut tidak ditemukan untuk diupdate!");
@@ -206,9 +210,12 @@ function deleteSurat(id_surat) {
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SURAT");
   if (!sheet) return createResponse(false, "Tab SURAT tidak ditemukan");
   
-  let data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === id_surat) {
+  let lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(false, "Data Surat tidak ditemukan untuk dihapus");
+
+  let ids = sheet.getRange(1, 1, lastRow, 1).getValues();
+  for (let i = 1; i < ids.length; i++) {
+    if (ids[i][0] === id_surat) {
       sheet.deleteRow(i + 1);
       return createResponse(true, "Data Surat berhasil dihapus");
     }

@@ -132,30 +132,36 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { Search, ChevronDown, Check, X } from 'lucide-vue-next'
 
-const props = defineProps({
-  options: { type: Array, default: () => [] },
-  value: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: 'Ketik untuk mencari...' },
-  label: { type: String, default: '' },
-  required: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false }
-})
+interface DropdownOption {
+  value: string | number;
+  label: string;
+  subtitle?: string;
+}
+
+const props = defineProps<{
+  options?: DropdownOption[];
+  value: string | number;
+  placeholder?: string;
+  label?: string;
+  required?: boolean;
+  disabled?: boolean;
+}>()
 
 const emit = defineEmits(['update:value', 'change'])
 
 const isOpen = ref(false)
 const query = ref('')
-const dropdownRef = ref(null)
-const inputRef = ref(null)
+const dropdownRef = ref<HTMLDivElement | null>(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const selectedOption = computed(() => 
-  props.options.find(opt => opt.value === props.value)
+  (props.options || []).find(opt => opt.value === props.value)
 )
 
 const filtered = computed(() => {
-  if (!query.value) return props.options
+  if (!query.value) return props.options || []
   const q = query.value.toLowerCase()
-  return props.options.filter(opt =>
+  return (props.options || []).filter(opt =>
     opt.label.toLowerCase().includes(q) ||
     (opt.subtitle && opt.subtitle.toLowerCase().includes(q))
   )
@@ -172,7 +178,7 @@ const toggleDropdown = () => {
   }
 }
 
-const handleSelect = (val) => {
+const handleSelect = (val: string | number) => {
   emit('update:value', val)
   emit('change', val)
   isOpen.value = false
@@ -186,8 +192,8 @@ const handleClear = () => {
 }
 
 // Close on click outside
-const handleClickOutside = (e) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+const handleClickOutside = (e: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
     isOpen.value = false
     query.value = ''
   }

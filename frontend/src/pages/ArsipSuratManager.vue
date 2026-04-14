@@ -64,6 +64,15 @@
             class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400"
           >
         </div>
+        <button 
+          class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
+          :disabled="isLoading"
+          title="Refresh Data dari Server"
+          @click="handleRefresh"
+        >
+          <RefreshCw :size="18" :class="{ 'animate-spin': isLoading }" />
+          <span class="hidden sm:inline">Refresh Data</span>
+        </button>
       </div>
 
       <!-- Table Section -->
@@ -179,62 +188,67 @@
                   </td>
                   <td class="py-4 px-6 text-center">
                     <div class="flex items-center justify-center gap-2">
-                      <button
-                        v-if="surat.file_surat"
-                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
-                        title="Preview Surat"
-                        @click="openPreview(surat.file_surat)"
-                      >
-                        <Eye :size="14" /> Surat
-                      </button>
-                      <button
-                        v-if="surat.file_surat"
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-blue-600 hover:bg-blue-50 shadow-sm transition-all"
-                        title="Buka / Download Surat di Tab Baru"
-                        @click="openFile(surat.file_surat)"
-                      >
-                        <ExternalLink :size="14" />
-                      </button>
+                      <!-- SURAT ACTIONS -->
+                      <div v-if="surat.file_surat" class="flex gap-1 items-center bg-blue-50/50 p-1 rounded-xl border border-blue-100">
+                        <button
+                          class="px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Preview Surat"
+                          @click="openPreview(surat.file_surat)"
+                        >
+                          <Eye :size="12" /> Preview
+                        </button>
+                        <button
+                          class="p-1.5 bg-white rounded-lg text-indigo-600 border border-indigo-200 hover:bg-indigo-50 shadow-sm transition-all"
+                          title="Download Surat"
+                          @click="triggerDownload(surat.file_surat, `Surat_${surat.nomor_surat.replace(/\//g, '_')}`)"
+                        >
+                          <Download :size="12" />
+                        </button>
+                      </div>
 
+                      <!-- NOTULENSI ACTIONS -->
+                      <div v-if="surat.file_notulensi" class="flex gap-1 items-center bg-emerald-50/50 p-1 rounded-xl border border-emerald-100">
+                        <button
+                          class="px-2 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Preview Notulensi"
+                          @click="openPreview(surat.file_notulensi)"
+                        >
+                          <Eye :size="12" /> Preview
+                        </button>
+                        <button
+                          class="p-1.5 bg-white rounded-lg text-emerald-600 border border-emerald-200 hover:bg-emerald-50 shadow-sm transition-all"
+                          title="Download Notulensi"
+                          @click="triggerDownload(surat.file_notulensi, `Ntl_${surat.nomor_surat.replace(/\//g, '_')}`)"
+                        >
+                          <Download :size="12" />
+                        </button>
+                      </div>
                       <button
-                        v-if="surat.file_notulensi"
-                        class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-xs flex items-center gap-1.5 shadow-sm"
-                        title="Preview Notulensi"
-                        @click="openPreview(surat.file_notulensi)"
-                      >
-                        <Eye :size="14" /> Ntl
-                      </button>
-                      <button
-                        v-if="surat.file_notulensi"
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
-                        title="Buka / Download Notulensi di Tab Baru"
-                        @click="openFile(surat.file_notulensi)"
-                      >
-                        <ExternalLink :size="14" />
-                      </button>
-                      <button
-                        v-else
+                        v-else-if="surat.kategori_surat === 'Undangan'"
                         class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
                         title="Isi Notulensi / Tindak Lanjut"
                         @click="openNotulensiModal(surat)"
                       >
-                        <NotebookPen :size="14" /> Isi Tindak Lanjut
+                        <NotebookPen :size="13" /> Isi Tindak Lanjut
                       </button>
 
-                      <button
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm transition-all"
-                        title="Edit Data"
-                        @click="openForm(surat)"
-                      >
-                        <Edit :size="14" />
-                      </button>
-                      <button
-                        class="p-1.5 bg-white rounded-lg text-gray-500 border border-gray-200 hover:text-red-600 hover:bg-red-50 shadow-sm transition-all"
-                        title="Hapus Data"
-                        @click="handleDelete(surat.id_surat)"
-                      >
-                        <Trash2 :size="14" />
-                      </button>
+                      <!-- GLOBAL ACTIONS -->
+                      <div class="flex gap-1 items-center ml-2 border-l pl-3 border-gray-100">
+                        <button
+                          class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Edit Data"
+                          @click="openForm(surat)"
+                        >
+                          <Edit :size="13" /> Edit
+                        </button>
+                        <button
+                          class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                          title="Hapus Data"
+                          @click="handleDelete(surat.id_surat)"
+                        >
+                          <Trash2 :size="13" /> Hapus
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -887,10 +901,11 @@ import { fetchApi } from '../config/api'
 import type { SuratData, PegawaiData } from '../types/api'
 import {
   Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown,
-  Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save, Eye, ExternalLink
+  Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save, Eye, ExternalLink, RefreshCw
 } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
+import { triggerDownload } from '../utils/drive'
 
 // ─── CONSTS ──────────────────────────────────────────────
 const ITEMS_PER_PAGE = 10
@@ -1305,6 +1320,11 @@ const handleDelete = (id: string) => {
     },
     'Ya, Hapus!'
   )
+}
+
+const handleRefresh = async () => {
+  dataStore.invalidateCache('surat')
+  await fetchSurat(true)
 }
 
 const openFile = (url: string) => {

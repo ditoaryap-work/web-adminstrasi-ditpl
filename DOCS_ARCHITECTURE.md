@@ -122,6 +122,30 @@ Tab ini menampung log Surat Masuk, Surat Keluar, dan Undangan dengan integrasi d
 - `Q` - **file_notulensi**: URL G-Drive Berkas Notulensi/Lampiran.
 - `R` - **created_at**: Timestamp log dibuat.
 
+### TAB 8: `PERJADIN` (Rekam Kwitansi SPJ & SPD Perjalanan Dinas)
+Tab flat 1-baris-per-orang (**119 kolom**) untuk menyimpan seluruh rincian perjalanan dinas sesuai format audit BPK. Sub-item disimpan dalam kolom berseri. Auto-create header oleh `Spj.gs`.
+
+**Kolom Identitas BPK (A-I, index 0-8):**
+- `A` - **id_perjadin**: PK sistem (SPJ-timestamp).
+- `B` - **nomor_st**: Nomor ST/SPPD.
+- `C` - **asal_instansi**: Asal instansi (default: "Direktorat PL").
+- `D` - **nip**, `E` - **nama**, `F` - **pangkat_gol**, `G` - **gol**: Identitas pelaksana.
+- `H` - **maksud_tujuan**: Bunyi akun perjalanan dinas.
+- `I` - **jumlah_dibayar**: Total jumlah yang dibayar (computed).
+
+**Kolom Tujuan & Waktu (J-O, index 9-14):**
+- `J-L` - **tujuan_1, tujuan_2, tujuan_3**: Kota tujuan (multi-destinasi).
+- `M` - **lama_tugas**, `N` - **tgl_berangkat**, `O` - **tgl_kembali**.
+
+**Uang Harian 1-3 (P-X, index 15-23):** 3 slot × 3 field (perhari, hari, total).
+**Penginapan 1-9 (Y-BH, index 24-59):** 9 slot × 4 field (nama, perhari, hari, total).
+**Extra BPK (BI-BJ, index 60-61):** 2 kolom cadangan BPK.
+**Transport 1-3 (BK-BS, index 62-70):** 3 slot × 3 field (perhari, hari, total).
+**Tiket Berangkat 1-2 (BT-CG, index 71-84):** 2 slot × 7 field (tgl, dari, ke, maskapai, kode_booking, no_tiket, harga).
+**Tiket Pulang 1-3 (CH-DB, index 85-105):** 3 slot × 7 field.
+**Biaya Lain (DC-DE, index 106-108):** taksi, representasi, uang_lainnya.
+**Sistem & Template (DF-DO, index 109-118):** no_spd, no_akun, jabatan, tingkat_biaya, kendaraan, tgl_perintah, tim_poksi, file_link, file_bukti, created_at.
+
 ---
 
 ## 3. Logika Role-Based Access Control (RBAC)
