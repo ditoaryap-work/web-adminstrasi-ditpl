@@ -10,7 +10,9 @@ function getSptjmList(tim_poksi) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SPTJM");
   if (!sheet) return createResponse(false, "Tab SPTJM tidak ditemukan!");
   
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(true, "Data SPTJM ditarik", []);
+  var data = sheet.getRange(1, 1, lastRow, 15).getValues();
   var result = [];
   
   for (var i = 1; i < data.length; i++) {

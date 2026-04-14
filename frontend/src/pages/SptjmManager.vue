@@ -132,15 +132,15 @@
                       <button
                         v-if="item.file_link"
                         class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm"
-                        title="Download PDF"
-                        @click="openFile(item.file_link)"
+                        title="Preview Dokumen"
+                        @click="openPreview(item.file_link)"
                       >
-                        <Download :size="14" /> Download
+                        <Download :size="14" /> Preview
                       </button>
                       <button
                         v-if="item.file_link"
                         class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-blue-600 shadow-sm transition-all"
-                        title="Preview di Tab Baru"
+                        title="Buka di Tab Baru"
                         @click="openFile(item.file_link)"
                       >
                         <ExternalLink :size="14" />
@@ -607,7 +607,14 @@
       :message="notificationModal.message"
       :confirm-text="notificationModal.confirmText"
       @close="notificationModal.isOpen = false"
-      @confirm="notificationModal.onConfirm"
+      @confirm="() => { if(notificationModal.onConfirm) notificationModal.onConfirm(); notificationModal.isOpen = false }"
+    />
+
+    <!-- File Preview Modal -->
+    <FilePreviewModal
+      :is-open="showPreview"
+      :file-url="previewUrl"
+      @close="showPreview = false"
     />
   </div>
 </template>
@@ -624,6 +631,7 @@ import { PegawaiData, SptjmData, SbmData, AdminData } from '../types/api'
 import { formatSmartDateRange } from '../utils/date'
 import SearchableDropdown from '../components/SearchableDropdown.vue'
 import GlobalModal from '../components/GlobalModal.vue'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 
 const ITEMS_PER_PAGE = 10
 
@@ -675,7 +683,7 @@ const showNotification = (
 ) => {
   notificationModal.value = {
     isOpen: true,
-    type, title, message, onConfirm, confirmText
+    type, title, message, onConfirm: onConfirm || null, confirmText
   }
 }
 
@@ -924,6 +932,14 @@ const handleDelete = (id: string) => {
 const openFile = (url: string) => {
   if (!url) return
   window.open(url, '_blank')
+}
+
+const showPreview = ref(false)
+const previewUrl = ref('')
+const openPreview = (url: string) => {
+  if (!url) return
+  previewUrl.value = url
+  showPreview.value = true
 }
 
 // Helpers

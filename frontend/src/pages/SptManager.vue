@@ -141,14 +141,15 @@
                       <button
                         v-if="spt.file_link"
                         class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm"
-                        @click="openFile(spt.file_link)"
+                        title="Preview Dokumen"
+                        @click="openPreview(spt.file_link)"
                       >
-                        <Download :size="14" /> Download
+                        <Download :size="14" /> Preview
                       </button>
                       <button
                         v-if="spt.file_link"
                         class="p-1.5 bg-white rounded-lg text-gray-400 border border-gray-200 hover:text-blue-600 shadow-sm transition-all"
-                        title="Preview di Tab Baru"
+                        title="Buka di Tab Baru"
                         @click="openFile(spt.file_link)"
                       >
                         <ExternalLink :size="14" />
@@ -544,7 +545,14 @@
       :message="notificationModal.message"
       :confirm-text="notificationModal.confirmText"
       @close="notificationModal.isOpen = false"
-      @confirm="notificationModal.onConfirm"
+      @confirm="() => { if(notificationModal.onConfirm) notificationModal.onConfirm(); notificationModal.isOpen = false }"
+    />
+
+    <!-- File Preview Modal -->
+    <FilePreviewModal
+      :is-open="showPreview"
+      :file-url="previewUrl"
+      @close="showPreview = false"
     />
   </div>
 </template>
@@ -561,6 +569,7 @@ import { SptData, PegawaiData, AdminData, SptPeserta } from '../types/api'
 import { formatIndoDate } from '../utils/date'
 import GlobalModal from '../components/GlobalModal.vue'
 import SearchableDropdown from '../components/SearchableDropdown.vue'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 
 const ITEMS_PER_PAGE = 10
 
@@ -603,7 +612,7 @@ const notificationModal = ref({
   title: '',
   message: '',
   confirmText: '',
-  onConfirm: () => {}
+  onConfirm: null as (() => void) | null
 })
 
 const showNotification = (
@@ -615,7 +624,7 @@ const showNotification = (
 ) => {
   notificationModal.value = {
     isOpen: true,
-    type, title, message, onConfirm, confirmText
+    type, title, message, onConfirm: onConfirm || null, confirmText
   }
 }
 
@@ -752,8 +761,8 @@ const handleSave = async () => {
     const result = await fetchApi("SAVE_SPT", { data: payload })
     
     if (result.status) {
-      const savedItem = { ...payload, file_link: result.data?.file_link || null }
-      successModal.value = { isOpen: true, item: savedItem }
+      const savedItem = { ...payload, file_link: (result.data as any)?.file_link || null }
+      successModal.value = { isOpen: true, item: savedItem as any }
       
       // Force cache invalidation so GET_SPT_LIST fetches new data
       dataStore.invalidateCache('spt')
@@ -800,6 +809,14 @@ const openFile = (url: string) => {
   window.open(url, '_blank')
 }
 
+const showPreview = ref(false)
+const previewUrl = ref('')
+const openPreview = (url: string) => {
+  if (!url) return
+  previewUrl.value = url
+  showPreview.value = true
+}
+
 
 // Computed
 const filteredList = computed(() => {
@@ -817,7 +834,7 @@ const paginatedList = computed(() => filteredList.value.slice((safePage.value - 
 
 const pegawaiOptions = computed(() => pegawaiList.value.map((p: PegawaiData, idx: number) => ({
   value: String(idx), 
-  label: `${p.nama_lengkap || p.nama} - ${p.jabatan || p.poksi || '-'}` 
+  label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}` 
 })))
 </script>
 

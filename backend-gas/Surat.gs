@@ -7,8 +7,9 @@ function getSuratList(tim_poksi, role) {
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SURAT");
   if (!sheet) return createResponse(false, "Tab SURAT tidak ditemukan!");
   
-  let data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return createResponse(true, "Data SURAT berhasil ditarik", []);
+  let lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(true, "Data SURAT berhasil ditarik", []);
+  let data = sheet.getRange(1, 1, lastRow, 18).getValues();
 
   let headers = data[0]; 
   let results = [];

@@ -182,8 +182,8 @@
                       <button
                         v-if="surat.file_surat"
                         class="p-1.5 bg-white rounded-lg text-blue-600 border border-gray-200 hover:bg-blue-50 hover:border-blue-200 shadow-sm transition-all"
-                        title="Lihat Surat"
-                        @click="openFile(surat.file_surat)"
+                        title="Preview Surat"
+                        @click="openPreview(surat.file_surat)"
                       >
                         <FileText :size="14" />
                       </button>
@@ -191,8 +191,8 @@
                       <button
                         v-if="surat.file_notulensi"
                         class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-xs flex items-center gap-2 shadow-sm"
-                        title="Download Notulensi"
-                        @click="openFile(surat.file_notulensi)"
+                        title="Preview Notulensi"
+                        @click="openPreview(surat.file_notulensi)"
                       >
                         <Download :size="14" /> Notulensi
                       </button>
@@ -853,6 +853,13 @@
         </div>
       </transition>
     </Teleport>
+
+    <!-- File Preview Modal -->
+    <FilePreviewModal
+      :is-open="showPreview"
+      :file-url="previewUrl"
+      @close="showPreview = false"
+    />
   </div>
 </template>
 
@@ -867,6 +874,7 @@ import {
   Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save
 } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 
 // ─── CONSTS ──────────────────────────────────────────────
 const ITEMS_PER_PAGE = 10
@@ -1286,6 +1294,14 @@ const handleDelete = (id: string) => {
 const openFile = (url: string) => {
   if (!url) return
   window.open(url, '_blank')
+}
+
+const showPreview = ref(false)
+const previewUrl = ref('')
+const openPreview = (url: string) => {
+  if (!url) return
+  previewUrl.value = url
+  showPreview.value = true
 }
 
 // ─── LIFECYCLE ────────────────────────────────────────────

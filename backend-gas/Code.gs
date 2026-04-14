@@ -83,6 +83,17 @@ function doPost(e) {
       return deleteSurat(payload.id_surat);
     }
 
+    // === KWITANSI SPJ (Perjalanan Dinas) ===
+    else if (action === "GET_SPJ_LIST") {
+      return getSpjList(payload.tim_poksi, payload.role);
+    }
+    else if (action === "SAVE_SPJ") {
+      return saveSpj(payload.data, payload.fileDetails);
+    }
+    else if (action === "DELETE_SPJ") {
+      return deleteSpj(payload.id_perjadin);
+    }
+
     // === DEBUG: Test Permissions ===
     else if (action === "TEST_PERMISSIONS") {
       return testPermissions();

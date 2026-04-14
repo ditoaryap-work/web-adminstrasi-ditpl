@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { SptData, SptjmData, PegawaiData, SbmData, SuratData } from '../types/api'
+import { SptData, SptjmData, PegawaiData, SbmData, SuratData, SpjData } from '../types/api'
 
-// Cache valid for 5 minutes
-const CACHE_TTL_MS = 5 * 60 * 1000
+// Cache valid for 15 minutes (reduce GAS API hit frequency)
+const CACHE_TTL_MS = 15 * 60 * 1000
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -11,25 +11,28 @@ export const useDataStore = defineStore('data', {
     pegawaiData: [] as PegawaiData[],
     sbmData: [] as SbmData[],
     suratData: [] as SuratData[],
+    spjData: [] as SpjData[],
     lastFetchTime: {
       spt: 0,
       sptjm: 0,
       pegawai: 0,
       sbm: 0,
-      surat: 0
+      surat: 0,
+      spj: 0
     }
   }),
 
   actions: {
     // Check if cache is still valid
-    isCacheValid(type: 'spt' | 'sptjm' | 'pegawai' | 'sbm' | 'surat') {
+    isCacheValid(type: 'spt' | 'sptjm' | 'pegawai' | 'sbm' | 'surat' | 'spj') {
       const now = Date.now()
       const hasData = {
         spt: this.sptData.length > 0,
         sptjm: this.sptjmData.length > 0,
         pegawai: this.pegawaiData.length > 0,
         sbm: this.sbmData.length > 0,
-        surat: this.suratData.length > 0
+        surat: this.suratData.length > 0,
+        spj: this.spjData.length > 0
       }[type]
       return (now - this.lastFetchTime[type]) < CACHE_TTL_MS && hasData
     },
@@ -59,9 +62,14 @@ export const useDataStore = defineStore('data', {
       this.lastFetchTime.surat = Date.now()
     },
 
-    invalidateCache(type: 'spt' | 'sptjm' | 'pegawai' | 'sbm' | 'surat' | 'all') {
+    setSpjData(data: SpjData[]) {
+      this.spjData = data
+      this.lastFetchTime.spj = Date.now()
+    },
+
+    invalidateCache(type: 'spt' | 'sptjm' | 'pegawai' | 'sbm' | 'surat' | 'spj' | 'all') {
       if (type === 'all') {
-        this.lastFetchTime = { spt: 0, sptjm: 0, pegawai: 0, sbm: 0, surat: 0 }
+        this.lastFetchTime = { spt: 0, sptjm: 0, pegawai: 0, sbm: 0, surat: 0, spj: 0 }
       } else {
         this.lastFetchTime[type] = 0
       }

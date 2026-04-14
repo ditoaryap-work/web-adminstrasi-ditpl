@@ -96,3 +96,80 @@ export interface SuratData {
   file_notulensi?: string;
   created_at?: string;
 }
+
+// ===== Kwitansi SPJ — Struktur BPK 119 kolom =====
+
+export interface SpjUangHarian {
+  perhari: number | string;
+  hari: number | string;
+  total: number | string;
+}
+
+export interface SpjPenginapan {
+  nama: string;
+  perhari: number | string;
+  hari: number | string;
+  total: number | string;
+}
+
+export interface SpjTransport {
+  perhari: number | string;
+  hari: number | string;
+  total: number | string;
+}
+
+export interface SpjTiket {
+  tgl: string;
+  dari: string;
+  ke: string;
+  maskapai: string;
+  kode_booking: string;
+  no_tiket: string;
+  harga: number | string;
+}
+
+export interface SpjData {
+  id_perjadin: string;
+  // BPK Identitas
+  nomor_st: string;
+  asal_instansi: string;
+  nip: string;
+  nama: string;
+  pangkat_gol: string;
+  gol: string;
+  maksud_tujuan: string;
+  jumlah_dibayar: number | string;
+  // BPK Tujuan & Waktu
+  tujuan_1: string;
+  tujuan_2: string;
+  tujuan_3: string;
+  lama_tugas: number | string;
+  tgl_berangkat: string;
+  tgl_kembali: string;
+  // Sub-items
+  uang_harian: SpjUangHarian[];
+  penginapan: SpjPenginapan[];
+  transport: SpjTransport[];
+  tiket_berangkat: SpjTiket[];
+  tiket_pulang: SpjTiket[];
+  // Biaya lain
+  taksi: number | string;
+  representasi: number | string;
+  uang_lainnya: number | string;
+  // Sistem / Template
+  no_spd: string;
+  no_urut_spd: string; // 3 digit urutan SPD (001, dst)
+  no_akun: string;
+  kode_mak: string; // Kode MAK
+  kode_kapoksi: string;
+  nomor_ls: string;
+  uraian_pembayaran: string;
+  jabatan: string;
+  tingkat_biaya: string;
+  kendaraan: string;
+  tgl_perintah: string;
+  tim_poksi: string;
+  file_link?: string;
+  file_bukti?: string;
+  created_at?: string;
+}

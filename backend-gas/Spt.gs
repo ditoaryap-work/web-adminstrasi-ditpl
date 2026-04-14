@@ -11,7 +11,9 @@ function getSptList(tim_poksi) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SPT");
   if (!sheet) return createResponse(false, "Tab SPT tidak ditemukan!");
   
-  var data = sheet.getDataRange().getValues();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createResponse(true, "Data SPT ditarik", []);
+  var data = sheet.getRange(1, 1, lastRow, 10).getValues();
   var result = [];
   
   for (var i = 1; i < data.length; i++) {
