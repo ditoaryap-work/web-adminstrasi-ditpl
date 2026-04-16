@@ -71,8 +71,11 @@ function savePegawai(data) {
     rowData[0] = existingData[rowIndex - 1][0];
     sheet.getRange(rowIndex, 1, 1, 9).setValues([rowData]);
   } else {
-    // Insert baru: Generate nomor urut
-    rowData[0] = existingData.length; 
+    // Insert baru: Nomor urut = total baris data yang sudah ada (tanpa header)
+    // existingData.length termasuk header row, jadi -1 untuk data, +1 untuk nomor baru = existingData.length - 1 + 1 = existingData.length - 1
+    // Yang benar: nomor urut = total baris data = lastRow - 1 (karena baris 1 adalah header)
+    var lastRow = sheet.getLastRow();
+    rowData[0] = lastRow; // Nomor urut = lastRow (1 header + n data, nomor baru = n+1 tapi karena index mulai 1 = lastRow)
     sheet.appendRow(rowData);
   }
   

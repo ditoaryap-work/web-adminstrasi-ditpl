@@ -65,9 +65,17 @@ function saveSptjm(sptjmData) {
       }
     }
   } else if (!targetId) {
-    targetId = "SPTJM-" + new Date().getTime();
+    // UUID anti-tabrakan (menggantikan timestamp)
+    targetId = "SPTJM-" + Utilities.getUuid();
     sptjmData.id_sptjm = targetId;
   }
+  
+  // === SERVER-SIDE Calculation: total_biaya = tiket pergi + tiket pulang ===
+  // Catatan: biaya_sbm adalah PAGU (batas atas), BUKAN komponen biaya.
+  // SPTJM dibuat untuk membuktikan bahwa total tiket (pergi+pulang) <= pagu SBM.
+  var tiketBerangkat = Number(sptjmData.tiket_berangkat) || 0;
+  var tiketPulang    = Number(sptjmData.tiket_pulang)    || 0;
+  sptjmData.total_biaya = tiketBerangkat + tiketPulang;
   
   var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
   var createdAt = nowStr;

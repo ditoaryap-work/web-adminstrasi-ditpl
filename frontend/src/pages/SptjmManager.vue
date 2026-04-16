@@ -574,13 +574,20 @@
               </div>
             </div>
             <div class="p-5 pt-4 flex flex-col gap-2.5">
-              <button 
-                v-if="successModal.item?.file_link"
-                class="w-full py-3 bg-emerald-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2.5 hover:bg-emerald-600 transition-colors text-sm" 
-                @click="openFile(successModal.item.file_link)"
-              >
-                <Download :size="18" /> Download PDF
-              </button>
+              <template v-if="successModal.item?.file_link">
+                <button 
+                  class="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2.5 hover:bg-blue-700 transition-colors text-sm" 
+                  @click="openPreview(successModal.item!.file_link)"
+                >
+                  <Eye :size="18" /> Preview Dokumen
+                </button>
+                <button 
+                  class="w-full py-3 bg-emerald-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2.5 hover:bg-emerald-600 transition-colors text-sm" 
+                  @click="triggerDownload(successModal.item!.file_link, `SPTJM_${successModal.item?.nama_lengkap?.replace(/\s+/g,'_')}`)"
+                >
+                  <Download :size="18" /> Download PDF
+                </button>
+              </template>
               <p
                 v-else
                 class="text-center text-xs text-gray-400 font-semibold py-3"

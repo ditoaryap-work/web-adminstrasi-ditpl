@@ -159,7 +159,8 @@ function saveSurat(data, fileDetails) {
     if (row === -1) return createResponse(false, "Surat dengan ID tersebut tidak ditemukan untuk diupdate!");
   } else {
     // Data Baru
-    data.id_surat = "SRT-" + new Date().getTime();
+    // UUID anti-tabrakan (menggantikan timestamp)
+    data.id_surat = "SRT-" + Utilities.getUuid();
     data.created_at = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
     row = sheet.getLastRow() + 1;
   }

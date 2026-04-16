@@ -1176,6 +1176,14 @@ const handleFileUpload = (e: Event, field: 'file_surat' | 'file_notulensi') => {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+
+  // Batas 10 MB (10 * 1024 * 1024 bytes) mencegah Payload 413 Error GAS
+  if (file.size > 10485760) {
+    showNotification('error', 'File Terlalu Besar!', 'Ukuran maksimal file lampiran adalah 10 MB. Silakan kompres kompres file terlebih dahulu.')
+    input.value = '' // Reset input
+    return
+  }
+
   files.value[field] = file
 }
 

@@ -193,7 +193,7 @@ function saveSpj(spjData, fileDetails) {
       if (String(idList[i][0]).trim() === targetId) { rowIndex = i + 1; break; }
     }
   } else if (!targetId) {
-    targetId = "SPJ-" + new Date().getTime();
+    targetId = "SPJ-" + Utilities.getUuid();
     spjData.id_perjadin = targetId;
   }
 
@@ -231,7 +231,10 @@ function saveSpj(spjData, fileDetails) {
             var driveFile = folder.createFile(blob);
             driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
             uploadedUrls.push(driveFile.getUrl());
-          } catch(err) { Logger.log("[SPJ] Upload gagal: " + err.toString()); }
+          } catch(err) { 
+            Logger.log("[SPJ] Upload gagal: " + err.toString()); 
+            return createResponse(false, "Gagal mengunggah lampiran gambar ke Google Drive: " + err.toString());
+          }
         }
         fileBuktiUrl = uploadedUrls.join(", ");
       }
@@ -342,6 +345,24 @@ function saveSpj(spjData, fileDetails) {
   rowData[COL.FILE_BUKTI] = fileBuktiUrl;
   rowData[COL.CREATED] = createdAt;
 
+  // SpreadsheetApp.flush(); // Dihapus untuk menghemat IO karena flush berat, dipindah ke tahap akhir jika tidak ekspor PDF
+
+  // === Validasi Data Integrity ===
+  // Memastikan bahwa jumlah yang dibayar valid dan tidak kena manipulasi frontend
+  var calcTotalUh = 0, calcTotalHtl = 0, calcTotalTrp = 0, calcTotalTkt = 0;
+  var uhArr = spjData.uang_harian || [];
+  for (var c1 = 0; c1 < 3; c1++) { calcTotalUh += Number((uhArr[c1]||{}).total) || 0; }
+  var htlArr = spjData.penginapan || [];
+  for (var c2 = 0; c2 < 9; c2++) { calcTotalHtl += Number((htlArr[c2]||{}).total) || 0; }
+  var trpArr = spjData.transport || [];
+  for (var c3 = 0; c3 < 3; c3++) { calcTotalTrp += Number((trpArr[c3]||{}).total) || 0; }
+  var tktBArr = spjData.tiket_berangkat || [];
+  for (var c4 = 0; c4 < 2; c4++) { calcTotalTkt += Number((tktBArr[c4]||{}).harga) || 0; }
+  var tktPArr = spjData.tiket_pulang || [];
+  for (var c5 = 0; c5 < 3; c5++) { calcTotalTkt += Number((tktPArr[c5]||{}).harga) || 0; }
+  var grandTotalBackend = calcTotalUh + calcTotalHtl + calcTotalTrp + calcTotalTkt + (Number(spjData.taksi)||0) + (Number(spjData.representasi)||0) + (Number(spjData.uang_lainnya)||0);
+  rowData[COL.JML_DIBAYAR] = grandTotalBackend; // Timpa hasil dari Frontend
+
   if (rowIndex > -1) {
     sheet.getRange(rowIndex, 1, 1, PERJADIN_HEADERS.length).setValues([rowData]);
   } else {
@@ -351,7 +372,6 @@ function saveSpj(spjData, fileDetails) {
       if (String(allData[k][0]).trim() === targetId) { rowIndex = k + 1; break; }
     }
   }
-  SpreadsheetApp.flush();
 
   // Auto Generate PDF
   try {

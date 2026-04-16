@@ -3,8 +3,8 @@
 // CRUD + Generate PDF dengan tabel dinamis
 // Sheet: A=id_spt B=no C=tanggal_surat D=maksud_perjalanan
 //        E=peserta(JSON) F=peserta_count G=tim_poksi
-//        H=file_link I=mak J=created_at
-// Total: 10 kolom (A-J)
+//        H=file_link I=mak J=created_at K=kegiatan
+// Total: 11 kolom (A-K)
 // ==========================================
 
 function getSptList(tim_poksi) {
@@ -13,7 +13,7 @@ function getSptList(tim_poksi) {
   
   var lastRow = sheet.getLastRow();
   if (lastRow <= 1) return createResponse(true, "Data SPT ditarik", []);
-  var data = sheet.getRange(1, 1, lastRow, 10).getValues();
+  var data = sheet.getRange(1, 1, lastRow, 11).getValues();
   var result = [];
   
   for (var i = 1; i < data.length; i++) {
@@ -40,7 +40,8 @@ function getSptList(tim_poksi) {
       tim_poksi: rowTimPoksi,            // G = index 6
       file_link: data[i][7] || "",       // H = index 7
       mak: data[i][8] || "",             // I = index 8
-      created_at: data[i][9] ? Utilities.formatDate(new Date(data[i][9]), Session.getScriptTimeZone(), "dd MMM yyyy HH:mm") : "" // J = index 9
+      created_at: data[i][9] ? Utilities.formatDate(new Date(data[i][9]), Session.getScriptTimeZone(), "dd MMM yyyy HH:mm") : "", // J = index 9
+      kegiatan: data[i][10] || ""        // K = index 10
     });
   }
   
@@ -53,6 +54,7 @@ function saveSpt(sptData) {
   
   var targetId = String(sptData.id_spt || "").trim();
   var lastRow = sheet.getLastRow();
+  var rowIndex = -1; // Dideklarasikan lokal agar tidak mencemari scope global
   
   if (targetId && lastRow > 1) {
     var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
@@ -64,8 +66,9 @@ function saveSpt(sptData) {
     }
   }
   
-  if (!targetId || rowIndex === -1) {
-    targetId = "SPT-" + new Date().getTime();
+  if (!targetId) {
+    // UUID anti-tabrakan (menggantikan timestamp)
+    targetId = "SPT-" + Utilities.getUuid();
     sptData.id_spt = targetId;
   }
   
@@ -93,13 +96,15 @@ function saveSpt(sptData) {
     sptData.tim_poksi || "",           // G = tim_poksi
     "",                                // H = file_link — diisi setelah PDF
     sptData.mak || "",                 // I = mak
-    createdAt                          // J = created_at
+    createdAt,                         // J = created_at
+    sptData.kegiatan || ""             // K = kegiatan
   ];
   
   if (rowIndex > 1) {
-    sheet.getRange(rowIndex, 1, 1, 10).setValues([rowData]); // 10 kolom
+    sheet.getRange(rowIndex, 1, 1, 11).setValues([rowData]); // Edit: update baris existing
   } else {
     sheet.appendRow(rowData);
+    // Satu flush setelah appendRow untuk mendapatkan rowIndex baru
     SpreadsheetApp.flush();
     var allData = sheet.getDataRange().getValues();
     for (var k = allData.length - 1; k >= 1; k--) {
@@ -109,8 +114,6 @@ function saveSpt(sptData) {
       }
     }
   }
-  
-  SpreadsheetApp.flush();
   
   // Auto Generate PDF
   try {
@@ -159,7 +162,7 @@ function generateSptPdf(id_spt, knownRowIndex) {
   var rowIndex = knownRowIndex || -1;
   
   if (rowIndex > 0) {
-    row = sheet.getRange(rowIndex, 1, 1, 10).getValues()[0];
+    row = sheet.getRange(rowIndex, 1, 1, 11).getValues()[0];
   } else {
     var idList = sheet.getRange(1, 1, lastRow, 1).getValues();
     for (var i = 1; i < idList.length; i++) {
@@ -221,10 +224,11 @@ function generateSptPdf(id_spt, knownRowIndex) {
     var body = doc.getBody();
     
     // Replace global placeholders
-    body.replaceText('\\{\\{nomor_surat\\}\\}', String(row[1] || "-"));        // B = no
-    body.replaceText('\\{\\{tanggal_surat\\}\\}', formatTanggalIndonesia(row[2])); // C = tanggal_surat
-    body.replaceText('\\{\\{maksud_perjalanan\\}\\}', String(row[3] || "-"));   // D = maksud_perjalanan
-    body.replaceText('\\{\\{mak\\}\\}', String(row[8] || "-"));                 // I = index 8 = mak
+    body.replaceText('\{\{nomor_surat\}\}', String(row[1] || "-"));        // B = no
+    body.replaceText('\{\{tanggal_surat\}\}', formatTanggalIndonesia(row[2])); // C = tanggal_surat
+    body.replaceText('\{\{maksud_perjalanan\}\}', String(row[3] || "-"));   // D = maksud_perjalanan
+    body.replaceText('\{\{mak\}\}', String(row[8] || "-"));                 // I = index 8 = mak
+    body.replaceText('\{\{kegiatan\}\}', String(row[10] || "-"));           // K = index 10 = kegiatan
     
     // Dynamic Table Manipulation - ROBUST method using direct setText per cell
     var tables = body.getTables();

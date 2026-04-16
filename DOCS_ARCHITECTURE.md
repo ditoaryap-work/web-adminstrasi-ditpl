@@ -21,6 +21,7 @@ Sistem penyimpanan membagi arsip berdasarkan *Tim Poksi*. Setiap Tim memegang ko
  │    ├── 📁 TU_Direktorat_PL
  │    │    ├── 📁 SPT                   (ID Folder: kolom B di Config)
  │    │    ├── 📁 SPTJM                 (ID Folder: kolom C di Config)
+ │    │    ├── 📁 SPJ_Kuitansi          (ID Folder: kolom J di Config)
  │    │    ├── 📁 Surat_Masuk           (ID Folder: kolom G di Config)
  │    │    ├── 📁 Surat_Keluar          (ID Folder: kolom H di Config)
  │    │    └── 📁 Notulensi_Acara       (ID Folder: kolom I di Config)
@@ -57,6 +58,8 @@ Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`.
 - `G` - **folder_id_surat_masuk** (Modul E-Arsip)
 - `H` - **folder_id_surat_keluar** (Modul E-Arsip)
 - `I` - **folder_id_notulensi**    (Modul E-Arsip)
+- `J` - **folder_id_spj**          (Modul SPJ)
+- `K` - **template_id_spj**        (Modul SPJ)
 
 ### TAB 3: `SBM` (Kamus Standar Biaya Masukan)
 - Tabel masif ini menyimpan referensi akuntansi uang harian, tiket, pajak bandara, dll. Sistem membaca kota `Kec_Kab` dan parameter `Pesawat` maupun Golongan Eselon.
@@ -131,7 +134,7 @@ Tab flat 1-baris-per-orang (**119 kolom**) untuk menyimpan seluruh rincian perja
 - `C` - **asal_instansi**: Asal instansi (default: "Direktorat PL").
 - `D` - **nip**, `E` - **nama**, `F` - **pangkat_gol**, `G` - **gol**: Identitas pelaksana.
 - `H` - **maksud_tujuan**: Bunyi akun perjalanan dinas.
-- `I` - **jumlah_dibayar**: Total jumlah yang dibayar (computed).
+- `I` - **jumlah_dibayar**: Total jumlah yang dibayar (computed via backend `Spj.gs` for data integrity).
 
 **Kolom Tujuan & Waktu (J-O, index 9-14):**
 - `J-L` - **tujuan_1, tujuan_2, tujuan_3**: Kota tujuan (multi-destinasi).
