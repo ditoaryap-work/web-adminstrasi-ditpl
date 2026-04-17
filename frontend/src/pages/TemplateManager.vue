@@ -104,6 +104,7 @@
           </div>
         </div>
       </div>
+    </div>
     <!-- Global Notifications Modal -->
     <GlobalModal 
       :is-open="notificationModal.isOpen"
