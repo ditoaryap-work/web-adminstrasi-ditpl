@@ -63,10 +63,10 @@ sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
        return c.json({ status: false, message: 'Gagal: Folder Drive SPTJM belum dikonfigurasi untuk tim ini.' }, 400);
     }
     
-    // Baca template SPTJM dari disk lokal
-    const localTemplatePath = getTemplatePath('TPL_SPTJM');
+    // Baca template SPTJM dari disk lokal (Smart Sync: download otomatis jika belum ada)
+    const localTemplatePath = await getTemplatePath('TPL_SPTJM', user.timPoksi);
     if (!localTemplatePath) {
-       return c.json({ status: false, message: 'Template SPTJM lokal tidak ditemukan. Upload template via Sistem Template.' }, 400);
+       return c.json({ status: false, message: `Template SPTJM untuk tim ${user.timPoksi} tidak ditemukan. Pastikan file tersedia di Google Drive.` }, 400);
     }
     
     // Mutex Locked PDF Processing

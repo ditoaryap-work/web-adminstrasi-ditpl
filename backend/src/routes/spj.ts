@@ -7,7 +7,8 @@ import { eq, desc } from 'drizzle-orm';
 import { authMiddleware, JwtPayload } from '../middleware/auth';
 import { generatePdfFromDocx, mergePdfs, convertImageToPdf } from '../services/pdf.service';
 import { syncSpjToSheets, deleteSpjFromSheets } from '../services/sheets.service';
-import { uploadBufferToDrive, downloadTemplateToLocal } from '../services/drive.service';
+import { uploadBufferToDrive } from '../services/drive.service';
+import { getTemplatePath } from '../services/template.service';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -93,8 +94,11 @@ spjRouter.post('/', async (c) => {
         if (templateId && folderId) {
             console.log(`[SPJ Engine] Starting PDF generation for ${savedSpj.id}`);
             
-            // a. Download & Render Template
-            const localTemplatePath = await downloadTemplateToLocal(templateId, `template_spj_${user.timPoksi}.xlsx`);
+            // a. Ambil Template (Smart Sync: otomatis download ke VPS jika belum ada)
+            const localTemplatePath = await getTemplatePath('TPL_SPJ', user.timPoksi);
+            if (!localTemplatePath) {
+                throw new Error(`Template SPJ untuk tim ${user.timPoksi} gagal dimuat. Cek Google Drive.`);
+            }
             const kwitansiBuffer = await generatePdfFromDocx(localTemplatePath, savedSpj);
             
             // b. Ambil Lampiran Bukti dari Multipart

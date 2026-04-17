@@ -11,98 +11,91 @@ import * as os from 'os';
 
 const execAsync = promisify(exec);
 
-// CONCURRENCY CONTROL:
-// Mutex (Lock mechanism) antrean eksekusi agar LibreOffice TIDAK BERJALAN MULTIPROSSES (Mencegah VPS 2GB OOM)
-const pdfMutex = new Mutex();
+const BACKEND_TEMP_DIR = path.resolve(process.cwd(), 'temp');
 
 /**
- * Merender Template DOCX dengan docxtemplater lalu mengkonversi ke PDF dengan Native LibreOffice CLI
- * Dilengkapi dengan proteksi Memory (Mutex queue).
- * Jika ada multiple HTTP requests untuk render dokumen, proses akan antre berurutan (Awaiting).
- * @param templatePath Path template source dari disk VPS local
- * @param data Object parameter placeholder untuk di-injeksi ke template
- * @returns Buffer biner dari PDF untuk disalurkan ke Drive API stream.
+ * Merender Template DOCX dengan isolasi profil LibreOffice (No Cache)
  */
 export async function generatePdfFromDocx(templatePath: string, data: any): Promise<Buffer> {
-    // Wajib Menunggu Pintu Terbuka (Lock) -> Memblokir proses berjalan bersamaan
     const release = await pdfMutex.acquire();
     
-    // File sementara (Temporary files)
-    const uniqueId = Math.random().toString(36).substring(2, 15);
-    const tempDocsDir = os.tmpdir();
+    // Per-request Workspace
+    const id = Math.random().toString(36).substring(2, 11);
+    const workDir = path.join(BACKEND_TEMP_DIR, `work_${id}`);
+    const profileDir = path.join(workDir, 'profile');
     
-    const tempDocxPath = path.join(tempDocsDir, `temp_${uniqueId}.docx`);
-    const tempPdfName = `temp_${uniqueId}.pdf`;
-    const tempPdfPath = path.join(tempDocsDir, tempPdfName);
+    const tempDocxPath = path.join(workDir, `render.docx`);
+    const tempPdfName = `render.pdf`;
+    const tempPdfPath = path.join(workDir, tempPdfName);
 
     try {
-        console.log(`[Templating] Membaca docx template murni JS...`);
-        // 1. Membaca DOCX Template murni dalam memori
+        // [1] Setup Workspace
+        if (!fs.existsSync(workDir)) fs.mkdirSync(workDir, { recursive: true });
+        if (!fs.existsSync(profileDir)) fs.mkdirSync(profileDir, { recursive: true });
+
+        console.log(`[Templating] Rendering DOCX logic (JS)...`);
         const content = fs.readFileSync(templatePath, 'binary');
         const zip = new PizZip(content);
-        
-        // Konfigurasi agar mendukung {{variabel}} secara native
         const doc = new Docxtemplater(zip, {
-            delimiters: { 
-                start: '{{', 
-                end: '}}' 
-            },
+            delimiters: { start: '{{', end: '}}' },
             paragraphLoop: true,
             linebreaks: true,
             nullGetter: () => ""
         });
 
-        // 2. Set Data & render DOCX (Murni di Node/Bun RAM)
         doc.render(data);
-
-        // 3. Simpan DOCX mutasi sementara
-        const buf = doc.getZip().generate({
-            type: 'nodebuffer',
-            compression: 'DEFLATE',
-        });
+        const buf = doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
         fs.writeFileSync(tempDocxPath, buf);
 
-        console.log(`[LibreOffice Native CLI] Mengkonversi DOCX ke PDF...`);
-        // 4. Konversi PDF secara sinkron menggunakan Native LibreOffice CLI
-        // Handling untuk Local Mac development dan Ubuntu VPS
+        // [2] Conversion with Isolated Profile
         const isMac = os.platform() === 'darwin';
         const sofficeCmd = isMac ? '/Applications/LibreOffice.app/Contents/MacOS/soffice' : 'soffice';
         
-        // Timeout 60 dtk untuk VPS cold-start (+handling jika LibreOffice nge-hang)
-        const libreCmd = `"${sofficeCmd}" --headless --convert-to pdf "${tempDocxPath}" --outdir "${tempDocsDir}"`;
-        console.log(`[LibreOffice CMD] ${libreCmd}`);
+        // Flags Teroptimasi & Profil Terisolasi (-env:UserInstallation)
+        // Penulisan path profil untuk LibreOffice harus diawali 'file://'
+        const profileUrl = `file://${profileDir}`;
+        const flags = [
+            `"-env:UserInstallation=${profileUrl}"`,
+            '--headless',
+            '--nologo',
+            '--nodefault',
+            '--norestore',
+            '--nolockcheck',
+            '--invisible',
+            '--convert-to pdf',
+            `"${tempDocxPath}"`,
+            `--outdir "${workDir}"`
+        ].join(' ');
+
+        const libreCmd = `"${sofficeCmd}" ${flags}`;
+        console.log(`[LibreOffice Native] Executing: ${sofficeCmd} (Isolated Profile)`);
+        
         await execAsync(libreCmd, { timeout: 60000 });
 
-        // 5. Baca hasil jadi dari LibreOffice
         if (!fs.existsSync(tempPdfPath)) {
-            throw new Error('Hasil PDF tidak ditemukan setelah proses eksekusi LibreOffice selesai.');
+            throw new Error('LibreOffice gagal membuat file PDF. Cek ketersediaan binary soffice.');
         }
         
         const resultPdfBuffer = fs.readFileSync(tempPdfPath);
-        console.log(`[PDF Renderer Success] File PDF berhasil dibuat. Memori aman.`);
-        
         return resultPdfBuffer;
+
     } catch (error) {
         console.error('[PDF Pipeline Error]', error);
-        
-        // FALLBACK ERROR & ZOMBIE PROCESS KILLER
         try {
+            // Jika macet total, bersihkan proses yang menggantung
             await execAsync('pkill -f soffice.bin');
-            console.log('[System Recovery] Zombie LibreOffice processes dikill secara brutal untuk mencegah OOM leak.');
-        } catch (killErr) {
-            // Abaikan error pkill
-        }
-        throw new Error('Terjadi kegagalan rendering atau konversi dokumen.');
+        } catch (killErr) {}
+        throw error;
     } finally {
-        // Membersihkan Memory / Sampah Temporer
+        // [3] Deep Cleanup: Hapus seluruh folder workspace request
         try {
-            if (fs.existsSync(tempDocxPath)) fs.unlinkSync(tempDocxPath);
-            if (fs.existsSync(tempPdfPath)) fs.unlinkSync(tempPdfPath);
+            if (fs.existsSync(workDir)) {
+                // Bun/Node v14+ mendukung rmSync rekursif
+                fs.rmSync(workDir, { recursive: true, force: true });
+            }
         } catch(cleanupErr) {
-             console.error('[Cleanup Error] Gagal menghapus file temp:', cleanupErr);
+             console.error('[Cleanup Error]', cleanupErr);
         }
-
-        // Kuncinya Dibuka, trigger antrean proses berikutnya
         release();
     }
 }

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware, JwtPayload } from '../middleware/auth';
-import { getTemplateList, getTemplatePath, saveTemplate, TEMPLATE_REGISTRY } from '../services/template.service';
+import { getTemplateList, getTemplatePath, saveTemplate, TEMPLATE_REGISTRY, syncAllTemplatesFromDrive } from '../services/template.service';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
 const templateRouter = new Hono<HonoEnv>();
@@ -21,7 +21,10 @@ templateRouter.get('/', async (c) => {
 // [2] Download template asli berformat .docx
 templateRouter.get('/:id/download', async (c) => {
     const { id } = c.req.param();
-    const filePath = getTemplatePath(id);
+    const user = c.get('user') as JwtPayload;
+    
+    // Gunakan timPoksi user jika ada agar mendownload versi spesifik tim
+    const filePath = await getTemplatePath(id, user.timPoksi);
     
     if (!filePath) {
         return c.json({ status: false, message: 'File template ini belum tersedia di server' }, 404);
@@ -81,6 +84,22 @@ templateRouter.put('/:id/upload', async (c) => {
     } catch (e: any) {
         console.error("Template Management Upload Error:", e);
         return c.json({ status: false, message: 'Terjadi anomali saat menyimpan file: ' + (e.message || 'Unknown Error') }, 500);
+    }
+});
+
+// [4] Paksa sinkronisasi dari Google Drive (Smart Sync Trigger)
+templateRouter.post('/sync', async (c) => {
+    try {
+        const user = c.get('user') as JwtPayload;
+        if (user.role !== 'Super Admin') {
+            return c.json({ status: false, message: 'Akses Ditolak: Hanya Super Admin yang dapat men-sync template' }, 403);
+        }
+
+        await syncAllTemplatesFromDrive();
+        return c.json({ status: true, message: 'Sinkronisasi seluruh template dari Google Drive berhasil dilakukan secara masal.' });
+    } catch (e: any) {
+        console.error("Template Sync Error:", e);
+        return c.json({ status: false, message: 'Gagal sinkronisasi: ' + e.message }, 500);
     }
 });
 

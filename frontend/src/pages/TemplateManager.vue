@@ -6,7 +6,13 @@
         <h1 class="text-2xl font-black text-gray-800 tracking-tight">Manajemen Template</h1>
         <p class="text-sm text-gray-500 mt-1">Konfigurasi struktur dokumen dasar untuk E-Office</p>
       </div>
-      <div>
+      <div class="flex items-center gap-3">
+        <button v-if="isAdmin" @click="syncTemplates" 
+                class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold hover:border-kementan-green hover:text-kementan-green transition-all shadow-sm disabled:opacity-50"
+                :disabled="loading || isOperating !== null">
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isOperating === 'sync' }" />
+          Sync dari Drive
+        </button>
         <span v-if="loading" class="text-xs font-semibold text-kementan-green flex items-center gap-2">
           <Loader2 class="w-4 h-4 animate-spin" />
           Memuat...
@@ -108,7 +114,7 @@ import api from '../config/api';
 import { 
   FileBox as FileWord, 
   Download, Upload, CheckCircle2, 
-  XCircle, Info, ShieldAlert, Loader2 
+  XCircle, Info, ShieldAlert, Loader2, RefreshCw
 } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 import { AdminData } from '../types/api';
@@ -240,6 +246,41 @@ const onFileSelected = async (event: Event, id: string) => {
     } finally {
         isOperating.value = null;
         target.value = '';
+    }
+};
+
+const syncTemplates = async () => {
+    if (!isAdmin.value) return;
+
+    const confirm = await Swal.fire({
+        title: 'Sinkronisasi Ulang?',
+        text: 'Tindakan ini akan mendownload versi terbaru seluruh template dari Google Drive dan menimpa file lokal di VPS. Lanjutkan?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Sinkronkan!',
+        cancelButtonText: 'Batal'
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    isOperating.value = 'sync';
+    try {
+        const res = await api.post('/api/templates/sync');
+        if (res.data.status) {
+            Swal.fire({
+                title: 'Sukses',
+                text: res.data.message,
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            await fetchTemplates();
+        }
+    } catch (e: any) {
+        console.error("Gagal sync template", e);
+        Swal.fire('Gagal Sync', e.response?.data?.message || 'Terjadi kesalahan sistem saat sinkronisasi', 'error');
+    } finally {
+        isOperating.value = null;
     }
 };
 

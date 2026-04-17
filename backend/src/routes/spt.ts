@@ -65,16 +65,16 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
        return c.json({ status: false, message: 'Gagal: Folder Drive SPT belum dikonfigurasi untuk tim ini.' }, 400);
     }
     
-    // 3. Baca template lokal (tanpa download dari Google Drive)
+    // 3. Baca template lokal (Smart Sync: akan download otomatis dari Drive tim jika belum ada)
     const templateId = pesertaCount > 5 ? 'TPL_SPT_V2' : 'TPL_SPT_V1';
-    const tmpTemplatePath2 = getTemplatePath(templateId);
+    const finalTemplatePath = await getTemplatePath(templateId, user.timPoksi);
     
-    if (!tmpTemplatePath2) {
-       return c.json({ status: false, message: `Template lokal '${templateId}' tidak ditemukan. Upload template terlebih dahulu via Sistem Template.` }, 400);
+    if (!finalTemplatePath) {
+       return c.json({ status: false, message: `Template '${templateId}' untuk tim ${user.timPoksi} gagal dimuat. Pastikan file tersedia di Google Drive.` }, 400);
     }
     
     // 4. Generate PDF
-    const pdfBuffer = await generatePdfFromDocx(tmpTemplatePath2, sptData);
+    const pdfBuffer = await generatePdfFromDocx(finalTemplatePath, sptData);
     
     // 5. Stream Buffer ke Google Drive
     const pdfFilename = `SPT_${sptData.no ? sptData.no.replace(/\//g, '_') : sptData.id}.pdf`;
@@ -92,14 +92,9 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
   } catch (error: any) {
     console.error('Error in SPT Creation pipeline:', error);
     
-    // Pembersihan fall-back local template jika gagal saat merender
-    if (tmpTemplatePath && fs.existsSync(tmpTemplatePath)) {
-        fs.unlinkSync(tmpTemplatePath);
-    }
-    
     return c.json({ 
         status: false, 
-        message: 'Gagal menyelesaikan pembuatan dokumen SPT. Detail mesin: ' + (error.message || 'Unknown error') 
+        message: 'Gagal menyelesaikan pembuatan dokumen SPT. Detail: ' + (error.message || 'Unknown error') 
     }, 500); 
   }
 });
