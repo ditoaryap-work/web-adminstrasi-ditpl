@@ -1,6 +1,7 @@
 import { db } from './src/db';
 import { users, config } from './src/db/schema';
 import { sql } from 'drizzle-orm';
+import { fetchAndSyncConfig, fetchAndSyncPegawai, fetchAndSyncSbm } from './src/services/sheets.service';
 
 async function seed() {
   console.log('🚀 Memulai seeding database...');
@@ -55,6 +56,23 @@ async function seed() {
     console.log('✅ 8 Admin dari Google Sheets berhasil disemai!');
   } catch (error) {
     console.error('❌ Gagal seeding Users:', error);
+  }
+
+  console.log('--- 3. Syncing Data from Google Sheets ---');
+  if (process.env.SPREADSHEET_ID) {
+    try {
+      console.log('📦 Menarik data SBM...');
+      await fetchAndSyncSbm();
+      console.log('📦 Menarik data Pegawai...');
+      await fetchAndSyncPegawai();
+      console.log('📦 Menarik data Config Detail...');
+      await fetchAndSyncConfig();
+      console.log('✅ Sinkronisasi Google Sheets selesai!');
+    } catch (error) {
+      console.error('❌ Gagal menarik data dari Google Sheets:', error);
+    }
+  } else {
+    console.warn('⚠️ SPREADSHEET_ID tidak ditemukan, skip sinkronisasi data master.');
   }
   
   console.log('✨ Seeding selesai!');
