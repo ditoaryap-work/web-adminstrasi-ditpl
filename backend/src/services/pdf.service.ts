@@ -68,8 +68,10 @@ export async function generatePdfFromDocx(templatePath: string, data: any): Prom
         const isMac = os.platform() === 'darwin';
         const sofficeCmd = isMac ? '/Applications/LibreOffice.app/Contents/MacOS/soffice' : 'soffice';
         
-        // Timeout 15 dtk agar jika LibreOffice nge-hang, proses child ini mati dan release() Mutex tetap dipanggil via finally.
-        await execAsync(`"${sofficeCmd}" --headless --convert-to pdf "${tempDocxPath}" --outdir "${tempDocsDir}"`, { timeout: 15000 });
+        // Timeout 60 dtk untuk VPS cold-start (+handling jika LibreOffice nge-hang)
+        const libreCmd = `"${sofficeCmd}" --headless --convert-to pdf "${tempDocxPath}" --outdir "${tempDocsDir}"`;
+        console.log(`[LibreOffice CMD] ${libreCmd}`);
+        await execAsync(libreCmd, { timeout: 60000 });
 
         // 5. Baca hasil jadi dari LibreOffice
         if (!fs.existsSync(tempPdfPath)) {
