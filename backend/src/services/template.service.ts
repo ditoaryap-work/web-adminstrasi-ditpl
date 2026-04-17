@@ -83,8 +83,8 @@ export const getTemplatePath = async (id: string, timPoksi?: string): Promise<st
             else if (id === 'TPL_SPJ') driveFileId = timConfig[0].templateIdSpj;
 
             if (driveFileId) {
-                await downloadFileFromDrive(driveFileId, fullPath);
-                return fullPath;
+                await downloadFileFromDrive(driveFileId, timPath);
+                return timPath;
             }
         } catch (err) {
             console.error(`[SmartSync Error] Gagal download template ${id}:`, err);

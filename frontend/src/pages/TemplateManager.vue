@@ -104,7 +104,16 @@
           </div>
         </div>
       </div>
-    </div>
+    <!-- Global Notifications Modal -->
+    <GlobalModal 
+      :is-open="notificationModal.isOpen"
+      :type="notificationModal.type"
+      :title="notificationModal.title"
+      :message="notificationModal.message"
+      :confirm-text="notificationModal.confirmText"
+      @close="notificationModal.isOpen = false"
+      @confirm="() => { if(notificationModal.onConfirm) notificationModal.onConfirm(); notificationModal.isOpen = false }"
+    />
   </div>
 </template>
 
@@ -116,7 +125,7 @@ import {
   Download, Upload, CheckCircle2, 
   XCircle, Info, ShieldAlert, Loader2, RefreshCw
 } from 'lucide-vue-next';
-import Swal from 'sweetalert2';
+import GlobalModal from '../components/GlobalModal.vue';
 import { AdminData } from '../types/api';
 
 interface TemplateInfo {
@@ -132,6 +141,33 @@ interface TemplateInfo {
 const templates = ref<TemplateInfo[]>([]);
 const loading = ref(false);
 const isOperating = ref<string | null>(null);
+
+// Notification state
+const notificationModal = ref({
+  isOpen: false,
+  type: 'success' as 'success' | 'error' | 'warning' | 'info' | 'confirm',
+  title: '',
+  message: '',
+  confirmText: '',
+  onConfirm: () => {},
+});
+
+const showNotification = (
+  type: 'success' | 'error' | 'warning' | 'info' | 'confirm',
+  title: string,
+  message: string,
+  onConfirm: (() => void) | null = null,
+  confirmText = ''
+) => {
+  notificationModal.value = {
+    isOpen: true,
+    type,
+    title,
+    message,
+    confirmText,
+    onConfirm: onConfirm ?? (() => {}),
+  }
+}
 
 const adminData = computed<AdminData | null>(() => {
     const raw = localStorage.getItem('adminData');
@@ -154,7 +190,7 @@ const fetchTemplates = async () => {
         }
     } catch (e: any) {
         console.error("Gagal get templates", e);
-        Swal.fire('Error', 'Gagal memuat list template', 'error');
+        showNotification('error', 'Gagal Memuat', 'Tidak dapat mengambil daftar template dari server.');
     } finally {
         loading.value = false;
     }
@@ -180,7 +216,7 @@ const downloadTemplate = async (id: string, filename: string) => {
         window.URL.revokeObjectURL(url);
     } catch (e: any) {
         console.error("Gagal download template", e);
-        Swal.fire('Error', 'File tidak ditemukan atau terjadi kesalahan server', 'error');
+        showNotification('error', 'Download Gagal', 'File tidak ditemukan atau terjadi kesalahan koneksi ke server.');
     } finally {
         isOperating.value = null;
     }
@@ -202,94 +238,71 @@ const onFileSelected = async (event: Event, id: string) => {
     
     // Validasi ekstensi file
     if (!file.name.toLowerCase().endsWith('.docx')) {
-        Swal.fire('Format Tidak Dukung', 'Sistem hanya menerima file dengan ekstensi .docx.', 'warning');
+        showNotification('warning', 'Format Tidak Sesuai', 'Sistem hanya menerima file dengan ekstensi .docx untuk keperluan templating.');
         target.value = '';
         return;
     }
 
-    const confirm = await Swal.fire({
-        title: 'Konfirmasi Pembaruan',
-        text: `Anda akan memperbarui template "${file.name}". File baru akan menggantikan format lama untuk seluruh pengguna secara permanen.`,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'Perbarui Sekarang',
-        cancelButtonText: 'Batalkan',
-        confirmButtonColor: '#059669',
-    });
+    showNotification(
+        'confirm',
+        'Konfirmasi Pembaruan',
+        `Anda akan memperbarui template "${file.name}". File baru akan menggantikan format lama untuk seluruh pengguna secara permanen.`,
+        async () => {
+            // Eksekusi upload
+            isOperating.value = id + '_up';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const res = await api.put(`/api/templates/${id}/upload`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
 
-    if (!confirm.isConfirmed) {
-        target.value = '';
-        return;
-    }
-
-    // Eksekusi upload
-    isOperating.value = id + '_up';
-    
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const res = await api.put(`/api/templates/${id}/upload`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+                if (res.data.status) {
+                    showNotification('success', 'Berhasil Diperbarui', 'Template telah diperbarui dan cache tim telah dibersihkan secara otomatis.');
+                    await fetchTemplates();
+                } else {
+                    showNotification('error', 'Gagal Upload', res.data.message);
+                }
+            } catch (e: any) {
+                console.error("Gagal replace template", e);
+                showNotification('error', 'Kesalahan Server', e.response?.data?.message || 'Terjadi gangguan saat menyimpan template baru.');
+            } finally {
+                isOperating.value = null;
+                target.value = '';
             }
-        });
-
-        if (res.data.status) {
-            Swal.fire({
-                title: 'Berhasil',
-                text: 'Template telah diperbarui dan cache tim telah dibersihkan.',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            await fetchTemplates();
-        } else {
-            Swal.fire('Gagal', res.data.message, 'error');
-        }
-    } catch (e: any) {
-        console.error("Gagal replace template", e);
-        Swal.fire('Gagal', e.response?.data?.message || 'Gagal menyimpan template baru', 'error');
-    } finally {
-        isOperating.value = null;
-        target.value = '';
-    }
+        },
+        'Perbarui Sekarang'
+    );
 };
 
 const syncTemplates = async () => {
     if (!isAdmin.value) return;
 
-    const confirm = await Swal.fire({
-        title: 'Konfirmasi Sinkronisasi',
-        text: 'Sistem akan mengunduh versi terbaru seluruh template dari Google Drive dan menyinkronkan data lokal. Lanjutkan?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Lakukan Sinkronisasi',
-        cancelButtonText: 'Batalkan',
-        confirmButtonColor: '#059669',
-    });
-
-    if (!confirm.isConfirmed) return;
-
-    isOperating.value = 'sync';
-    try {
-        const res = await api.post('/api/templates/sync');
-        if (res.data.status) {
-            Swal.fire({
-                title: 'Berhasil',
-                text: res.data.message,
-                icon: 'success',
-                timer: 3000,
-                showConfirmButton: false
-            });
-            await fetchTemplates();
-        }
-    } catch (e: any) {
-        console.error("Gagal sync template", e);
-        Swal.fire('Gagal Sinkronisasi', e.response?.data?.message || 'Terjadi kesalahan sistem saat proses sinkronisasi.', 'error');
-    } finally {
-        isOperating.value = null;
-    }
+    showNotification(
+        'confirm',
+        'Konfirmasi Sinkronisasi',
+        'Sistem akan mengunduh versi terbaru seluruh template dari Google Drive dan menyinkronkan data lokal. Lanjutkan?',
+        async () => {
+            isOperating.value = 'sync';
+            try {
+                const res = await api.post('/api/templates/sync');
+                if (res.data.status) {
+                    showNotification('success', 'Sinkronisasi Berhasil', res.data.message);
+                    await fetchTemplates();
+                }
+            } catch (e: any) {
+                console.error("Gagal sync template", e);
+                showNotification('error', 'Sinkronisasi Gagal', e.response?.data?.message || 'Terjadi kesalahan sistem saat proses sinkronisasi.');
+            } finally {
+                isOperating.value = null;
+            }
+        },
+        'Lakukan Sinkronisasi'
+    );
 };
 
 onMounted(() => {

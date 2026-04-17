@@ -909,9 +909,11 @@ async function handleSave() {
       store.invalidateCache('spj')
       await loadList()
       const data = response.data.data
+      const finalFileLink = data?.fileLink || data?.file_link || ''
+      
       successModal.value = {
         isOpen: true,
-        fileUrl: data?.file_link || '',
+        fileUrl: finalFileLink,
         nama: formData.value.nama,
         jumlah: grandTotal.value
       }

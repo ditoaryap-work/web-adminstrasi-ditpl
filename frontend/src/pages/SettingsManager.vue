@@ -55,7 +55,7 @@
                 <span v-if="isSyncing">Sedang Menyinkronkan...</span>
                 <span v-else-if="syncStatus">{{ syncStatus }}</span>
                 <span v-else-if="syncCooldown > 0">Tunggu {{ syncCooldown }} Detik</span>
-                <span v-else>🔄 Jalankan Sinkronisasi Sekarang</span>
+                <span v-else>Jalankan Sinkronisasi Sekarang</span>
               </button>
               
               <p v-if="syncCooldown > 0" class="text-xs text-gray-400 font-medium">
@@ -299,8 +299,8 @@ const triggerSync = async () => {
     }
   } catch (error) {
     console.error('Trigger sync error:', error)
-    syncStatus.value = 'Error :('
-    setTimeout(() => { if (syncStatus.value === 'Error :(') syncStatus.value = '' }, 3000)
+    syncStatus.value = 'Gagal Koneksi'
+    setTimeout(() => { if (syncStatus.value === 'Gagal Koneksi') syncStatus.value = '' }, 3000)
   } finally {
     isSyncing.value = false
     syncCooldown.value = 15

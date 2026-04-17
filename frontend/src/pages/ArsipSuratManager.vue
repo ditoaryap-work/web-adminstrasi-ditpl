@@ -746,6 +746,70 @@
       </div>
     </div>
 
+    <!-- Success Modal Baru (Instant Feedback) -->
+    <Teleport to="body">
+      <transition name="fade">
+        <div v-if="successModal.isOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div 
+            v-motion
+            :initial="{ opacity: 0, scale: 0.9, y: 20 }"
+            :enter="{ opacity: 1, scale: 1, y: 0 }"
+            class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-emerald-100"
+          >
+            <div class="h-2 bg-emerald-500 w-full" />
+            <div class="p-8 text-center">
+              <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 class="text-emerald-500" :size="48" />
+              </div>
+              <h3 class="text-xl font-bold text-gray-800 mb-2">{{ successModal.title }}</h3>
+              <p class="text-sm text-gray-500 mb-8 leading-relaxed">
+                Berkas untuk nomor surat <span class="font-bold text-gray-700">{{ successModal.nomorSurat }}</span> telah berhasil diproses dan tersimpan di Google Drive.
+              </p>
+
+              <div class="space-y-3">
+                <div v-if="successModal.fileSurat" class="flex gap-2">
+                  <button 
+                    @click="openPreview(successModal.fileSurat)"
+                    class="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    <Eye :size="14" /> Preview Surat
+                  </button>
+                  <button 
+                    @click="triggerDownload(successModal.fileSurat, `Surat_${successModal.nomorSurat.replace(/\//g, '_')}`)"
+                    class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all flex items-center justify-center border border-emerald-100"
+                  >
+                    <Download :size="18" />
+                  </button>
+                </div>
+
+                <div v-if="successModal.fileNotulensi" class="flex gap-2">
+                  <button 
+                    @click="openPreview(successModal.fileNotulensi)"
+                    class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    <Eye :size="14" /> Preview Notulensi
+                  </button>
+                  <button 
+                    @click="triggerDownload(successModal.fileNotulensi, `Ntl_${successModal.nomorSurat.replace(/\//g, '_')}`)"
+                    class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all flex items-center justify-center border border-blue-100"
+                  >
+                    <Download :size="18" />
+                  </button>
+                </div>
+
+                <button 
+                  @click="successModal.isOpen = false"
+                  class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-xs hover:bg-gray-200 transition-all mt-4"
+                >
+                  TUTUP
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
+
     <!-- Global Loading Overlay -->
     <Teleport to="body">
       <transition name="fade">
@@ -960,6 +1024,14 @@ const notificationModal = ref({
   message: '',
   confirmText: '',
   onConfirm: () => {},
+})
+
+const successModal = ref({
+  isOpen: false,
+  fileSurat: '',
+  fileNotulensi: '',
+  title: '',
+  nomorSurat: ''
 })
 
 // Form Data dengan tipe eksplisit
@@ -1264,16 +1336,20 @@ const handleSubmit = async () => {
 
     isProcessing.value = false
     if (res.status) {
-      showNotification(
-        'success',
-        isEditMode.value ? 'Data Diperbarui!' : 'Berhasil Disimpan!',
-        'Data surat dan berkas telah tertaut dengan Google Drive.'
-      )
+      // Tampilkan Success Modal dengan link instan (jika baru di-save)
+      successModal.value = {
+        isOpen: true,
+        fileSurat: res.data?.fileSurat || res.data?.file_surat || formData.value.file_surat,
+        fileNotulensi: res.data?.fileNotulensi || res.data?.file_notulensi || formData.value.file_notulensi,
+        title: isEditMode.value ? 'Data Berhasil Diperbarui' : 'Data Berhasil Disimpan',
+        nomorSurat: formData.value.nomor_surat
+      }
+
       dataStore.invalidateCache('surat')
       await fetchSurat(true)
       closeForm()
     } else {
-      showNotification('error', 'Gagal!', res.message)
+      showNotification('error', 'Gagal Menyimpan', res.message)
     }
   } catch (err: unknown) {
     isProcessing.value = false

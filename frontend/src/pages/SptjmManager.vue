@@ -732,11 +732,11 @@ const selectedSbm = computed(() => sbmList.value.find((s: SbmData) => s.ibu_kota
 
 const pegawaiOptions = computed(() => pegawaiList.value.map((p, idx) => ({
   value: String(idx), 
-  label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}` 
+  label: `${p.namaLengkap} - ${p.jabatan || p.poksi || '-'}` 
 })))
 
 const selectedPegawaiIndex = computed(() => {
-  const idx = pegawaiList.value.findIndex(p => p.nip === formData.value.nip && p.nama_lengkap === formData.value.nama_lengkap)
+  const idx = pegawaiList.value.findIndex(p => p.nip === formData.value.nip && p.namaLengkap === formData.value.nama_lengkap)
   return idx >= 0 ? String(idx) : ''
 })
 
@@ -755,7 +755,7 @@ const handlePegawaiChange = (strIdx: string) => {
   }
   const p = pegawaiList.value[parseInt(strIdx)]
   if (p) {
-    formData.value.nama_lengkap = p.nama_lengkap
+    formData.value.nama_lengkap = p.namaLengkap
     formData.value.jabatan = p.jabatan || ''
     formData.value.nip = p.nip || ''
   }
@@ -931,8 +931,18 @@ const handleSave = async () => {
       if (result.data?.id_sptjm) {
         formData.value.id_sptjm = result.data.id_sptjm
       }
-      const savedItem = { ...formData.value, file_link: (result.data as { file_link?: string })?.file_link || null } as SptjmData
+      
+      // PERBAIKAN: Petakan fileLink (backend) ke file_link (frontend state)
+      const apiData = result.data as any;
+      const finalFileLink = apiData?.fileLink || apiData?.file_link || null;
+      
+      const savedItem = { 
+        ...formData.value, 
+        file_link: finalFileLink 
+      } as SptjmData;
+      
       formData.value.total_biaya = totalSum.value
+      formData.value.file_link = finalFileLink as string;
       
       successModal.value = { isOpen: true, item: savedItem }
       dataStore.invalidateCache('sptjm')

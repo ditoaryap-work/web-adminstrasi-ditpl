@@ -758,7 +758,14 @@ const handleSave = async () => {
     const result = await fetchApi("SAVE_SPT", { data: payload })
 
     if (result.status) {
-      const savedItem = { ...payload, file_link: (result.data as any)?.file_link || null }
+      // PERBAIKAN: Petakan fileLink (backend) ke file_link (frontend state)
+      const apiData = result.data as any;
+      const finalFileLink = apiData?.fileLink || apiData?.file_link || null;
+      
+      const savedItem = { 
+        ...payload, 
+        file_link: finalFileLink 
+      }
       successModal.value = { isOpen: true, item: savedItem as any }
 
       // Force cache invalidation so GET_SPT_LIST fetches new data

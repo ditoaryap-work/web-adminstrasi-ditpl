@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as os from 'os';
 
 const execAsync = promisify(exec);
+const pdfMutex = new Mutex();
 
 const BACKEND_TEMP_DIR = path.resolve(process.cwd(), 'temp');
 
@@ -76,6 +77,18 @@ export async function generatePdfFromDocx(templatePath: string, data: any): Prom
             throw new Error('LibreOffice gagal membuat file PDF. Cek ketersediaan binary soffice.');
         }
         
+        // [3] Kompresi PDF menggunakan Ghostscript (Optimasi Ukuran < 500KB)
+        const compressedPdfPath = path.join(workDir, 'output_compressed.pdf');
+        try {
+            await compressPdf(tempPdfPath, compressedPdfPath);
+            if (fs.existsSync(compressedPdfPath)) {
+                console.log(`[PDF Compression] PDF berhasil dikompresi.`);
+                return fs.readFileSync(compressedPdfPath);
+            }
+        } catch (gsError) {
+            console.warn('[Ghostscript Warning] Gagal mengompresi PDF, mengirim file asli:', gsError);
+        }
+
         const resultPdfBuffer = fs.readFileSync(tempPdfPath);
         return resultPdfBuffer;
 
@@ -87,6 +100,7 @@ export async function generatePdfFromDocx(templatePath: string, data: any): Prom
         } catch (killErr) {}
         throw error;
     } finally {
+        release(); // Penting: Bebaskan lock agar request lain bisa jalan
         // [3] Deep Cleanup: Hapus seluruh folder workspace request
         try {
             if (fs.existsSync(workDir)) {
@@ -107,6 +121,27 @@ export async function killZombieLibreOffice() {
     try {
         await execAsync('pkill -f soffice.bin');
     } catch(e) {}
+}
+
+/**
+ * Kompresi PDF menggunakan Ghostscript.
+ * Target: /screen (72 dpi) - Kualitas web yang sangat ringan.
+ */
+async function compressPdf(inputPath: string, outputPath: string): Promise<void> {
+    const gsCmd = [
+        'gs',
+        '-sDEVICE=pdfwrite',
+        '-dCompatibilityLevel=1.4',
+        '-dPDFSETTINGS=/screen',
+        '-dNOPAUSE',
+        '-dQUIET',
+        '-dBATCH',
+        `-sOutputFile="${outputPath}"`,
+        `"${inputPath}"`
+    ].join(' ');
+
+    console.log(`[Ghostscript] Compressing: ${inputPath}`);
+    await execAsync(gsCmd, { timeout: 30000 });
 }
 
 /**
