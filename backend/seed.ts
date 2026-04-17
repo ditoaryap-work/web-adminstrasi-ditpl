@@ -1,9 +1,31 @@
 import { db } from './src/db';
-import { users } from './src/db/schema';
+import { users, config } from './src/db/schema';
+import { sql } from 'drizzle-orm';
 
 async function seed() {
-  console.log('Seeding Super Admin...');
+  console.log('🚀 Memulai seeding database...');
   
+  const timPoksiList = [
+    'Perluasan Lahan Wilayah I',
+    'Perluasan Lahan Wilayah II',
+    'Pendayagunaan Lahan',
+    'Perancangan Teknis Penyediaan Lahan',
+    'Tata Usaha Direktorat Penyediaan Lahan'
+  ];
+
+  console.log('--- 1. Seeding Config (Tim Poksi) ---');
+  try {
+    for (const tim of timPoksiList) {
+      await db.insert(config)
+        .values({ timPoksi: tim })
+        .onConflictDoNothing();
+    }
+    console.log('✅ Tabel Config (Tim Poksi) siap!');
+  } catch (error) {
+    console.error('❌ Gagal seeding Config:', error);
+  }
+
+  console.log('--- 2. Seeding Users (Admins) ---');
   // Hash password menggunakan Bun native
   const passwordHash = await Bun.password.hash('123456');
 
@@ -20,19 +42,22 @@ async function seed() {
 
   try {
     for (const admin of legacyAdmins) {
-      await db.insert(users).values({
-        username: admin.username,
-        passwordHash: passwordHash,
-        nama: admin.nama,
-        role: admin.role,
-        timPoksi: admin.timPoksi,
-      });
+      await db.insert(users)
+        .values({
+          username: admin.username,
+          passwordHash: passwordHash,
+          nama: admin.nama,
+          role: admin.role,
+          timPoksi: admin.timPoksi,
+        })
+        .onConflictDoNothing();
     }
     console.log('✅ 8 Admin dari Google Sheets berhasil disemai!');
   } catch (error) {
-    console.error('❌ Gagal melakukan seeding:', error);
+    console.error('❌ Gagal seeding Users:', error);
   }
   
+  console.log('✨ Seeding selesai!');
   process.exit(0);
 }
 
