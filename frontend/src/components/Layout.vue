@@ -110,8 +110,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, type Component as VueComponent } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, defineComponent, computed, h } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   LayoutDashboard, FileText, FileSignature, Settings,
   LogOut, ChevronRight, Menu, X, Users, Inbox, Receipt, FileCode, RefreshCw, Shield
@@ -119,6 +119,7 @@ import {
 import { AdminData } from '../types/api'
 
 const router = useRouter()
+const route = useRoute()
 const adminProfile = ref<AdminData | null>(null)
 const isSidebarOpen = ref(false)
 
@@ -135,42 +136,47 @@ const handleLogout = () => {
 }
 
 
-// NavItem as a nested functional component
-// Uses router.currentRoute.value.path for reactive highlighting
+// NavItem sebagai defineComponent agar isActive reaktif terhadap perubahan route
 interface NavItemProps {
   to: string;
-  icon: VueComponent;
+  icon: any;
   label: string;
 }
 
-const NavItem = (props: NavItemProps) => {
-  const currentPath = router.currentRoute.value.path
-  const isActive = currentPath === props.to
+const NavItem = defineComponent({
+  name: 'NavItem',
+  props: {
+    to: { type: String, required: true },
+    icon: { type: Object, required: true },
+    label: { type: String, required: true },
+  },
+  setup(props) {
+    const isActive = computed(() => route.path === props.to)
 
-  return h('button', {
-    onClick: () => {
-      if (isActive) {
-        // Force re-mount even if already on the same page
-        router.push({ path: props.to, query: { _t: Date.now() } })
-      } else {
-        router.push(props.to)
-      }
+    const handleClick = () => {
+      router.push(props.to as string)
       isSidebarOpen.value = false
-    },
-    class: `flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold ${isActive
-        ? 'bg-kementan-green/10 text-kementan-green border border-kementan-green/20 shadow-sm'
-        : 'text-gray-500 hover:text-kementan-green hover:bg-gray-50'
-      }`
-  }, [
-    h('div', {
-      class: `${isActive ? 'scale-110' : 'group-hover:scale-110'} transition-transform duration-300`
+    }
+
+    return () => h('button', {
+      onClick: handleClick,
+      class: [
+        'flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold',
+        isActive.value
+          ? 'bg-kementan-green/10 text-kementan-green border border-kementan-green/20 shadow-sm'
+          : 'text-gray-500 hover:text-kementan-green hover:bg-gray-50'
+      ].join(' ')
     }, [
-      h(props.icon, { size: 20 })
-    ]),
-    h('span', { class: 'flex-1 text-left text-sm' }, props.label),
-    isActive ? h(ChevronRight, { size: 14, class: 'text-kementan-green' }) : null
-  ])
-}
+      h('div', {
+        class: (isActive.value ? 'scale-110 ' : 'group-hover:scale-110 ') + 'transition-transform duration-300'
+      }, [
+        h(props.icon, { size: 20 })
+      ]),
+      h('span', { class: 'flex-1 text-left text-sm' }, props.label),
+      isActive.value ? h(ChevronRight, { size: 14, class: 'text-kementan-green' }) : null
+    ])
+  }
+})
 </script>
 
 <style scoped>

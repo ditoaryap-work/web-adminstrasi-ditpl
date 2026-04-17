@@ -59,4 +59,5 @@ app.get('/', (c) => c.json({ status: 'ok', message: 'E-Office API is running' })
 export default {
   port: parseInt(process.env.PORT || '3000'),
   fetch: app.fetch,
+  maxRequestBodySize: 64 * 1024 * 1024, // 64MB – untuk upload file template DOCX
 };

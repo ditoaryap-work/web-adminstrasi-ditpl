@@ -59,8 +59,8 @@ templateRouter.put('/:id/upload', async (c) => {
             return c.json({ status: false, message: 'Kode Template ID tidak terdaftar di sistem' }, 400);
         }
 
-        // Parsing form file (Multipart Form Data)
-        const body = await c.req.parseBody();
+        // Parsing form file (Multipart Form Data) — maxSize 64MB untuk docx besar
+        const body = await c.req.parseBody({ all: false });
         const file = body['file'];
 
         if (!(file instanceof File)) {
