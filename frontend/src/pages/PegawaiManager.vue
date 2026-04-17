@@ -119,7 +119,7 @@
                   <td class="py-4 px-6">
                     <div>
                       <p class="text-xs font-bold text-gray-600">
-                        {{ p.pangkatGol || '-' }}
+                        {{ p.pangkatGolRuang || '-' }}
                       </p>
                       <div class="inline-block px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[9px] font-bold text-emerald-700 mt-1 uppercase tracking-wider">
                         Gol {{ p.golongan }}
@@ -254,7 +254,7 @@
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Pangkat/Gol Ruang</label>
               <input
-                v-model="formData.pangkatGol"
+                v-model="formData.pangkatGolRuang"
                 type="text"
                 class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
                 placeholder="Contoh: Penata / IIIc"
@@ -370,14 +370,14 @@ const formData = ref<{
   namaLengkap: string;
   nip: string;
   kode: string;
-  pangkatGol: string;
+  pangkatGolRuang: string;
   golongan: string;
   jabatan: string;
   poksi: string;
   direktorat: string;
   tingkatBiaya: string;
 }>({
-  id: null, namaLengkap: '', nip: '', kode: '', pangkatGol: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: ''
+  id: null, namaLengkap: '', nip: '', kode: '', pangkatGolRuang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: ''
 })
 
 const notificationModal = ref({
@@ -440,7 +440,7 @@ const openForm = (p: PegawaiData | null = null) => {
       namaLengkap: p.namaLengkap,
       nip: p.nip,
       kode: p.kode || '',
-      pangkatGol: p.pangkatGol || '',
+      pangkatGolRuang: p.pangkatGolRuang || '',
       golongan: p.golongan || '',
       jabatan: p.jabatan || '',
       poksi: p.poksi || '',
@@ -449,7 +449,7 @@ const openForm = (p: PegawaiData | null = null) => {
     }
     isEditMode.value = true
   } else {
-    formData.value = { id: null, namaLengkap: '', nip: '', kode: '', pangkatGol: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: '' }
+    formData.value = { id: null, namaLengkap: '', nip: '', kode: '', pangkatGolRuang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: '' }
     isEditMode.value = false
   }
   viewMode.value = 'form'
@@ -471,7 +471,7 @@ const handleSave = async () => {
       namaLengkap: formData.value.namaLengkap,
       nip: formData.value.nip || undefined,
       kode: formData.value.kode || undefined,
-      pangkatGol: formData.value.pangkatGol || undefined,
+      pangkatGolRuang: formData.value.pangkatGolRuang || undefined,
       golongan: formData.value.golongan || undefined,
       jabatan: formData.value.jabatan || undefined,
       poksi: formData.value.poksi || undefined,

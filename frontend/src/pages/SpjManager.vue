@@ -736,7 +736,7 @@ const handlePegawaiChange = (strIdx: string) => {
   if (!strIdx) return
   const p = pegawaiList.value[parseInt(strIdx)]
   if (p) {
-    formData.value.nama = p.namaLengkap; formData.value.jabatan = p.jabatan || ''; formData.value.nip = p.nip || ''; formData.value.pangkat_gol = p.pangkatGol || ''; formData.value.gol = p.golongan || ''
+    formData.value.nama = p.namaLengkap; formData.value.jabatan = p.jabatan || ''; formData.value.nip = p.nip || ''; formData.value.pangkat_gol = p.pangkatGolRuang || ''; formData.value.gol = p.golongan || ''
   }
 }
 

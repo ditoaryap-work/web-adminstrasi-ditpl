@@ -58,7 +58,7 @@ export interface PegawaiData {
   kode?: string;
   namaLengkap: string;
   nip: string;
-  pangkatGol?: string;
+  pangkatGolRuang?: string; // Drizzle property name: pangkatGolRuang (SQL: pangkat_gol_ruang)
   golongan?: string;
   jabatan?: string;
   poksi?: string;

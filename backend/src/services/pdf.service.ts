@@ -101,16 +101,14 @@ export async function generatePdfFromDocx(templatePath: string, data: any): Prom
         throw error;
     } finally {
         release(); // Penting: Bebaskan lock agar request lain bisa jalan
-        // [3] Deep Cleanup: Hapus seluruh folder workspace request
+        // Deep Cleanup: Hapus seluruh folder workspace request
         try {
             if (fs.existsSync(workDir)) {
-                // Bun/Node v14+ mendukung rmSync rekursif
                 fs.rmSync(workDir, { recursive: true, force: true });
             }
         } catch(cleanupErr) {
              console.error('[Cleanup Error]', cleanupErr);
         }
-        release();
     }
 }
 

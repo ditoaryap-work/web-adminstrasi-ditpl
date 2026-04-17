@@ -5,6 +5,9 @@ import { db } from '../db';
 import { config } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { authMiddleware, requireSuperAdmin } from '../middleware/auth';
+import fs from 'fs';
+import path from 'path';
+import { TEMPLATE_DIR, TEMPLATE_REGISTRY } from '../services/template.service';
 
 const configRouter = new Hono();
 
@@ -51,7 +54,31 @@ configRouter.put('/:timPoksi', requireSuperAdmin, zValidator('json', configSchem
        result = await db.update(config).set(body).where(eq(config.timPoksi, timPoksiId)).returning();
     }
     
-    return c.json({ status: true, message: 'Data Konfigurasi telah diperbarui secara sistem.', data: result[0] });
+    // [Bug 3 Fix] Cache Invalidation: Hapus file template lokal tim ini agar
+    // getTemplatePath dipaksa re-download menggunakan Drive ID baru dari config.
+    // Tanpa ini: update templateId di Settings tidak berpengaruh selama file lokal masih ada.
+    try {
+      const timDirName = timPoksiId.replace(/\s+/g, '_');
+      const timDir = path.join(TEMPLATE_DIR, timDirName);
+      if (fs.existsSync(timDir)) {
+        for (const tpl of TEMPLATE_REGISTRY) {
+          const teamFilePath = path.join(timDir, tpl.filename);
+          if (fs.existsSync(teamFilePath)) {
+            fs.unlinkSync(teamFilePath);
+            console.log(`[Config Update] Cache template ${tpl.id} untuk tim "${timPoksiId}" dihapus. Akan di-regenerasi dari Drive ID baru.`);
+          }
+        }
+      }
+    } catch (cacheErr) {
+      // Non-fatal: config sudah tersimpan ke DB, log warning saja
+      console.warn('[Config Update] Gagal menghapus cache template lokal:', cacheErr);
+    }
+
+    return c.json({
+      status: true,
+      message: `Konfigurasi tim "${timPoksiId}" berhasil diperbarui. Cache template direset dan akan diunduh ulang dari Drive pada pembuatan dokumen berikutnya.`,
+      data: result[0]
+    });
   } catch (error: any) {
     return c.json({ status: false, message: 'Gagal memperbarui konfigurasi sistem.' }, 500);
   }
