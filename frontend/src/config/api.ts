@@ -6,7 +6,12 @@ import { ApiResponse } from '../types/api';
  * Mengambil dari file .env (e.g. VITE_API_URL=https://api.domain.web.id)
  * Jika tidak ditemukan, fallback ke localhost untuk development Bun backend.
  */
-export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Cleanup: Hapus trailing slash atau akhiran /api agar tidak terjadi double path
+if (rawUrl.endsWith('/')) rawUrl = rawUrl.slice(0, -1);
+if (rawUrl.endsWith('/api')) rawUrl = rawUrl.slice(0, -4);
+
+export const BASE_URL = rawUrl;
 
 // 1. Inisialisasi Instance Axios
 const api = axios.create({

@@ -107,21 +107,11 @@ sudo rm /etc/nginx/sites-enabled/default
 cat << 'EOF' | sudo tee /etc/nginx/sites-available/eoffice-ditpl
 server {
     listen 80;
-    
-    # Dukung kedua domain secara bersamaan
-    server_name administrasi.ditpl.web.id wministrasi.ditpl.web.id;
+    server_name api.administrasi.ditpl.web.id api.ditpl.web.id;
 
-    root /var/www/eoffice-ditpl;
-    index index.html;
-
-    # Tangani Vue Router agar terhindar dari Error 404
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Reverse proxy untuk seluruh routing /api ke Backend Bun (Port 3000)
+    # Alihkan seluruh trafik /api/ ke Backend Bun (Port 3000)
     location /api/ {
-        # Penting untuk preflight CORS
+        # 1. Tangani Preflight CORS (OPTIONS) secara instan di Nginx
         if ($request_method = 'OPTIONS') {
             add_header 'Access-Control-Allow-Origin' '$http_origin' always;
             add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
@@ -132,7 +122,9 @@ server {
             return 204;
         }
 
-        proxy_pass http://127.0.0.1:3000/api/;
+        # 2. Teruskan ke Bun (Tanpa trailing slash di 3000 agar path utuh terkirim)
+        proxy_pass http://127.0.0.1:3000;
+        
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -151,7 +143,14 @@ server {
 EOF
 
 # Aktifkan setir rute & Restart!
-sudo ln -s /etc/nginx/sites-available/eoffice-ditpl /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/eoffice-backend /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 6. Pembersihan Akhir (Sangat Penting)
+Setelah instalasi selesai, pastikan Anda melakukan **Purge Cache** di Cloudflare Dashboard dan **Hard Reload** di browser (Cmd+Shift+R) agar script frontend yang lama tidak mengganggu koneksi baru.
+
 sudo nginx -t
 sudo systemctl restart nginx
 ```
