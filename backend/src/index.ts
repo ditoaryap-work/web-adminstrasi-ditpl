@@ -23,12 +23,20 @@ const app = new Hono();
 app.onError(customErrorHandler);
 
 // Security & Global Middleware
-app.use('*', logger());
-app.use('/api/*', apiLimiter); // Apply rate limiting to all API routes
+// CORS HARUS DI ATAS AGAR TIDAK DIBLOKIR RATE LIMITER / ERROR HANDLER
 app.use('*', cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin: string) => {
+    // Mendukung domain localhost untuk development dan domain web produksi
+    if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.endsWith('ditpl.web.id')) {
+      return origin;
+    }
+    return 'https://administrasi.ditpl.web.id';
+  },
   credentials: true,
 }));
+
+app.use('/api/*', apiLimiter); // Apply rate limiting to all API routes
+app.use('*', logger());
 
 // Route pendaftaran
 app.route('/api/auth', authRouter);
