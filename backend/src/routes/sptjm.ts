@@ -6,7 +6,8 @@ import { sptjm, config } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { authMiddleware, JwtPayload } from '../middleware/auth';
 import { generatePdfFromDocx } from '../services/pdf.service';
-import { downloadTemplateToLocal, uploadBufferToDrive } from '../services/drive.service';
+import { uploadBufferToDrive } from '../services/drive.service';
+import { getTemplatePath } from '../services/template.service';
 import fs from 'fs';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
@@ -57,30 +58,29 @@ sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
     
     const sptjmData = insertResult[0];
     
-    // Ambil Config Template & Folder
+    // Ambil Config (hanya butuh folderIdSptjm untuk upload hasil PDF)
     const configResult = await db.select().from(config).where(eq(config.timPoksi, user.timPoksi)).limit(1);
     const timConfig = configResult[0];
     
-    if (!timConfig || !timConfig.templateIdSptjm || !timConfig.folderIdSptjm) {
-       return c.json({ status: false, message: 'Gagal: Setup Config (Folder/Template) untuk Tim Poksi belum terkonfigurasi.' }, 400);
+    if (!timConfig || !timConfig.folderIdSptjm) {
+       return c.json({ status: false, message: 'Gagal: Folder Drive SPTJM belum dikonfigurasi untuk tim ini.' }, 400);
     }
     
-    // Streaming download template (.docx) ke Temporary OS File
-    const tmpName = `carbone_sptjm_${sptjmData.id}.docx`;
-    tmpTemplatePath = await downloadTemplateToLocal(timConfig.templateIdSptjm, tmpName);
+    // Baca template SPTJM dari disk lokal
+    const localTemplatePath = getTemplatePath('TPL_SPTJM');
+    if (!localTemplatePath) {
+       return c.json({ status: false, message: 'Template SPTJM lokal tidak ditemukan. Upload template via Sistem Template.' }, 400);
+    }
     
-    // Mutex Locked Carbone Processing!
-    const pdfBuffer = await generatePdfFromDocx(tmpTemplatePath, sptjmData);
+    // Mutex Locked PDF Processing
+    const pdfBuffer = await generatePdfFromDocx(localTemplatePath, sptjmData);
     
-    // Upload Native Buffer to gDrive
+    // Upload PDF ke Google Drive
     const pdfFilename = `SPTJM_${sptjmData.namaLengkap ? sptjmData.namaLengkap.replace(/\s+/g, '_') : sptjmData.id}.pdf`;
     const driveLink = await uploadBufferToDrive(pdfBuffer, 'application/pdf', pdfFilename, timConfig.folderIdSptjm);
     
     // Update DB
     await db.update(sptjm).set({ fileLink: driveLink }).where(eq(sptjm.id, sptjmData.id));
-    
-    // Clean Local SSD (Garbage Collect Local Temp File)
-    if (fs.existsSync(tmpTemplatePath)) fs.unlinkSync(tmpTemplatePath);
     
     return c.json({ 
        status: true, 

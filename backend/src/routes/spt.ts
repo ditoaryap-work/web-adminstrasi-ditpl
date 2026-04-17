@@ -6,7 +6,8 @@ import { spt, config } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { authMiddleware, JwtPayload } from '../middleware/auth';
 import { generatePdfFromDocx } from '../services/pdf.service';
-import { downloadTemplateToLocal, uploadBufferToDrive } from '../services/drive.service';
+import { uploadBufferToDrive } from '../services/drive.service';
+import { getTemplatePath } from '../services/template.service';
 import fs from 'fs';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
@@ -56,20 +57,25 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
     
     const sptData = insertResult[0];
     
-    // 2. Akses Config Template Drive
+    // 2. Ambil Config untuk Folder tujuan upload Drive (template sudah lokal)
     const configResult = await db.select().from(config).where(eq(config.timPoksi, user.timPoksi)).limit(1);
     const timConfig = configResult[0];
     
-    if (!timConfig || !timConfig.templateIdSptV1 || !timConfig.folderIdSpt) {
-       return c.json({ status: false, message: 'Operasi dihentikan: Folder Drive atau Template ID belum disetting untuk tim ini.' }, 400);
+    if (!timConfig || !timConfig.folderIdSpt) {
+       return c.json({ status: false, message: 'Gagal: Folder Drive SPT belum dikonfigurasi untuk tim ini.' }, 400);
     }
     
-    // 3. Unduh Template Sementara (Carbone butuh path absolut di disk)
-    const tmpName = `carbone_spt_${sptData.id}.docx`;
-    tmpTemplatePath = await downloadTemplateToLocal(timConfig.templateIdSptV1, tmpName);
+    // 3. Baca template lokal (tanpa download dari Google Drive)
+    const pesertaCount = Array.isArray(sptData.peserta) ? (sptData.peserta as any[]).length : 0;
+    const templateId = pesertaCount > 5 ? 'TPL_SPT_V2' : 'TPL_SPT_V1';
+    const tmpTemplatePath2 = getTemplatePath(templateId);
     
-    // 4. Generate PDF Melalui Carbone + Pengamanan Mutex (Memory Constraint)
-    const pdfBuffer = await generatePdfFromDocx(tmpTemplatePath, sptData);
+    if (!tmpTemplatePath2) {
+       return c.json({ status: false, message: `Template lokal '${templateId}' tidak ditemukan. Upload template terlebih dahulu via Sistem Template.` }, 400);
+    }
+    
+    // 4. Generate PDF
+    const pdfBuffer = await generatePdfFromDocx(tmpTemplatePath2, sptData);
     
     // 5. Stream Buffer ke Google Drive
     const pdfFilename = `SPT_${sptData.no ? sptData.no.replace(/\//g, '_') : sptData.id}.pdf`;
@@ -77,9 +83,6 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
     
     // 6. Update Link Drive di database
     await db.update(spt).set({ fileLink: driveLink }).where(eq(spt.id, sptData.id));
-    
-    // 7. Cleanup template agar Local Storage OS tidak bengkak
-    if (fs.existsSync(tmpTemplatePath)) fs.unlinkSync(tmpTemplatePath);
     
     return c.json({ 
        status: true, 
