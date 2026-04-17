@@ -66,7 +66,6 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
     }
     
     // 3. Baca template lokal (tanpa download dari Google Drive)
-    const pesertaCount = Array.isArray(sptData.peserta) ? (sptData.peserta as any[]).length : 0;
     const templateId = pesertaCount > 5 ? 'TPL_SPT_V2' : 'TPL_SPT_V1';
     const tmpTemplatePath2 = getTemplatePath(templateId);
     
