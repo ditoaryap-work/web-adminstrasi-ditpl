@@ -537,7 +537,7 @@
                         @mousedown.prevent="addDisposisi(p)"
                       >
                         <p class="text-xs font-bold text-gray-800">
-                          {{ p.nama_lengkap }}
+                          {{ p.namaLengkap }}
                         </p>
                         <p class="text-[10px] text-gray-400 font-medium tracking-wide uppercase">
                           {{ p.jabatan || p.poksi || '-' }}
@@ -896,16 +896,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
+import GlobalModal from '../components/GlobalModal.vue'
+import FilePreviewModal from '../components/FilePreviewModal.vue'
 import { useDataStore } from '../stores/useDataStore'
-import { fetchApi } from '../config/api'
+import api from '../config/api'
+import { triggerDownload } from '../utils/drive'
 import type { SuratData, PegawaiData } from '../types/api'
 import {
   Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown,
   Inbox, FileText, UploadCloud, X, CheckCircle2, AlertCircle, NotebookPen, Download, Save, Eye, ExternalLink, RefreshCw
 } from 'lucide-vue-next'
-import GlobalModal from '../components/GlobalModal.vue'
-import FilePreviewModal from '../components/FilePreviewModal.vue'
-import { triggerDownload } from '../utils/drive'
 
 // ─── CONSTS ──────────────────────────────────────────────
 const ITEMS_PER_PAGE = 10
@@ -1090,16 +1090,7 @@ const formatDateForInput = (dateStr: string): string => {
   }
 }
 
-const fileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      const result = reader.result as string
-      resolve(result.split(',')[1])
-    }
-    reader.onerror = reject
-  })
+
 
 // ─── METHODS ──────────────────────────────────────────────
 const fetchSurat = async (force = false) => {
@@ -1107,10 +1098,8 @@ const fetchSurat = async (force = false) => {
 
   isLoading.value = true
   try {
-    const res = await fetchApi<SuratData[]>('GET_SURAT_LIST', {
-      tim_poksi: adminData.value.role === 'Super Admin' ? 'SEMUA' : adminData.value.tim_poksi,
-      role: adminData.value.role,
-    })
+    const response = await api.get('/api/surat')
+    const res = response.data
     if (res.status && res.data) {
       suratList.value = res.data
       dataStore.setSuratData(res.data)
@@ -1123,12 +1112,13 @@ const fetchSurat = async (force = false) => {
 }
 
 const fetchPegawai = async () => {
-  if (dataStore.isCacheValid('pegawai') && pegawaiList.value.length > 0) {
+  if (dataStore.isCacheValid('pegawai')) {
     pegawaiList.value = dataStore.pegawaiData
     return
   }
   try {
-    const res = await fetchApi<PegawaiData[]>('GET_PEGAWAI')
+    const response = await api.get('/api/pegawai')
+    const res = response.data
     if (res.status && res.data) {
       pegawaiList.value = res.data
       dataStore.setPegawaiData(res.data)
@@ -1146,15 +1136,15 @@ const handlePegawaiSearch = () => {
     return
   }
   filteredPegawai.value = pegawaiList.value.filter(p =>
-    p.nama_lengkap.toLowerCase().includes(q) ||
+    p.namaLengkap.toLowerCase().includes(q) ||
     p.nip.toLowerCase().includes(q)
   ).slice(0, 6)
   showPegawaiDropdown.value = true
 }
 
 const addDisposisi = (pegawai: PegawaiData) => {
-  if (!formData.value.disposisi_ke.includes(pegawai.nama_lengkap)) {
-    formData.value.disposisi_ke.push(pegawai.nama_lengkap)
+  if (!formData.value.disposisi_ke.includes(pegawai.namaLengkap)) {
+    formData.value.disposisi_ke.push(pegawai.namaLengkap)
   }
   pegawaiSearch.value = ''
   filteredPegawai.value = []
@@ -1256,31 +1246,21 @@ const handleSubmit = async () => {
   processingMessage.value = 'Menyimpan Data...'
   isProcessing.value = true
   try {
-    const fileDetails: { fieldName: string; filename: string; mimeType: string; base64: string }[] = []
+    const fd = new FormData()
+    
+    // Kirim seluruh body form ter-stringify
+    fd.append('data', JSON.stringify(formData.value))
 
     if (files.value.file_surat) {
-      const f = files.value.file_surat
-      const ext = f.name.split('.').pop() ?? 'pdf'
-      fileDetails.push({
-        fieldName: 'file_surat',
-        filename: `Surat_${formData.value.nomor_surat.replace(/\//g, '_')}_${Date.now()}.${ext}`,
-        mimeType: f.type,
-        base64: await fileToBase64(f),
-      })
+      fd.append('file_surat', files.value.file_surat)
     }
 
     if (files.value.file_notulensi) {
-      const f = files.value.file_notulensi
-      const ext = f.name.split('.').pop() ?? 'pdf'
-      fileDetails.push({
-        fieldName: 'file_notulensi',
-        filename: `Notulensi_${formData.value.id_surat || 'new'}_${Date.now()}.${ext}`,
-        mimeType: f.type,
-        base64: await fileToBase64(f),
-      })
+      fd.append('file_notulensi', files.value.file_notulensi)
     }
 
-    const res = await fetchApi('SAVE_SURAT', { data: formData.value, fileDetails })
+    const response = await api.post('/api/surat', fd)
+    const res = response.data
 
     isProcessing.value = false
     if (res.status) {
@@ -1311,7 +1291,8 @@ const handleDelete = (id: string) => {
       processingMessage.value = 'Menghapus Data...'
       isProcessing.value = true
       try {
-        const res = await fetchApi('DELETE_SURAT', { id_surat: id })
+        const response = await api.delete(`/api/surat/${id}`)
+        const res = response.data
         isProcessing.value = false
         if (res.status) {
           showNotification('success', 'Terhapus!', 'Arsip telah dihapus dari sistem.')

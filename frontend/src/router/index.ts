@@ -9,6 +9,8 @@ const SpjManager = () => import('../pages/SpjManager.vue')
 const PegawaiManager = () => import('../pages/PegawaiManager.vue')
 const AdminManager = () => import('../pages/AdminManager.vue')
 const ArsipSuratManager = () => import('../pages/ArsipSuratManager.vue')
+const TemplateManager = () => import('../pages/TemplateManager.vue')
+const SettingsManager = () => import('../pages/SettingsManager.vue')
 
 const routes = [
   { path: '/login', name: 'Login', component: Login },
@@ -24,6 +26,8 @@ const routes = [
       { path: 'arsip-surat', name: 'ArsipSuratManager', component: ArsipSuratManager },
       { path: 'pegawai', name: 'PegawaiManager', component: PegawaiManager },
       { path: 'admin', name: 'AdminManager', component: AdminManager },
+      { path: 'templates', name: 'TemplateManager', component: TemplateManager },
+      { path: 'settings', name: 'SettingsManager', component: SettingsManager },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }

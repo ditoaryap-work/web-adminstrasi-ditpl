@@ -64,7 +64,7 @@
             <tbody class="divide-y divide-gray-100 bg-white/40">
               <template v-if="paginatedList.length > 0">
                 <tr 
-                  v-for="(item, idx) in paginatedList" :key="item.id_perjadin"
+                  v-for="(item, idx) in paginatedList" :key="item.id"
                   v-motion :initial="{ opacity: 0, y: 5 }" :enter="{ opacity: 1, y: 0, transition: { delay: idx * 30 } }"
                   class="group hover:bg-emerald-50/30 transition-colors"
                 >
@@ -108,7 +108,7 @@
                         <button 
                           class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider" 
                           title="Download File Langsung" 
-                          @click="triggerDownload(item.file_link, `SPJ_${item.nama}_${item.id_perjadin}`)"
+                          @click="triggerDownload(item.file_link, `SPJ_${item.nama}_${item.id}`)"
                         >
                           <Download :size="13" /> Download
                         </button>
@@ -128,7 +128,7 @@
                         <button 
                           class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider" 
                           title="Hapus SPJ" 
-                          @click="handleDelete(item.id_perjadin)"
+                          @click="handleDelete(item.id)"
                         >
                           <Trash2 :size="13" /> Hapus
                         </button>
@@ -226,7 +226,7 @@
                 <h4 class="text-sm font-black text-gray-800">Pelaksana SPD</h4>
               </div>
               <div class="space-y-5">
-                <SearchableDropdown label="Cari Pegawai (Autofill)" :options="pegawaiOptions" :value="selectedPegawaiIndex" placeholder="Contoh: Budi Santoso..." required @change="handlePegawaiChange" />
+                <SearchableDropdown label="Cari Pegawai (Autofill)" :options="pegawaiOptions" :value="selectedPegawaiIndex" placeholder="Contoh: Budi Santoso..." :is-loading="isPegawaiLoading" required @change="handlePegawaiChange" />
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
                   <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1">NIP</label>
@@ -493,7 +493,7 @@
             </div>
             
             <div class="space-y-5">
-              <SearchableDropdown v-model:value="sbmQuery" label="Ketik Nama Kota/SBM Tujuan" :options="sbmOptions" placeholder="Contoh: Jawa Barat" />
+              <SearchableDropdown v-model:value="sbmQuery" label="Ketik Nama Kota/SBM Tujuan" :options="sbmOptions" :is-loading="isSbmLoading" placeholder="Contoh: Jawa Barat" />
               
               <transition name="fade">
                 <div v-if="selectedSbm" class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-5 space-y-4 shadow-sm">
@@ -635,13 +635,10 @@ import SearchableDropdown from '../components/SearchableDropdown.vue'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 import { useDataStore } from '../stores/useDataStore'
+import api, { fetchApi } from '../config/api'
 import { triggerDownload } from '../utils/drive'
 import type { SpjData, SpjUangHarian, SpjPenginapan, SpjTransport, SpjTiket, PegawaiData, ApiResponse, AdminData, SbmData } from '../types/api'
-import * as pdfjsLib from 'pdfjs-dist'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString()
-
-const API_BASE = '/api/gas'
 const ITEMS_PER_PAGE = 10
 const store = useDataStore()
 
@@ -663,7 +660,10 @@ const sptjmList = ref<SpjData[]>([]) // reuse existing variable name logic struc
 const pegawaiList = ref<PegawaiData[]>([])
 const sbmList = ref<SbmData[]>([])
 
-const filesForUpload = ref<{ base64: string; mimeType: string; filename: string }[]>([])
+const isPegawaiLoading = ref(false)
+const isSbmLoading = ref(false)
+
+const filesForUpload = ref<File[]>([])
 
 // SUCCESS MODAL
 const successModal = ref({
@@ -685,7 +685,7 @@ function notify(type: 'success'|'error'|'warning', title: string, message: strin
 // FORM DATA
 const emptyTiket = (): SpjTiket => ({ tgl: '', dari: '', ke: '', maskapai: '', kode_booking: '', no_tiket: '', harga: 0 })
 const emptyForm = (): SpjData => ({
-  id_perjadin: '', nomor_st: '', asal_instansi: 'Direktorat Penyediaan Lahan', nip: '', nama: '', pangkat_gol: '', gol: '', 
+  id: '', nomor_st: '', asal_instansi: 'Direktorat Penyediaan Lahan', nip: '', nama: '', pangkat_gol: '', gol: '', 
   maksud_tujuan: '', jumlah_dibayar: 0, tujuan_1: '', tujuan_2: '', tujuan_3: '',
   lama_tugas: '', tgl_berangkat: '', tgl_kembali: '',
   uang_harian: [{ perhari: 0, hari: 0, total: 0 }],
@@ -730,13 +730,13 @@ const addTiket = (type: 'berangkat'|'pulang') => {
 }
 
 // LOOKUPS
-const pegawaiOptions = computed(() => pegawaiList.value.map((p, idx) => ({ value: String(idx), label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}` })))
-const selectedPegawaiIndex = computed(() => { const idx = pegawaiList.value.findIndex(p => p.nip === formData.value.nip && p.nama_lengkap === formData.value.nama); return idx >= 0 ? String(idx) : '' })
+const pegawaiOptions = computed(() => pegawaiList.value.map((p, idx) => ({ value: String(idx), label: `${p.namaLengkap} - ${p.jabatan || p.poksi || '-'}` })))
+const selectedPegawaiIndex = computed(() => { const idx = pegawaiList.value.findIndex(p => p.nip === formData.value.nip && p.namaLengkap === formData.value.nama); return idx >= 0 ? String(idx) : '' })
 const handlePegawaiChange = (strIdx: string) => {
   if (!strIdx) return
   const p = pegawaiList.value[parseInt(strIdx)]
   if (p) {
-    formData.value.nama = p.nama_lengkap; formData.value.jabatan = p.jabatan || ''; formData.value.nip = p.nip || ''; formData.value.pangkat_gol = p.pangkat_gol_ruang || ''; formData.value.gol = p.golongan || ''
+    formData.value.nama = p.namaLengkap; formData.value.jabatan = p.jabatan || ''; formData.value.nip = p.nip || ''; formData.value.pangkat_gol = p.pangkatGol || ''; formData.value.gol = p.golongan || ''
   }
 }
 
@@ -791,81 +791,64 @@ const paginatedList = computed(() => filteredList.value.slice((safePage.value - 
 watch(searchQuery, () => currentPage.value = 1)
 
 // FETCH
-async function gasCall(action: string, payload: any = {}): Promise<any> {
-  const rs = await fetch(API_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...payload }) })
-  return rs.json()
-}
 async function loadList() {
   isLoading.value = true
   try {
-    const rs = await gasCall('GET_SPJ_LIST', { tim_poksi: adminData.value?.tim_poksi || '', role: adminData.value?.role || '' })
-    if (rs.success) sptjmList.value = rs.data as SpjData[]
+    const response = await api.get<ApiResponse<SpjData[]>>('/api/spj')
+    if (response.data.status && response.data.data) {
+      sptjmList.value = response.data.data
+      store.setSpjData(response.data.data)
+    }
+  } catch (err) {
+    console.error('[SPJ] loadList error:', err)
   } finally { isLoading.value = false }
 }
 async function loadPegawai() {
-  if (store.isCacheValid('pegawai')) pegawaiList.value = store.pegawaiData
-  else {
-    try { const rs = await gasCall('GET_PEGAWAI'); if(rs.success) { pegawaiList.value = rs.data as PegawaiData[]; store.setPegawaiData(rs.data as PegawaiData[]) } } catch(e){}
+  isPegawaiLoading.value = true
+  try {
+    if (store.isCacheValid('pegawai')) {
+      pegawaiList.value = store.pegawaiData
+      return
+    }
+    const rs = await fetchApi<PegawaiData[]>('GET_PEGAWAI')
+    if (rs.status && rs.data) {
+      pegawaiList.value = rs.data
+      store.setPegawaiData(rs.data)
+    }
+  } catch (e) {
+    console.error('[SPJ] loadPegawai error:', e)
+  } finally {
+    isPegawaiLoading.value = false
   }
 }
 async function loadSbm() {
-  if (store.isCacheValid('sbm')) sbmList.value = store.sbmData
-  else {
-    try { const rs = await gasCall('GET_SBM'); if(rs.success) { sbmList.value = rs.data as SbmData[]; store.setSbmData(rs.data as SbmData[]) } } catch(e){}
+  isSbmLoading.value = true
+  try {
+    if (store.isCacheValid('sbm')) {
+      sbmList.value = store.sbmData
+      return
+    }
+    const rs = await fetchApi<SbmData[]>('GET_SBM')
+    if (rs.status && rs.data) {
+      sbmList.value = rs.data
+      store.setSbmData(rs.data)
+    }
+  } catch (e) {
+    console.error('[SPJ] loadSbm error:', e)
+  } finally {
+    isSbmLoading.value = false
   }
 }
 
-// PDFJS CONVERTER
-async function onFileChange(e: Event) {
+function onFileChange(e: Event) {
   const files = (e.target as HTMLInputElement).files
   if (!files || files.length === 0) return
-  filesForUpload.value = []
   
-  processingMessage.value = "Menyiapkan lampiran..."
-  isSubmitting.value = true
-
   for(let i=0; i<files.length; i++) {
     const file = files[i]
-    if (file.size > 10 * 1024 * 1024) { notify('warning','Ukuran Terlalu Besar',`File ${file.name} > 10MB. Skip.`); continue }
-
-    if (file.type === 'application/pdf') {
-      try {
-        const arrayBuffer = await file.arrayBuffer()
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-        for (let pt = 1; pt <= pdf.numPages; pt++) {
-          const page = await pdf.getPage(pt)
-          const viewport = page.getViewport({ scale: 1.0 })
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          if (!ctx) throw new Error('Canvas 2d context not available')
-          canvas.width = viewport.width; canvas.height = viewport.height;
-          
-          const renderContext: any = {
-            canvasContext: ctx,
-            viewport: viewport
-          };
-          await page.render(renderContext).promise
-          
-          filesForUpload.value.push({
-            base64: canvas.toDataURL('image/jpeg', 0.5).split(',')[1],
-            mimeType: 'image/jpeg',
-            filename: `${file.name.replace('.pdf','')}-page${pt}.jpg`
-          })
-        }
-      } catch (err) {
-        console.error(err)
-        notify('error','Gagal Render PDF', `Gagal mengekstrak gambar dari PDF ${file.name}.`)
-      }
-    } else if (file.type.startsWith('image/')) {
-        const base64 = await new Promise<string>((res) => {
-          const r = new FileReader()
-          r.onload = () => res((r.result as string).split(',')[1])
-          r.readAsDataURL(file)
-        })
-        filesForUpload.value.push({ base64, mimeType: file.type, filename: file.name })
-    }
+    if (file.size > 20 * 1024 * 1024) { notify('warning','Ukuran Terlalu Besar',`File ${file.name} > 20MB. Skip.`); continue }
+    filesForUpload.value.push(file)
   }
-  isSubmitting.value = false
 }
 
 // ACTION
@@ -908,26 +891,36 @@ async function handleSave() {
   formData.value.jumlah_dibayar = grandTotal.value
   
   try {
-    const payload: any = { data: formData.value }
-    if (filesForUpload.value.length > 0) payload.fileDetails = filesForUpload.value // the array of images
+    const formDataObj = new FormData()
+    
+    // 1. Append Data sebagai JSON string
+    formDataObj.append('data', JSON.stringify(formData.value))
+    
+    // 2. Append Files
+    filesForUpload.value.forEach((file) => {
+      formDataObj.append('files', file)
+    })
 
-    const rs = await gasCall('SAVE_SPJ', payload)
-    if (rs.success) {
+    const response = await api.post<ApiResponse<any>>('/api/spj', formDataObj, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+
+    if (response.data.status) {
       store.invalidateCache('spj')
       await loadList()
-      const fileUrl = (rs.data as any)?.file_link || ''
+      const data = response.data.data
       successModal.value = {
         isOpen: true,
-        fileUrl,
+        fileUrl: data?.file_link || '',
         nama: formData.value.nama,
         jumlah: grandTotal.value
       }
       closeForm()
     } else {
-      notify('error', 'Gagal', rs.message || 'Terjadi kesalahan sistem.')
+      notify('error', 'Gagal', response.data.message || 'Terjadi kesalahan sistem.')
     }
   } catch (err: any) {
-    notify('error', 'Error Network', err.toString())
+    notify('error', 'Error Network', err.response?.data?.message || err.toString())
   } finally {
     isSubmitting.value = false
     processingMessage.value = ""
@@ -938,14 +931,20 @@ async function handleDelete(id: string) {
   notify('warning', 'Hapus Data?', 'Kwitansi yang sudah dihapus tidak dapat direstore.', async () => {
     isSubmitting.value = true
     try {
-      const rs = await gasCall('DELETE_SPJ', { id_perjadin: id })
-      if(rs.success) { store.invalidateCache('spj'); await loadList(); notify('success', 'Dihapus', 'Data SPJ telah dhapus dari registry.') }
-      else notify('error', 'Gagal', rs.message)
+      const response = await api.delete<ApiResponse<any>>(`/api/spj/${id}`)
+      if(response.data.status) { 
+        store.invalidateCache('spj')
+        await loadList()
+        notify('success', 'Dihapus', 'Data SPJ telah dihapus dari PostgreSQL & Google Sheets.') 
+      }
+      else notify('error', 'Gagal', response.data.message)
     } finally { isSubmitting.value = false }
   }, 'Ya, Hapus Saja')
 }
 
-onMounted(() => { loadList(); loadPegawai(); loadSbm() })
+onMounted(async () => {
+  await Promise.all([loadList(), loadPegawai(), loadSbm()])
+})
 </script>
 
 <style scoped>

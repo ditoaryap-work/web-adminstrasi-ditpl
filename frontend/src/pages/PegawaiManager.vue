@@ -104,11 +104,11 @@
                   <td class="py-4 px-6">
                     <div class="flex items-center gap-3">
                       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-sm shrink-0">
-                        {{ p.nama_lengkap.charAt(0) }}
+                        {{ p.namaLengkap.charAt(0) }}
                       </div>
                       <div class="min-w-0">
                         <p class="text-sm font-bold text-gray-800 truncate">
-                          {{ p.nama_lengkap }}
+                          {{ p.namaLengkap }}
                         </p>
                         <p class="text-[11px] text-gray-400 font-medium tracking-wider">
                           {{ p.nip }}
@@ -119,7 +119,7 @@
                   <td class="py-4 px-6">
                     <div>
                       <p class="text-xs font-bold text-gray-600">
-                        {{ p.pangkat_gol_ruang || '-' }}
+                        {{ p.pangkatGol || '-' }}
                       </p>
                       <div class="inline-block px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[9px] font-bold text-emerald-700 mt-1 uppercase tracking-wider">
                         Gol {{ p.golongan }}
@@ -234,7 +234,7 @@
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Nama Lengkap <span class="text-red-400">*</span></label>
               <input
-                v-model="formData.nama_lengkap"
+                v-model="formData.namaLengkap"
                 type="text"
                 class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
                 placeholder="Contoh: Agus Setiawan, SE."
@@ -254,7 +254,7 @@
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Pangkat/Gol Ruang</label>
               <input
-                v-model="formData.pangkat_gol_ruang"
+                v-model="formData.pangkatGol"
                 type="text"
                 class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
                 placeholder="Contoh: Penata / IIIc"
@@ -299,7 +299,7 @@
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2 px-1">Tingkat Biaya</label>
               <input
-                v-model="formData.tingkat_biaya"
+                v-model="formData.tingkatBiaya"
                 type="text"
                 class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm"
                 placeholder="Contoh: A / B / C"
@@ -346,7 +346,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { fetchApi } from '../config/api'
+import api from '../config/api'
 import { useDataStore } from '../stores/useDataStore'
 import { PegawaiData } from '../types/api'
 import { Users, Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Save } from 'lucide-vue-next'
@@ -354,7 +354,6 @@ import GlobalModal from '../components/GlobalModal.vue'
 
 const ITEMS_PER_PAGE = 10
 
-// Store
 const dataStore = useDataStore()
 
 // State
@@ -367,17 +366,18 @@ const isEditMode = ref(false)
 const isSubmitting = ref(false)
 
 const formData = ref<{
-  row_number: number | null;
-  nama_lengkap: string;
+  id: string | null;
+  namaLengkap: string;
   nip: string;
-  pangkat_gol_ruang: string;
+  kode: string;
+  pangkatGol: string;
   golongan: string;
   jabatan: string;
   poksi: string;
   direktorat: string;
-  tingkat_biaya: string;
+  tingkatBiaya: string;
 }>({
-  row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: ''
+  id: null, namaLengkap: '', nip: '', kode: '', pangkatGol: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: ''
 })
 
 const notificationModal = ref({
@@ -411,21 +411,23 @@ watch(searchQuery, () => {
   currentPage.value = 1
 })
 
-// Methods
+// ========= METHODS (REST API) =========
+
 const fetchPegawai = async () => {
   isLoading.value = true
   try {
     if (dataStore.isCacheValid('pegawai')) {
       pegawaiList.value = dataStore.pegawaiData
     } else {
-      const response = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
-      if (response.status && response.data) {
-        pegawaiList.value = response.data
-        dataStore.setPegawaiData(response.data)
+      const response = await api.get<{ status: boolean; data: PegawaiData[] }>('/api/pegawai')
+      if (response.data.status && response.data.data) {
+        pegawaiList.value = response.data.data
+        dataStore.setPegawaiData(response.data.data)
       }
     }
-  } catch {
-    console.error("Error fetching pegawai")
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'Gagal memuat data pegawai dari server.'
+    showNotification('error', 'Gagal Memuat Data', msg)
   } finally {
     isLoading.value = false
   }
@@ -433,20 +435,21 @@ const fetchPegawai = async () => {
 
 const openForm = (p: PegawaiData | null = null) => {
   if (p) {
-    formData.value = { 
-      row_number: p.row_number ?? null,
-      nama_lengkap: p.nama_lengkap,
+    formData.value = {
+      id: p.id || null,
+      namaLengkap: p.namaLengkap,
       nip: p.nip,
-      pangkat_gol_ruang: p.pangkat_gol_ruang || '',
+      kode: p.kode || '',
+      pangkatGol: p.pangkatGol || '',
       golongan: p.golongan || '',
       jabatan: p.jabatan || '',
       poksi: p.poksi || '',
       direktorat: p.direktorat || '',
-      tingkat_biaya: p.tingkat_biaya || ''
+      tingkatBiaya: p.tingkatBiaya || ''
     }
     isEditMode.value = true
   } else {
-    formData.value = { row_number: null, nama_lengkap: '', nip: '', pangkat_gol_ruang: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkat_biaya: '' }
+    formData.value = { id: null, namaLengkap: '', nip: '', kode: '', pangkatGol: '', golongan: '', jabatan: '', poksi: '', direktorat: '', tingkatBiaya: '' }
     isEditMode.value = false
   }
   viewMode.value = 'form'
@@ -457,24 +460,38 @@ const closeForm = () => {
 }
 
 const handleSave = async () => {
-  if (!formData.value.nama_lengkap) {
+  if (!formData.value.namaLengkap) {
     showNotification('warning', 'Data Belum Lengkap', 'Nama Lengkap wajib diisi.')
     return
   }
-  
+
   isSubmitting.value = true
   try {
-    const result = await fetchApi("SAVE_PEGAWAI", { data: formData.value })
-    if (result.status) {
-      dataStore.invalidateCache('pegawai')
-      await fetchPegawai()
-      closeForm()
-      showNotification('success', 'Berhasil Disimpan', `Data pegawai ${formData.value.nama_lengkap} telah diperbarui di sistem.`)
-    } else {
-      showNotification('error', 'Gagal', result.message)
+    const payload = {
+      namaLengkap: formData.value.namaLengkap,
+      nip: formData.value.nip || undefined,
+      kode: formData.value.kode || undefined,
+      pangkatGol: formData.value.pangkatGol || undefined,
+      golongan: formData.value.golongan || undefined,
+      jabatan: formData.value.jabatan || undefined,
+      poksi: formData.value.poksi || undefined,
+      direktorat: formData.value.direktorat || undefined,
+      tingkatBiaya: formData.value.tingkatBiaya || undefined,
     }
-  } catch {
-    showNotification('error', 'Jaringan Error', 'Terjadi kesalahan saat menghubungkan ke server.')
+
+    if (isEditMode.value && formData.value.id) {
+      await api.put(`/api/pegawai/${formData.value.id}`, payload)
+    } else {
+      await api.post('/api/pegawai', payload)
+    }
+
+    dataStore.invalidateCache('pegawai')
+    await fetchPegawai()
+    closeForm()
+    showNotification('success', 'Berhasil Disimpan', `Data pegawai ${formData.value.namaLengkap} telah berhasil disimpan.`)
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.'
+    showNotification('error', 'Gagal Menyimpan', msg)
   } finally {
     isSubmitting.value = false
   }
@@ -484,25 +501,22 @@ const confirmDelete = (pegawai: PegawaiData) => {
   showNotification(
     'confirm',
     'Hapus Pegawai',
-    `Apakah Anda yakin ingin menghapus data ${pegawai.nama_lengkap}? Tindakan ini tidak dapat dibatalkan.`,
-    () => { if(pegawai.row_number) handleDelete(pegawai.row_number) },
+    `Apakah Anda yakin ingin menghapus data ${pegawai.namaLengkap}? Tindakan ini tidak dapat dibatalkan.`,
+    () => { if (pegawai.id) handleDelete(pegawai.id) },
     'Ya, Hapus'
   )
 }
 
-const handleDelete = async (row_number: number) => {
+const handleDelete = async (id: string) => {
   isLoading.value = true
   try {
-    const result = await fetchApi("DELETE_PEGAWAI", { row_number })
-    if (result.status) {
-      dataStore.invalidateCache('pegawai')
-      await fetchPegawai()
-      showNotification('success', 'Berhasil Dihapus', 'Data pegawai telah dihapus dari database.')
-    } else {
-      showNotification('error', 'Gagal', result.message)
-    }
-  } catch {
-    showNotification('error', 'Gagal', 'Terjadi kesalahan jaringan.')
+    await api.delete(`/api/pegawai/${id}`)
+    dataStore.invalidateCache('pegawai')
+    await fetchPegawai()
+    showNotification('success', 'Berhasil Dihapus', 'Data pegawai telah dihapus dari database.')
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'Terjadi kesalahan jaringan saat menghapus.'
+    showNotification('error', 'Gagal Menghapus', msg)
   } finally {
     isLoading.value = false
   }
@@ -516,8 +530,8 @@ const handlePageChange = (p: number) => {
 const filteredPegawai = computed(() => {
   if (!searchQuery.value) return pegawaiList.value
   const q = searchQuery.value.toLowerCase()
-  return pegawaiList.value.filter((p: PegawaiData) =>  
-    (p.nama_lengkap || '').toLowerCase().includes(q) || 
+  return pegawaiList.value.filter((p: PegawaiData) =>
+    (p.namaLengkap || '').toLowerCase().includes(q) ||
     (p.nip || '').includes(q)
   )
 })
@@ -538,3 +552,4 @@ const visiblePages = computed(() => {
   return pages
 })
 </script>
+

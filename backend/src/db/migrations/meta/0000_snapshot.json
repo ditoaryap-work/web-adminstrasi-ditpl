@@ -1,0 +1,1017 @@
+{
+  "id": "d168aeed-b7a2-4710-8154-dc73b277cfd6",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.config": {
+      "name": "config",
+      "schema": "",
+      "columns": {
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "folder_id_spt": {
+          "name": "folder_id_spt",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folder_id_sptjm": {
+          "name": "folder_id_sptjm",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id_spt_v1": {
+          "name": "template_id_spt_v1",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id_spt_v2": {
+          "name": "template_id_spt_v2",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id_sptjm": {
+          "name": "template_id_sptjm",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folder_id_surat_masuk": {
+          "name": "folder_id_surat_masuk",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folder_id_surat_keluar": {
+          "name": "folder_id_surat_keluar",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folder_id_notulensi": {
+          "name": "folder_id_notulensi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folder_id_spj": {
+          "name": "folder_id_spj",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id_spj": {
+          "name": "template_id_spj",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pegawai": {
+      "name": "pegawai",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "kode": {
+          "name": "kode",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nama_lengkap": {
+          "name": "nama_lengkap",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nip": {
+          "name": "nip",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "golongan": {
+          "name": "golongan",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pangkat_gol": {
+          "name": "pangkat_gol",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tingkat_biaya": {
+          "name": "tingkat_biaya",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jabatan": {
+          "name": "jabatan",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "direktorat": {
+          "name": "direktorat",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "poksi": {
+          "name": "poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "pegawai_nip_unique": {
+          "name": "pegawai_nip_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nip"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.perjadin": {
+      "name": "perjadin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nomor_st": {
+          "name": "nomor_st",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "asal_instansi": {
+          "name": "asal_instansi",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Direktorat PL'"
+        },
+        "nip": {
+          "name": "nip",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nama": {
+          "name": "nama",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pangkat_gol": {
+          "name": "pangkat_gol",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gol": {
+          "name": "gol",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "maksud_tujuan": {
+          "name": "maksud_tujuan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jumlah_dibayar": {
+          "name": "jumlah_dibayar",
+          "type": "numeric(14, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "tujuan": {
+          "name": "tujuan",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lama_tugas": {
+          "name": "lama_tugas",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tgl_berangkat": {
+          "name": "tgl_berangkat",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tgl_kembali": {
+          "name": "tgl_kembali",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uang_harian": {
+          "name": "uang_harian",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "penginapan": {
+          "name": "penginapan",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "transport": {
+          "name": "transport",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "tiket_berangkat": {
+          "name": "tiket_berangkat",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "tiket_pulang": {
+          "name": "tiket_pulang",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "taksi": {
+          "name": "taksi",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "representasi": {
+          "name": "representasi",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "uang_lainnya": {
+          "name": "uang_lainnya",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "no_spd": {
+          "name": "no_spd",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_akun": {
+          "name": "no_akun",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jabatan": {
+          "name": "jabatan",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tingkat_biaya": {
+          "name": "tingkat_biaya",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kendaraan": {
+          "name": "kendaraan",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tgl_perintah": {
+          "name": "tgl_perintah",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_link": {
+          "name": "file_link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_bukti": {
+          "name": "file_bukti",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nomor_ls": {
+          "name": "nomor_ls",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kode_kapoksi": {
+          "name": "kode_kapoksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kode_mak": {
+          "name": "kode_mak",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uraian_pembayaran": {
+          "name": "uraian_pembayaran",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_urut_spd": {
+          "name": "no_urut_spd",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "perjadin_tim_poksi_config_tim_poksi_fk": {
+          "name": "perjadin_tim_poksi_config_tim_poksi_fk",
+          "tableFrom": "perjadin",
+          "tableTo": "config",
+          "columnsFrom": [
+            "tim_poksi"
+          ],
+          "columnsTo": [
+            "tim_poksi"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.refresh_tokens": {
+      "name": "refresh_tokens",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "refresh_tokens_user_id_users_id_fk": {
+          "name": "refresh_tokens_user_id_users_id_fk",
+          "tableFrom": "refresh_tokens",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sbm": {
+      "name": "sbm",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "kec_kab": {
+          "name": "kec_kab",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uang_harian": {
+          "name": "uang_harian",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uang_penginapan": {
+          "name": "uang_penginapan",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "golongan": {
+          "name": "golongan",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pesawat": {
+          "name": "pesawat",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.spt": {
+      "name": "spt",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "no": {
+          "name": "no",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_surat": {
+          "name": "tanggal_surat",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "maksud_perjalanan": {
+          "name": "maksud_perjalanan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kegiatan": {
+          "name": "kegiatan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mak": {
+          "name": "mak",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "peserta": {
+          "name": "peserta",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "peserta_count": {
+          "name": "peserta_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_link": {
+          "name": "file_link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "spt_tim_poksi_config_tim_poksi_fk": {
+          "name": "spt_tim_poksi_config_tim_poksi_fk",
+          "tableFrom": "spt",
+          "tableTo": "config",
+          "columnsFrom": [
+            "tim_poksi"
+          ],
+          "columnsTo": [
+            "tim_poksi"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sptjm": {
+      "name": "sptjm",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nama_lengkap": {
+          "name": "nama_lengkap",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nip": {
+          "name": "nip",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jabatan": {
+          "name": "jabatan",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tujuan": {
+          "name": "tujuan",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_perjalanan": {
+          "name": "tanggal_perjalanan",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_kembali": {
+          "name": "tanggal_kembali",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tiket_berangkat": {
+          "name": "tiket_berangkat",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tiket_pulang": {
+          "name": "tiket_pulang",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "biaya_sbm": {
+          "name": "biaya_sbm",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_biaya": {
+          "name": "total_biaya",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_ttd": {
+          "name": "tanggal_ttd",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_link": {
+          "name": "file_link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sptjm_tim_poksi_config_tim_poksi_fk": {
+          "name": "sptjm_tim_poksi_config_tim_poksi_fk",
+          "tableFrom": "sptjm",
+          "tableTo": "config",
+          "columnsFrom": [
+            "tim_poksi"
+          ],
+          "columnsTo": [
+            "tim_poksi"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.surat": {
+      "name": "surat",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipe_surat": {
+          "name": "tipe_surat",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kategori_surat": {
+          "name": "kategori_surat",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sifat_surat": {
+          "name": "sifat_surat",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nomor_surat": {
+          "name": "nomor_surat",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_masuk": {
+          "name": "tanggal_masuk",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_surat": {
+          "name": "tanggal_surat",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "asal_tujuan": {
+          "name": "asal_tujuan",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "perihal": {
+          "name": "perihal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tgl_acara_mulai": {
+          "name": "tgl_acara_mulai",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tgl_acara_selesai": {
+          "name": "tgl_acara_selesai",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "disposisi_ke": {
+          "name": "disposisi_ke",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "tgl_disposisi": {
+          "name": "tgl_disposisi",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tindak_lanjut": {
+          "name": "tindak_lanjut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_surat": {
+          "name": "file_surat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_notulensi": {
+          "name": "file_notulensi",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "surat_tim_poksi_config_tim_poksi_fk": {
+          "name": "surat_tim_poksi_config_tim_poksi_fk",
+          "tableFrom": "surat",
+          "tableTo": "config",
+          "columnsFrom": [
+            "tim_poksi"
+          ],
+          "columnsTo": [
+            "tim_poksi"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "username": {
+          "name": "username",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nama": {
+          "name": "nama",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tim_poksi": {
+          "name": "tim_poksi",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Admin'"
+        },
+        "profile_image": {
+          "name": "profile_image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_login": {
+          "name": "last_login",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_username_unique": {
+          "name": "users_username_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "username"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

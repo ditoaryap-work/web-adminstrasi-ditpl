@@ -172,7 +172,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { fetchApi } from '../config/api'
 import { useDataStore } from '../stores/useDataStore'
-import { SptData, SptjmData } from '../types/api'
+import { SptData, SptjmData, PegawaiData } from '../types/api'
 import { 
   FileText, CheckCircle, TrendingUp, Users,
   Calendar as CalendarIcon, FileEdit, CheckSquare
@@ -224,6 +224,14 @@ onMounted(async () => {
       if (resSptjm.status && resSptjm.data) {
         dataSptjm = resSptjm.data
         dataStore.setSptjmData(dataSptjm)
+      }
+    }
+
+    // Pre-fetch Pegawai for cache warming (used by SPT, SPTJM, SPJ, ArsipSurat)
+    if (!dataStore.isCacheValid('pegawai')) {
+      const resPegawai = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
+      if (resPegawai.status && resPegawai.data) {
+        dataStore.setPegawaiData(resPegawai.data)
       }
     }
     

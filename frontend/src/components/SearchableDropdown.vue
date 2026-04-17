@@ -106,6 +106,10 @@
               />
             </button>
           </template>
+          <div v-else-if="isLoading" class="px-4 py-6 text-center text-sm text-gray-400 font-medium flex flex-col items-center gap-2">
+            <RefreshCw class="w-5 h-5 animate-spin text-kementan-green mx-auto" />
+            <span>Memuat data...</span>
+          </div>
           <div
             v-else
             class="px-4 py-6 text-center text-sm text-gray-400 font-medium"
@@ -130,7 +134,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
-import { Search, ChevronDown, Check, X } from 'lucide-vue-next'
+import { Search, ChevronDown, Check, X, RefreshCw } from 'lucide-vue-next'
 
 interface DropdownOption {
   value: string | number;
@@ -145,6 +149,7 @@ const props = defineProps<{
   label?: string;
   required?: boolean;
   disabled?: boolean;
+  isLoading?: boolean;
 }>()
 
 const emit = defineEmits(['update:value', 'change'])

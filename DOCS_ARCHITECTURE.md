@@ -43,10 +43,9 @@ Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`.
 - `A` - **username**: Username untuk login.
 - `B` - **password**: Kata sandi akses.
 - `C` - **nama_admin**: Nama pengguna.
-- `D` - **tim_poksi**: Relasi eksklusif data ke Tim mana user berada.
-- `E` - **profile_image_url**: Link gambar profil.
-- `F` - **last_login**: Timestamp login.
-- `G` - **role**: Flag untuk menandai 'Admin' vs 'Super Admin'.
+- `D` - **tim_poksi**: Tim Poksi tempat admin bertugas.
+- `E` - **last_login**: Tanggal & jam login terakhir.
+- `F` - **role**: Level akses (Super Admin / Admin).
 
 ### TAB 2: `CONFIG` (Pusat Sinkronisasi Folder Drive)
 - `A` - **tim_poksi**: Primary Key.

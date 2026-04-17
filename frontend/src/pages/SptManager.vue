@@ -296,7 +296,7 @@
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
               <label class="block text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">+ Tambah
                 Peserta</label>
-              <SearchableDropdown v-model:value="participantSelector" label="" :options="pegawaiOptions"
+              <SearchableDropdown v-model:value="participantSelector" label="" :options="pegawaiOptions" :is-loading="isPegawaiLoading"
                 placeholder="Ketik nama atau NIP pegawai..." @change="addParticipant" />
             </div>
 
@@ -551,6 +551,7 @@ const dataStore = useDataStore()
 // State
 const sptList = ref<SptData[]>([])
 const pegawaiList = ref<PegawaiData[]>([])
+const isPegawaiLoading = ref(false)
 const isLoading = ref(true)
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -614,12 +615,12 @@ const showNotification = (
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   const storedData = localStorage.getItem('adminData')
   if (storedData) {
     adminProfile.value = JSON.parse(storedData)
   }
-  fetchData()
+  await Promise.all([fetchData(), fetchPegawaiData()])
 })
 
 watch(searchQuery, () => {
@@ -634,7 +635,6 @@ const fetchData = async () => {
 
   try {
     let freshSpt: SptData[] = []
-    let freshPegawai: PegawaiData[] = []
 
     // 1. Fetch SPT Data (from cache or network)
     if (dataStore.isCacheValid('spt')) {
@@ -647,24 +647,31 @@ const fetchData = async () => {
       }
     }
 
-    // 2. Fetch Pegawai Data
-    if (dataStore.isCacheValid('pegawai')) {
-      freshPegawai = dataStore.pegawaiData
-    } else {
-      const resPegawai = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
-      if (resPegawai.status && resPegawai.data) {
-        freshPegawai = resPegawai.data
-        dataStore.setPegawaiData(freshPegawai)
-      }
-    }
-
     sptList.value = freshSpt
-    pegawaiList.value = freshPegawai
   } catch (err) {
     console.error("Gagal menarik data:", err)
     showNotification('error', 'Gagal Menarik Data', 'Terjadi kesalahan saat menghubungkan ke server.')
   } finally {
     isLoading.value = false
+  }
+}
+
+const fetchPegawaiData = async () => {
+  isPegawaiLoading.value = true
+  try {
+    if (dataStore.isCacheValid('pegawai')) {
+      pegawaiList.value = dataStore.pegawaiData
+    } else {
+      const resPegawai = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
+      if (resPegawai.status && resPegawai.data) {
+        pegawaiList.value = resPegawai.data
+        dataStore.setPegawaiData(resPegawai.data)
+      }
+    }
+  } catch (err) {
+    console.error("Gagal menarik data Pegawai:", err)
+  } finally {
+    isPegawaiLoading.value = false
   }
 }
 
@@ -706,7 +713,7 @@ const addParticipant = (strIdx: string) => {
   if (!p) return
 
   // Check if exists using NIP or Exact Object Ref
-  if (formData.value.peserta.some((existing: SptPeserta) => existing.nip === p.nip && existing.nama_lengkap === p.nama_lengkap)) {
+  if (formData.value.peserta.some((existing: SptPeserta) => existing.nip === p.nip && existing.nama_lengkap === p.namaLengkap)) {
     showNotification('warning', 'Duplikasi Peserta', 'Pegawai ini sudah ada di daftar peserta.')
     participantSelector.value = ''
     return
@@ -721,7 +728,7 @@ const addParticipant = (strIdx: string) => {
     }
 
     formData.value.peserta.push({
-      nama_lengkap: p.nama_lengkap, // fallback
+      nama_lengkap: p.namaLengkap,
       nip: p.nip,
       pangkat_gol: extractedGol,
       jabatan: p.jabatan,
@@ -829,7 +836,7 @@ const paginatedList = computed(() => filteredList.value.slice((safePage.value - 
 
 const pegawaiOptions = computed(() => pegawaiList.value.map((p: PegawaiData, idx: number) => ({
   value: String(idx),
-  label: `${p.nama_lengkap} - ${p.jabatan || p.poksi || '-'}`
+  label: `${p.namaLengkap} - ${p.jabatan || p.poksi || '-'}`
 })))
 </script>
 

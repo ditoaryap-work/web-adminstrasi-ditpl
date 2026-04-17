@@ -9,7 +9,6 @@ export interface AdminData {
   password?: string;
   nama_admin?: string;
   tim_poksi: string;
-  profile_image_url?: string;
   role: string;
 }
 
@@ -55,15 +54,17 @@ export interface SptjmData {
 }
 
 export interface PegawaiData {
-  row_number?: number;
-  nama_lengkap: string;
+  id?: string;
+  kode?: string;
+  namaLengkap: string;
   nip: string;
-  pangkat_gol_ruang?: string;
+  pangkatGol?: string;
   golongan?: string;
   jabatan?: string;
   poksi?: string;
   direktorat?: string;
-  tingkat_biaya?: string;
+  tingkatBiaya?: string;
+  createdAt?: string;
 }
 
 export interface SbmData {
@@ -129,7 +130,7 @@ export interface SpjTiket {
 }
 
 export interface SpjData {
-  id_perjadin: string;
+  id: string;
   // BPK Identitas
   nomor_st: string;
   asal_instansi: string;

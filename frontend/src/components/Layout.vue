@@ -42,8 +42,10 @@
         <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-4 mt-6">
           Database
         </div>
-        <NavItem to="/pegawai" :icon="Settings" label="Data Pegawai" />
-        <NavItem to="/admin" :icon="Users" label="Manajer Admin" />
+        <NavItem to="/pegawai" :icon="Users" label="Data Pegawai" />
+        <NavItem to="/admin" :icon="Shield" label="Manajer Admin" />
+        <NavItem v-if="adminProfile?.role === 'Super Admin'" to="/templates" :icon="FileCode" label="Sistem Template" />
+        <NavItem to="/settings" :icon="Settings" label="Pengaturan Sistem" />
       </nav>
 
       <div class="p-4 mt-auto border-t border-gray-100">
@@ -71,8 +73,8 @@
         </div>
 
         <div v-if="adminProfile" class="flex items-center gap-3 lg:gap-4">
-          <div class="text-right flex flex-col justify-center">
-            <p class="text-xs lg:text-sm font-bold text-gray-800 leading-none mb-1">
+          <div class="text-right flex flex-col justify-center border-l border-gray-100 pl-4">
+            <p class="text-xs lg:text-sm font-bold text-gray-800 leading-none mb-1 text-right">
               {{ adminProfile.nama_admin }}
             </p>
             <span
@@ -112,7 +114,7 @@ import { ref, onMounted, h, type Component as VueComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   LayoutDashboard, FileText, FileSignature, Settings,
-  LogOut, ChevronRight, Menu, X, Users, Inbox, Receipt
+  LogOut, ChevronRight, Menu, X, Users, Inbox, Receipt, FileCode, RefreshCw, Shield
 } from 'lucide-vue-next'
 import { AdminData } from '../types/api'
 

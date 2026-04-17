@@ -1,0 +1,90 @@
+import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+import { db } from '../db';
+import { sbm } from '../db/schema';
+import { eq } from 'drizzle-orm';
+import { authMiddleware, requireSuperAdmin } from '../middleware/auth';
+import { syncSbmToSheets, deleteSbmFromSheets } from '../services/sheets.service';
+
+const sbmRouter = new Hono();
+
+sbmRouter.use('/*', authMiddleware);
+
+const sbmSchemaValidation = z.object({
+  kecKab: z.string().max(200).optional().nullable(),
+  uangHarian: z.number().or(z.string().regex(/^\d+(\.\d{1,2})?$/)).optional().nullable(),
+  uangPenginapan: z.number().or(z.string().regex(/^\d+(\.\d{1,2})?$/)).optional().nullable(),
+  golongan: z.string().max(50).optional().nullable(),
+  pesawat: z.boolean().default(false).optional().nullable(),
+  data: z.record(z.string(), z.any()).optional().nullable() // Fleksibilitas data dinamis SBM lainnya
+});
+
+sbmRouter.get('/', async (c) => {
+  try {
+    const list = await db.select().from(sbm);
+    return c.json({ status: true, message: 'Data Standar Biaya Masukan berhasil dimuat', data: list });
+  } catch (error) {
+    return c.json({ status: false, message: 'Gagal mengambil data SBM' }, 500);
+  }
+});
+
+// Modifikasi data makro wajib Super Admin
+sbmRouter.post('/', requireSuperAdmin, zValidator('json', sbmSchemaValidation), async (c) => {
+  try {
+    const body = c.req.valid('json') as any;
+    // konversi numerik string jika perlu
+    if (typeof body.uangHarian === 'number') body.uangHarian = body.uangHarian.toString();
+    if (typeof body.uangPenginapan === 'number') body.uangPenginapan = body.uangPenginapan.toString();
+    
+    const result = await db.insert(sbm).values(body).returning();
+    
+    // Background Sync (Non-blocking)
+
+    return c.json({ status: true, message: 'Record SBM berhasil ditambahkan', data: result[0] });
+  } catch(e) {
+    return c.json({ status: false, message: 'Gagal merekam SBM baru' }, 500);
+  }
+});
+
+sbmRouter.put('/:id', requireSuperAdmin, zValidator('json', sbmSchemaValidation), async (c) => {
+  try {
+    const id = parseInt(c.req.param('id') || '0');
+    const body = c.req.valid('json') as any;
+    
+    if (typeof body.uangHarian === 'number') body.uangHarian = body.uangHarian.toString();
+    if (typeof body.uangPenginapan === 'number') body.uangPenginapan = body.uangPenginapan.toString();
+    
+    const result = await db.update(sbm).set(body).where(eq(sbm.id, id)).returning();
+    if(result.length === 0) {
+        return c.json({ status: false, message: 'ID SBM tidak relevan / rekam tidak ditemukan' }, 404);
+    }
+    
+    // Background Sync (Non-blocking)
+
+    return c.json({ status: true, message: 'Pembaruan record master SBM sukses', data: result[0] });
+  } catch(e) {
+    return c.json({ status: false, message: 'Sistem mengalami kegagalan proses update SBM' }, 500);
+  }
+});
+
+sbmRouter.delete('/:id', requireSuperAdmin, async (c) => {
+  try {
+    const id = parseInt(c.req.param('id') || '0');
+    const result = await db.delete(sbm).where(eq(sbm.id, id)).returning();
+    
+    if (result.length === 0) {
+      return c.json({ status: false, message: 'Data SBM tidak ditemukan' }, 404);
+    }
+    
+    // Background Sync (Non-blocking)
+    if (result[0].kecKab) {
+    }
+
+    return c.json({ status: true, message: 'Record SBM berhasil dihapus dari sistem' });
+  } catch (error) {
+    return c.json({ status: false, message: 'Gagal menghapus record SBM' }, 500);
+  }
+});
+
+export default sbmRouter;

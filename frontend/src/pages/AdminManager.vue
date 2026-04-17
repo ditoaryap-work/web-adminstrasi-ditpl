@@ -410,7 +410,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { GAS_URL } from '../config/api'
+import api from '../config/api'
 import { Users, Search, Plus, Edit, Trash2, RefreshCw, AlertCircle, Save, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-vue-next'
 import CustomDropdown from '../components/CustomDropdown.vue'
 import GlobalModal from '../components/GlobalModal.vue'
@@ -477,15 +477,11 @@ const fetchAdmins = async () => {
   isLoading.value = true
   error.value = ''
   try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: "GET_ADMINS" }),
-    })
-    const resData = await response.json()
-    if (resData.success) {
-      admins.value = resData.data
+    const response = await api.get('/api/admin')
+    if (response.data.status) {
+      admins.value = response.data.data
     } else {
-      error.value = resData.message
+      error.value = response.data.message
     }
   } catch {
     error.value = 'Gagal terhubung ke server'
@@ -529,12 +525,8 @@ const handleSave = async () => {
   }
   isSubmitting.value = true
   try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: "SAVE_ADMIN", data: formData.value }),
-    })
-    const resData = await response.json()
-    if (resData.success) {
+    const response = await api.post('/api/admin', formData.value)
+    if (response.data.status) {
       // Update local storage if updating self
       const currentAdmin = JSON.parse(localStorage.getItem('adminData') || '{}')
       if (currentAdmin.username === formData.value.username) {
@@ -550,7 +542,7 @@ const handleSave = async () => {
           showNotification('success', 'Admin Disimpan', `Data untuk @${formData.value.username} telah diperbarui.`)
       }
     } else {
-      showNotification('error', 'Gagal', resData.message)
+      showNotification('error', 'Gagal', response.data.message)
     }
   } catch {
     showNotification('error', 'Gagal Jaringan', 'Tidak dapat menghubungi server.')
@@ -567,16 +559,12 @@ const handleDelete = (username: string) => {
     async () => {
       isLoading.value = true
       try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: "DELETE_ADMIN", username }),
-        })
-        const resData = await response.json()
-        if (resData.success) {
+        const response = await api.delete(`/api/admin/${username}`)
+        if (response.data.status) {
           await fetchAdmins()
           showNotification('success', 'Admin Dihapus', 'Hak akses admin telah dicabut.')
         } else {
-          showNotification('error', 'Gagal', resData.message)
+          showNotification('error', 'Gagal', response.data.message)
           isLoading.value = false
         }
       } catch {

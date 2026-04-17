@@ -270,6 +270,7 @@
                 :options="pegawaiOptions"
                 :value="selectedPegawaiIndex"
                 placeholder="Contoh: Budi Santoso..."
+                :is-loading="isPegawaiLoading"
                 required
                 @change="handlePegawaiChange"
               />
@@ -439,6 +440,7 @@
                 label="Ketik Nama Kota/Kabupaten"
                 :options="sbmOptions"
                 placeholder="Contoh: Bogor"
+                :is-loading="isSbmLoading"
               />
 
               <transition name="fade">
@@ -665,6 +667,8 @@ const dataStore = useDataStore()
 const sptjmList = ref<SptjmData[]>([])
 const pegawaiList = ref<PegawaiData[]>([])
 const sbmList = ref<SbmData[]>([])
+const isPegawaiLoading = ref(false)
+const isSbmLoading = ref(false)
 const isLoading = ref(true)
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -770,6 +774,8 @@ onMounted(() => {
     const role = adminProfile.value?.role || 'Admin'
     const poksi = role === 'Super Admin' ? 'SEMUA' : (adminProfile.value?.tim_poksi || '')
     fetchData(poksi)
+    fetchPegawaiData()
+    fetchSbmData()
   }
 })
 
@@ -782,26 +788,14 @@ watch(searchQuery, () => {
 const fetchData = async (tim_poksi: string) => {
   isLoading.value = true
   try {
-    const needsPegawai = !dataStore.isCacheValid('pegawai')
-    const needsSptjm = !dataStore.isCacheValid('sptjm')
-    
-    const fetchPromises = []
-    if (needsPegawai) fetchPromises.push(fetchApi<PegawaiData[]>("GET_PEGAWAI"))
-    else fetchPromises.push(Promise.resolve({ status: true, data: dataStore.pegawaiData }))
-      
-    if (needsSptjm) fetchPromises.push(fetchApi<SptjmData[]>("GET_SPTJM_LIST", { tim_poksi }))
-    else fetchPromises.push(Promise.resolve({ status: true, data: dataStore.sptjmData }))
-
-    const [resPegawai, resSptjm] = await Promise.all(fetchPromises)
-    
-    if (resPegawai.status && resPegawai.data) {
-      pegawaiList.value = resPegawai.data as unknown as PegawaiData[]
-      if (needsPegawai) dataStore.setPegawaiData(resPegawai.data as unknown as PegawaiData[])
-    }
-    
-    if (resSptjm.status && resSptjm.data) {
-      sptjmList.value = resSptjm.data as unknown as SptjmData[]
-      if (needsSptjm) dataStore.setSptjmData(resSptjm.data as unknown as SptjmData[])
+    if (dataStore.isCacheValid('sptjm')) {
+      sptjmList.value = dataStore.sptjmData
+    } else {
+      const resSptjm = await fetchApi<SptjmData[]>("GET_SPTJM_LIST", { tim_poksi })
+      if (resSptjm.status && resSptjm.data) {
+        sptjmList.value = resSptjm.data as unknown as SptjmData[]
+        dataStore.setSptjmData(resSptjm.data as unknown as SptjmData[])
+      }
     }
   } catch {
     console.error("Gagal menarik data")
@@ -810,7 +804,27 @@ const fetchData = async (tim_poksi: string) => {
   }
 }
 
+const fetchPegawaiData = async () => {
+  isPegawaiLoading.value = true
+  try {
+    if (dataStore.isCacheValid('pegawai')) {
+      pegawaiList.value = dataStore.pegawaiData
+    } else {
+      const resPegawai = await fetchApi<PegawaiData[]>("GET_PEGAWAI")
+      if (resPegawai.status && resPegawai.data) {
+        pegawaiList.value = resPegawai.data as unknown as PegawaiData[]
+        dataStore.setPegawaiData(pegawaiList.value)
+      }
+    }
+  } catch {
+    console.error("Gagal menarik data Pegawai")
+  } finally {
+    isPegawaiLoading.value = false
+  }
+}
+
 const fetchSbmData = async () => {
+  isSbmLoading.value = true
   try {
     if (dataStore.isCacheValid('sbm')) {
       sbmList.value = dataStore.sbmData
@@ -823,6 +837,8 @@ const fetchSbmData = async () => {
     }
   } catch {
     console.error("Gagal menarik data SBM")
+  } finally {
+    isSbmLoading.value = false
   }
 }
 
@@ -841,7 +857,8 @@ const normalizeDate = (val: string | null | undefined) => {
 }
 
 const openForm = (data: SptjmData | null = null) => {
-  if (sbmList.value.length === 0) fetchSbmData()
+  if (sbmList.value.length === 0 && !isSbmLoading.value) fetchSbmData()
+  if (pegawaiList.value.length === 0 && !isPegawaiLoading.value) fetchPegawaiData()
   
   if (data) {
     formData.value = { 
@@ -849,6 +866,10 @@ const openForm = (data: SptjmData | null = null) => {
       tanggal_perjalanan: normalizeDate(data.tanggal_perjalanan),
       tanggal_kembali: normalizeDate(data.tanggal_kembali),
       tanggal_ttd: normalizeDate(data.tanggal_ttd),
+      tiket_berangkat: Number(data.tiket_berangkat) || 0,
+      tiket_pulang: Number(data.tiket_pulang) || 0,
+      biaya_sbm: Number(data.biaya_sbm) || 0,
+      total_biaya: Number(data.total_biaya) || 0,
       file_link: data.file_link || ''
     }
     isEditMode.value = true
@@ -856,7 +877,8 @@ const openForm = (data: SptjmData | null = null) => {
     formData.value = {
       id_sptjm: '', nama_lengkap: '', nip: '', jabatan: '', tujuan: '', 
       tanggal_perjalanan: '', tanggal_kembali: '', tiket_berangkat: 0, 
-      tiket_pulang: 0, total_biaya: 0, tanggal_ttd: new Date().toISOString().split('T')[0], 
+      tiket_pulang: 0, total_biaya: 0, 
+      tanggal_ttd: new Date().toISOString().split('T')[0], 
       tim_poksi: adminProfile.value?.tim_poksi || '',
       biaya_sbm: 0, file_link: ''
     }

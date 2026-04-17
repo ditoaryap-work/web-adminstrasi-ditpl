@@ -180,7 +180,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { GAS_URL } from '../config/api'
+import api from '../config/api'
 import { Lock, User, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -197,7 +197,7 @@ const handleLogin = async () => {
     return
   }
   if (password.value.length < 6) {
-    errorMsg.value = 'Kata sandi minimal 6 karakter.'
+    errorMsg.value = 'Kata sandi minimal 5 karakter.'
     return
   }
 
@@ -205,25 +205,26 @@ const handleLogin = async () => {
   errorMsg.value = ''
 
   try {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "LOGIN",
-        username: username.value,
-        password: password.value
-      })
+    const response = await api.post('/api/auth/login', {
+      username: username.value,
+      password: password.value
     })
 
-    const result = await response.json()
+    const result = response.data
 
-    if (result.success) {
-      localStorage.setItem('adminData', JSON.stringify(result.data))
+    if (result.status) {
+      // Ingat: Token JWT berada di HttpOnly cookies yang dipassing otomatis
+      // Kita hanya simpan metadata user yang bersifat public untuk render UI
+      localStorage.setItem('adminData', JSON.stringify({
+        ...result.data,
+        tim_poksi: result.data.timPoksi // Mapping case from backend
+      }))
       router.push('/dashboard')
     } else {
-      errorMsg.value = result.message
+      errorMsg.value = result.message || 'Login gagal.'
     }
-  } catch {
-    errorMsg.value = 'Gagal terhubung ke server. Periksa koneksi internet Anda.'
+  } catch (error: any) {
+    errorMsg.value = error.response?.data?.message || 'Gagal terhubung ke server backend.'
   } finally {
     isLoading.value = false
   }
