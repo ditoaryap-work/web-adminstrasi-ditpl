@@ -4,18 +4,18 @@ import { perjadin, config, pegawai, sbm, users } from '../db/schema';
 import { eq, sql, desc } from 'drizzle-orm';
 
 // Inisialisasi Auth menggunakan Service Account (Scope Sheets & Drive)
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-  scopes: [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
-  ],
+// Inisialisasi Auth menggunakan OAuth2 (Personal/Workspace Account - No Quota Limit)
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  "https://developers.google.com/oauthplayground"
+);
+
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
 
-const sheets = google.sheets({ version: 'v4', auth });
+const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
 /**
