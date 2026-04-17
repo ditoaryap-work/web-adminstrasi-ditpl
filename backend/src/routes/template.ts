@@ -72,9 +72,8 @@ templateRouter.put('/:id/upload', async (c) => {
             return c.json({ status: false, message: 'Format file tidak diizinkan! Engine hanya dapat menerima tipe file Microsoft Word (.docx).' }, 400);
         }
 
-        // Simpan Overwrite
-        const arrayBuffer = await file.arrayBuffer();
-        await saveTemplate(id, arrayBuffer);
+        // Simpan Overwrite (Native Bun Streaming)
+        await saveTemplate(id, file);
 
         return c.json({ 
             status: true, 

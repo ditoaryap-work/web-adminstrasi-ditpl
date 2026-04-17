@@ -255,11 +255,7 @@ const onFileSelected = async (event: Event, id: string) => {
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                const res = await api.put(`/api/templates/${id}/upload`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
+                const res = await api.put(`/api/templates/${id}/upload`, formData);
 
                 if (res.data.status) {
                     showNotification('success', 'Berhasil Diperbarui', 'Template telah diperbarui dan cache tim telah dibersihkan secara otomatis.');

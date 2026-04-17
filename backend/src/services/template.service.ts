@@ -154,7 +154,7 @@ export const syncAllTemplatesFromDrive = async () => {
     return true;
 };
 
-export const saveTemplate = async (id: string, fileBuffer: ArrayBuffer): Promise<boolean> => {
+export const saveTemplate = async (id: string, file: File): Promise<boolean> => {
     const tpl = TEMPLATE_REGISTRY.find(t => t.id === id);
     if (!tpl) throw new Error("Template ID tidak dikenali");
 
@@ -164,8 +164,8 @@ export const saveTemplate = async (id: string, fileBuffer: ArrayBuffer): Promise
 
     const masterPath = path.join(TEMPLATE_DIR, tpl.filename);
     
-    // [1] Simpan ke root folder sebagai master override
-    fs.writeFileSync(masterPath, Buffer.from(fileBuffer));
+    // [1] Simpan ke root folder sebagai master override dengan Native Bun Write
+    await Bun.write(masterPath, file);
     console.log(`[TemplateManager] Master template ${id} updated specialized at ${masterPath}`);
 
     // [2] INVALIDATION CACHE: Hapus semua versi file ini di subfolder tim agar mereka menggunakan master baru
