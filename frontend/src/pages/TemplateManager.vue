@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-black text-gray-800 tracking-tight">Manajemen Template</h1>
-        <p class="text-sm text-gray-500 mt-1">Konfigurasi struktur dokumen dasar untuk E-Office</p>
+        <p class="text-sm text-gray-500 mt-1">Konfigurasi struktur dokumen dasar untuk sistem administrasi</p>
       </div>
       <div class="flex items-center gap-3">
         <button v-if="isAdmin" @click="syncTemplates" 
@@ -23,14 +23,14 @@
     <!-- Alert / Pesan -->
     <div v-if="isAdmin" class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-blue-800">
       <Info class="w-5 h-5 shrink-0 mt-0.5" />
-      <div class="text-sm">
-        <strong>Mode Akses Aktif: Super Admin.</strong> Anda memiliki hak penuh untuk mengunduh, menyesuaikan *tag* docxtemplater, dan mengunggah kembali file utama sistem. Lakukan perubahan dengan hati-hati.
+      <div class="text-sm italic">
+        <strong>Mode Akses: Super Admin.</strong> Anda memiliki hak penuh untuk menyesuaikan parameter dokumen dan melakukan sinkronisasi template utama. Perubahan akan berdampak secara real-time pada seluruh tim.
       </div>
     </div>
     <div v-else class="bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3 text-red-800">
       <ShieldAlert class="w-5 h-5 shrink-0 mt-0.5" />
-      <div class="text-sm mt-0.5">
-        <strong>Akses Dibatasi.</strong> Modul ini hanya terbuka untuk Super Admin agar stabilitas dokumen tidak dirusak secara tak sengaja oleh Pengguna.
+      <div class="text-sm">
+        <strong>Akses Terbatas.</strong> Modul ini hanya dapat diakses oleh Super Admin untuk menjaga konsistensi struktur dokumen legal.
       </div>
     </div>
 
@@ -200,20 +200,21 @@ const onFileSelected = async (event: Event, id: string) => {
     
     const file = target.files[0];
     
-    // Safety check extension
+    // Validasi ekstensi file
     if (!file.name.toLowerCase().endsWith('.docx')) {
-        Swal.fire('Format Ditolak', 'Harus menggunakan ekstensi .docx!', 'warning');
+        Swal.fire('Format Tidak Dukung', 'Sistem hanya menerima file dengan ekstensi .docx.', 'warning');
         target.value = '';
         return;
     }
 
     const confirm = await Swal.fire({
-        title: 'Konfirmasi Replace',
-        text: `Apakah Anda yakin ingin menimpa *${file.name}* ke server? Tindakan ini akan menjadikan format baru sebagai fondasi cetak utama secara Real-time.`,
-        icon: 'question',
+        title: 'Konfirmasi Pembaruan',
+        text: `Anda akan memperbarui template "${file.name}". File baru akan menggantikan format lama untuk seluruh pengguna secara permanen.`,
+        icon: 'info',
         showCancelButton: true,
-        confirmButtonText: 'Ya, Replace Sekarang!',
-        cancelButtonText: 'Batal'
+        confirmButtonText: 'Perbarui Sekarang',
+        cancelButtonText: 'Batalkan',
+        confirmButtonColor: '#059669',
     });
 
     if (!confirm.isConfirmed) {
@@ -235,8 +236,14 @@ const onFileSelected = async (event: Event, id: string) => {
         });
 
         if (res.data.status) {
-            Swal.fire('Sukses', res.data.message, 'success');
-            await fetchTemplates(); // reload size and lastModified
+            Swal.fire({
+                title: 'Berhasil',
+                text: 'Template telah diperbarui dan cache tim telah dibersihkan.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            await fetchTemplates();
         } else {
             Swal.fire('Gagal', res.data.message, 'error');
         }
@@ -253,12 +260,13 @@ const syncTemplates = async () => {
     if (!isAdmin.value) return;
 
     const confirm = await Swal.fire({
-        title: 'Sinkronisasi Ulang?',
-        text: 'Tindakan ini akan mendownload versi terbaru seluruh template dari Google Drive dan menimpa file lokal di VPS. Lanjutkan?',
+        title: 'Konfirmasi Sinkronisasi',
+        text: 'Sistem akan mengunduh versi terbaru seluruh template dari Google Drive dan menyinkronkan data lokal. Lanjutkan?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Ya, Sinkronkan!',
-        cancelButtonText: 'Batal'
+        confirmButtonText: 'Lakukan Sinkronisasi',
+        cancelButtonText: 'Batalkan',
+        confirmButtonColor: '#059669',
     });
 
     if (!confirm.isConfirmed) return;
@@ -268,7 +276,7 @@ const syncTemplates = async () => {
         const res = await api.post('/api/templates/sync');
         if (res.data.status) {
             Swal.fire({
-                title: 'Sukses',
+                title: 'Berhasil',
                 text: res.data.message,
                 icon: 'success',
                 timer: 3000,
@@ -278,7 +286,7 @@ const syncTemplates = async () => {
         }
     } catch (e: any) {
         console.error("Gagal sync template", e);
-        Swal.fire('Gagal Sync', e.response?.data?.message || 'Terjadi kesalahan sistem saat sinkronisasi', 'error');
+        Swal.fire('Gagal Sinkronisasi', e.response?.data?.message || 'Terjadi kesalahan sistem saat proses sinkronisasi.', 'error');
     } finally {
         isOperating.value = null;
     }

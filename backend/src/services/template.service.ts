@@ -58,14 +58,18 @@ export const getTemplatePath = async (id: string, timPoksi?: string): Promise<st
     if (!tpl) return null;
     
     // Path: template/[timPoksi]/[filename] atau template/[filename] (legacy fallback)
-    const baseDir = timPoksi ? path.join(TEMPLATE_DIR, timPoksi.replace(/\s+/g, '_')) : TEMPLATE_DIR;
-    const fullPath = path.join(baseDir, tpl.filename);
+    // Path Master (Root) - Prioritas utama sebagai "Manual Override"
+    const masterPath = path.join(TEMPLATE_DIR, tpl.filename);
+    if (fs.existsSync(masterPath)) return masterPath;
 
-    // [1] Jika sudah ada di disk, langsung kembalikan
-    if (fs.existsSync(fullPath)) return fullPath;
+    // Path Tim (Subfolder) - Jika tidak ada di root, cari di folder tim
+    const timDir = timPoksi ? path.join(TEMPLATE_DIR, timPoksi.replace(/\s+/g, '_')) : null;
+    const timPath = timDir ? path.join(timDir, tpl.filename) : null;
 
-    // [2] Jika TIDAK ADA, dan kita punya timPoksi, coba download dari GDrive (Smart Sync)
-    if (timPoksi) {
+    if (timPath && fs.existsSync(timPath)) return timPath;
+
+    // [2] Jika TIDAK ADA di kedua tempat, dan kita punya timPoksi, coba download dari GDrive
+    if (timPoksi && timPath) {
         try {
             console.log(`[SmartSync] Template ${id} untuk ${timPoksi} tidak ditemukan. Mendownload dari GDrive...`);
             
@@ -158,9 +162,27 @@ export const saveTemplate = async (id: string, fileBuffer: ArrayBuffer): Promise
         fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
     }
 
-    const fullPath = path.join(TEMPLATE_DIR, tpl.filename);
+    const masterPath = path.join(TEMPLATE_DIR, tpl.filename);
     
-    // Direct overwrite secara efisien, tidak perlu hapus sebelumnya (NodeJS overwrite bytes langsung)
-    fs.writeFileSync(fullPath, Buffer.from(fileBuffer));
+    // [1] Simpan ke root folder sebagai master override
+    fs.writeFileSync(masterPath, Buffer.from(fileBuffer));
+    console.log(`[TemplateManager] Master template ${id} updated specialized at ${masterPath}`);
+
+    // [2] INVALIDATION CACHE: Hapus semua versi file ini di subfolder tim agar mereka menggunakan master baru
+    try {
+        const subdirs = fs.readdirSync(TEMPLATE_DIR, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory());
+        
+        for (const dir of subdirs) {
+            const teamFilePath = path.join(TEMPLATE_DIR, dir.name, tpl.filename);
+            if (fs.existsSync(teamFilePath)) {
+                fs.unlinkSync(teamFilePath);
+                console.log(`[Cache Invalidation] Deleted team-specific template for ${dir.name}: ${tpl.filename}`);
+            }
+        }
+    } catch (err) {
+        console.error("[Cache Invalidation Error] Gagal membersihkan cache tim:", err);
+    }
+
     return true;
 };
