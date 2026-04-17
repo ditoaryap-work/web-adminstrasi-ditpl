@@ -7,22 +7,96 @@ import { fetchAndSyncConfig, fetchAndSyncPegawai, fetchAndSyncSbm } from './src/
 async function seed() {
   console.log('🚀 Memulai seeding database...');
   
-  const timPoksiList = [
-    'Perluasan Lahan Wilayah I',
-    'Perluasan Lahan Wilayah II',
-    'Pendayagunaan Lahan',
-    'Perancangan Teknis Penyediaan Lahan',
-    'Tata Usaha Direktorat Penyediaan Lahan'
+  const configData = [
+    {
+      timPoksi: 'Tata Usaha Direktorat Penyediaan Lahan',
+      folderIdSpt: '1fcuyFzsv8WkHCLMbJiUIFPQFG7qwqW5c',
+      folderIdSptjm: '1OtnULCMT4UKJbgSlaQCL_zVPm8SkMtlF',
+      templateIdSptV1: '17XTjNzd-oVqBxSvsC487p1WarQB1BgukSRwGS5Li6XY',
+      templateIdSptV2: '1dpMMGokvyfdl52ZAqaZLjq4bMVuS7ItAc-MqHvJuuwc',
+      templateIdSptjm: '1t2u-kIk5Nmusrf-yVrjk0tGWGCuDVAiUSRbHNN--tD8',
+      folderIdSuratMasuk: '1Gs9sSO_TLpXLg8ei-uUCMcc20fwzcR2k',
+      folderIdSuratKeluar: '1ytA3n88SaBvFdsw3LcPf9wHBiyr7FcPw',
+      folderIdNotulensi: '1evyjB7ziigjOOZD6FN4VX4Ds3EkQOYWB',
+      folderIdSpj: null,
+      templateIdSpj: '14GiF9glFYyg9TlC3Yt7lL2Edyfl1C89EDUz_XzcNQWU',
+    },
+    {
+      timPoksi: 'Pendayagunaan Lahan',
+      folderIdSpt: '1wVdjpRrnnaO_E7u8T6xWtqg_5iXmFp6J',
+      folderIdSptjm: '1akDlNy3OBXnbTXsLeS5B7sFTkw8JTKPC',
+      templateIdSptV1: '17XTjNzd-oVqBxSvsC487p1WarQB1BgukSRwGS5Li6XY',
+      templateIdSptV2: '1dpMMGokvyfdl52ZAqaZLjq4bMVuS7ItAc-MqHvJuuwc',
+      templateIdSptjm: '1t2u-kIk5Nmusrf-yVrjk0tGWGCuDVAiUSRbHNN--tD8',
+      folderIdSuratMasuk: '1sI_TBJr3658mPWRjzvb14rpWG1fOFOAg',
+      folderIdSuratKeluar: '17bd6F-TN1l1Z8SCHFXDDo2nUSKUie6tI',
+      folderIdNotulensi: '19EqDWFRIJpfRDMUz7QmhlaxlMcDuxw57',
+      folderIdSpj: null,
+      templateIdSpj: '14GiF9glFYyg9TlC3Yt7lL2Edyfl1C89EDUz_XzcNQWU',
+    },
+    {
+      timPoksi: 'Perancangan Teknis Penyediaan Lahan',
+      folderIdSpt: '1LaU7UYNxBriyKkfguF7mFJmyUKJduq-f',
+      folderIdSptjm: '1beHOx9Jem3XJkrfpCrFwcey464lsHQw3',
+      templateIdSptV1: '17XTjNzd-oVqBxSvsC487p1WarQB1BgukSRwGS5Li6XY',
+      templateIdSptV2: '1dpMMGokvyfdl52ZAqaZLjq4bMVuS7ItAc-MqHvJuuwc',
+      templateIdSptjm: '1t2u-kIk5Nmusrf-yVrjk0tGWGCuDVAiUSRbHNN--tD8',
+      folderIdSuratMasuk: '1yCdvKbLbhLUgvDInMBOabe6EIJzxrIyE',
+      folderIdSuratKeluar: '1B8mmGMKJx4qT4Pvck-E0l0v0L9QrzT2p',
+      folderIdNotulensi: '13_OgvUmqCNMNjVsblNKG0MgWITMxYo9J',
+      folderIdSpj: null,
+      templateIdSpj: '14GiF9glFYyg9TlC3Yt7lL2Edyfl1C89EDUz_XzcNQWU',
+    },
+    {
+      timPoksi: 'Perluasan Lahan Wilayah I',
+      folderIdSpt: '1DEF0ZB2wWgboW0OZY95LyVh8YIErumRt',
+      folderIdSptjm: '1GqGQSdFZd5PNxtrTgjq_ezV4tIEsj-Hp',
+      templateIdSptV1: '17XTjNzd-oVqBxSvsC487p1WarQB1BgukSRwGS5Li6XY',
+      templateIdSptV2: '1dpMMGokvyfdl52ZAqaZLjq4bMVuS7ItAc-MqHvJuuwc',
+      templateIdSptjm: '1t2u-kIk5Nmusrf-yVrjk0tGWGCuDVAiUSRbHNN--tD8',
+      folderIdSuratMasuk: '18fgMM__NlCcgPACm6X00dkTlyDUF_-IS',
+      folderIdSuratKeluar: '1EUerOo3ajgCH2SUPyz8O9FuV7NDceorL',
+      folderIdNotulensi: '1wNtNucwWJdVhFVaPWwVNKerQqLPVMyQ0',
+      folderIdSpj: null,
+      templateIdSpj: '14GiF9glFYyg9TlC3Yt7lL2Edyfl1C89EDUz_XzcNQWU',
+    },
+    {
+      timPoksi: 'Perluasan Lahan Wilayah II',
+      folderIdSpt: '1OsEVUwU8LQzt4jdivWdYnGZOhnLg3xar',
+      folderIdSptjm: '1G_TOLI2URsOOYFb29EJsynGOoitTH5BP',
+      templateIdSptV1: '17XTjNzd-oVqBxSvsC487p1WarQB1BgukSRwGS5Li6XY',
+      templateIdSptV2: '1dpMMGokvyfdl52ZAqaZLjq4bMVuS7ItAc-MqHvJuuwc',
+      templateIdSptjm: '1t2u-kIk5Nmusrf-yVrjk0tGWGCuDVAiUSRbHNN--tD8',
+      folderIdSuratMasuk: '1p5Jkvok-lvJt4KhhkVRNLioImkJspPGc',
+      folderIdSuratKeluar: '106GQlj0z63yRq4X4RBH-yc5iwCTtfCob',
+      folderIdNotulensi: '1RUjLiCcwRmMloDHDnaPG2tmEE5Yq7cMR',
+      folderIdSpj: null,
+      templateIdSpj: '14GiF9glFYyg9TlC3Yt7lL2Edyfl1C89EDUz_XzcNQWU',
+    },
   ];
 
-  console.log('--- 1. Seeding Config (Tim Poksi) ---');
+  console.log('--- 1. Seeding Config (Folder &Template IDs) ---');
   try {
-    for (const tim of timPoksiList) {
+    for (const cfg of configData) {
       await db.insert(config)
-        .values({ timPoksi: tim })
-        .onConflictDoNothing();
+        .values(cfg)
+        .onConflictDoUpdate({
+          target: config.timPoksi,
+          set: {
+            folderIdSpt: cfg.folderIdSpt,
+            folderIdSptjm: cfg.folderIdSptjm,
+            templateIdSptV1: cfg.templateIdSptV1,
+            templateIdSptV2: cfg.templateIdSptV2,
+            templateIdSptjm: cfg.templateIdSptjm,
+            folderIdSuratMasuk: cfg.folderIdSuratMasuk,
+            folderIdSuratKeluar: cfg.folderIdSuratKeluar,
+            folderIdNotulensi: cfg.folderIdNotulensi,
+            folderIdSpj: cfg.folderIdSpj,
+            templateIdSpj: cfg.templateIdSpj,
+          }
+        });
     }
-    console.log('✅ Tabel Config (Tim Poksi) siap!');
+    console.log('✅ 5 Config Tim Poksi + Folder/Template IDs siap!');
   } catch (error) {
     console.error('❌ Gagal seeding Config:', error);
   }
