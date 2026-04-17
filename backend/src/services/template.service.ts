@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export const TEMPLATE_DIR = path.join(process.cwd(), 'template');
+export const TEMPLATE_DIR = path.resolve(__dirname, '../../template');
 
 export const TEMPLATE_REGISTRY = [
     { id: 'TPL_SPT_V1', filename: '1_Template_SPT_v1.docx', name: 'SPT v1 (1 Lembar)', module: 'SPT' },

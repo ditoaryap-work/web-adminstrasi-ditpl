@@ -138,12 +138,15 @@ server {
         proxy_read_timeout 180s;
         proxy_connect_timeout 180s;
         proxy_send_timeout 180s;
+
+        # Izinkan upload template berukuran besar (max 10MB)
+        client_max_body_size 10M;
     }
 }
 EOF
 
 # Aktifkan setir rute & Restart!
-sudo ln -sf /etc/nginx/sites-available/eoffice-backend /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/eoffice-ditpl /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```

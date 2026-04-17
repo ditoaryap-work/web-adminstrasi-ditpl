@@ -8,7 +8,6 @@ import { authMiddleware, JwtPayload } from '../middleware/auth';
 import { generatePdfFromDocx } from '../services/pdf.service';
 import { uploadBufferToDrive } from '../services/drive.service';
 import { getTemplatePath } from '../services/template.service';
-import fs from 'fs';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
 const sptjmRouter = new Hono<HonoEnv>();
@@ -44,8 +43,6 @@ sptjmRouter.get('/', async (c) => {
 });
 
 sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
-  let tmpTemplatePath: string | undefined;
-  
   try {
     const user = c.get('user') as JwtPayload;
     const body = c.req.valid('json') as any;
@@ -90,9 +87,6 @@ sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
     
   } catch (error: any) {
     console.error('Error in SPTJM pipeline:', error);
-    if (tmpTemplatePath && fs.existsSync(tmpTemplatePath)) {
-        fs.unlinkSync(tmpTemplatePath);
-    }
     return c.json({ status: false, message: 'Generate SPTJM gagal: ' + (error.message || 'Error System') }, 500); 
   }
 });
