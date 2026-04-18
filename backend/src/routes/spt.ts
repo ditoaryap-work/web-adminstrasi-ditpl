@@ -74,7 +74,23 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
     }
     
     // 4. Generate PDF
-    const pdfBuffer = await generatePdfFromDocx(finalTemplatePath, sptData);
+    // 4.1 Sync Mapping Placeholders (Gambar 3 & 4)
+    const renderData = {
+        nomor_surat: sptData.no,
+        maksud_perjalanan: sptData.maksudPerjalanan,
+        kegiatan: sptData.kegiatan,
+        mak: sptData.mak,
+        tanggal_surat: sptData.tanggalSurat,
+        peserta: Array.isArray(sptData.peserta) ? sptData.peserta.map(p => ({
+            nama_lengkap: p.namaLengkap || p.nama_lengkap,
+            gol: p.golongan || p.gol,
+            nip: p.nip,
+            tujuan: p.tujuan,
+            tanggal_pelaksanaan: p.tanggalPelaksanaan || p.tanggal_pelaksanaan
+        })) : []
+    };
+
+    const pdfBuffer = await generatePdfFromDocx(finalTemplatePath, renderData);
     
     // 5. Stream Buffer ke Google Drive
     const pdfFilename = `SPT_${sptData.no ? sptData.no.replace(/\//g, '_') : sptData.id}.pdf`;

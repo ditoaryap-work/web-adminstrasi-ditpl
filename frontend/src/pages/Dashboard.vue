@@ -197,18 +197,18 @@ const currentMonthYear = computed(() => {
 onMounted(async () => {
   const adminDataString = localStorage.getItem('adminData')
   const adminData = adminDataString ? JSON.parse(adminDataString) : {}
-  adminName.value = adminData.nama_admin || 'Admin'
+  adminName.value = adminData.namaAdmin || 'Admin'
 
   try {
     const role = adminData.role || 'Admin'
-    const tim_poksi = role === 'Super Admin' ? 'SEMUA' : (adminData.tim_poksi || '')
+    const timPoksi = role === 'Super Admin' ? 'SEMUA' : (adminData.timPoksi || '')
     
     // Check Cache for SPT
     let dataSpt: SptData[] = []
     if (dataStore.isCacheValid('spt')) {
       dataSpt = dataStore.sptData
     } else {
-      const resSpt = await fetchApi<SptData[]>("GET_SPT_LIST", { tim_poksi })
+      const resSpt = await fetchApi<SptData[]>("GET_SPT_LIST", { timPoksi })
       if (resSpt.status && resSpt.data) {
         dataSpt = resSpt.data
         dataStore.setSptData(dataSpt)
@@ -220,7 +220,7 @@ onMounted(async () => {
     if (dataStore.isCacheValid('sptjm')) {
       dataSptjm = dataStore.sptjmData
     } else {
-      const resSptjm = await fetchApi<SptjmData[]>("GET_SPTJM_LIST", { tim_poksi })
+      const resSptjm = await fetchApi<SptjmData[]>("GET_SPTJM_LIST", { timPoksi })
       if (resSptjm.status && resSptjm.data) {
         dataSptjm = resSptjm.data
         dataStore.setSptjmData(dataSptjm)
@@ -236,10 +236,10 @@ onMounted(async () => {
     }
     
     sptCount.value = dataSpt.length
-    sptWithPdf.value = dataSpt.filter(s => s.file_link).length
+    sptWithPdf.value = dataSpt.filter(s => s.fileLink).length
     
     sptjmCount.value = dataSptjm.length
-    sptjmWithPdf.value = dataSptjm.filter(s => s.file_link || (s as SptjmData & {document_link?: string}).document_link).length
+    sptjmWithPdf.value = dataSptjm.filter(s => s.fileLink || (s as SptjmData & {documentLink?: string}).documentLink).length
     
   } catch {
     console.error("Dashboard Stats Error")

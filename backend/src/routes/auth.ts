@@ -36,6 +36,7 @@ authRouter.post('/login', authLimiter, zValidator('json', loginSchema, (result, 
 
     // BUN Native Password API untuk Efisiensi RAM & CPU
     const isMatch = await Bun.password.verify(password, user.passwordHash);
+    
     if (!isMatch) {
       return c.json({ status: false, message: 'Akses Ditolak: Username atau password tidak sesuai.' }, 401);
     }
@@ -66,7 +67,7 @@ authRouter.post('/login', authLimiter, zValidator('json', loginSchema, (result, 
       message: 'Login berhasil.',
       data: {
         username: user.username,
-        nama: user.nama,
+        namaAdmin: user.nama,
         role: user.role,
         timPoksi: user.timPoksi
       }

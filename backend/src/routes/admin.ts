@@ -22,8 +22,8 @@ adminRouter.use('/*', authMiddleware, async (c, next) => {
 const saveAdminSchema = z.object({
   username: z.string().min(3),
   password: z.string().min(6).optional(),
-  nama_admin: z.string().min(3),
-  tim_poksi: z.string().min(2),
+  namaAdmin: z.string().min(3),
+  timPoksi: z.string().min(2),
   role: z.string().default('Admin')
 });
 
@@ -32,10 +32,10 @@ adminRouter.get('/', async (c) => {
   try {
     const list = await db.select({
       username: users.username,
-      nama_admin: users.nama,
-      tim_poksi: users.timPoksi,
+      namaAdmin: users.nama,
+      timPoksi: users.timPoksi,
       role: users.role,
-      last_login: users.lastLogin
+      lastLogin: users.lastLogin
     }).from(users);
 
     return c.json({ status: true, message: 'Data admin dimuat', data: list });
@@ -55,8 +55,8 @@ adminRouter.post('/', zValidator('json', saveAdminSchema), async (c) => {
     if (existing.length > 0) {
       // Update
       const updatePayload: any = {
-        nama: data.nama_admin,
-        timPoksi: data.tim_poksi,
+        nama: data.namaAdmin,
+        timPoksi: data.timPoksi,
         role: data.role
       };
       
@@ -65,8 +65,6 @@ adminRouter.post('/', zValidator('json', saveAdminSchema), async (c) => {
       }
 
       await db.update(users).set(updatePayload).where(eq(users.username, data.username));
-      
-      // Sync to Sheets
       
       return c.json({ status: true, message: 'Data admin diperbarui' });
     } else {
@@ -79,12 +77,10 @@ adminRouter.post('/', zValidator('json', saveAdminSchema), async (c) => {
       await db.insert(users).values({
         username: data.username,
         passwordHash,
-        nama: data.nama_admin,
-        timPoksi: data.tim_poksi,
+        nama: data.namaAdmin,
+        timPoksi: data.timPoksi,
         role: data.role
       });
-
-      // Sync to Sheets
 
       return c.json({ status: true, message: 'Admin baru dibuat' });
     }

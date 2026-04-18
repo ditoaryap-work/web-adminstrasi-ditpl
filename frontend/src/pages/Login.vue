@@ -217,7 +217,7 @@ const handleLogin = async () => {
       // Kita hanya simpan metadata user yang bersifat public untuk render UI
       localStorage.setItem('adminData', JSON.stringify({
         ...result.data,
-        tim_poksi: result.data.timPoksi // Mapping case from backend
+        timPoksi: result.data.timPoksi // Mapping case from backend
       }))
       router.push('/dashboard')
     } else {

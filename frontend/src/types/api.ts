@@ -7,50 +7,52 @@ export interface ApiResponse<T = unknown> {
 export interface AdminData {
   username?: string;
   password?: string;
-  nama_admin?: string;
-  tim_poksi: string;
+  namaAdmin?: string;
+  timPoksi: string;
   role: string;
+  lastLogin?: string;
 }
 
 export interface SptPeserta {
-  nama_lengkap: string;
+  namaLengkap: string;
   nip?: string;
-  pangkat_gol?: string;
+  pangkatGol?: string;
   jabatan?: string;
   tujuan?: string;
-  tanggal_pelaksanaan?: string;
+  tanggalPelaksanaan?: string;
   [key: string]: unknown;
 }
 
 export interface SptData {
-  id_spt: string;
+  id: string;
   no: string;
-  tanggal_surat: string;
-  maksud_perjalanan: string;
+  tanggalSurat: string;
+  maksudPerjalanan: string;
+  kegiatan: string;
   peserta: SptPeserta[];
-  peserta_count?: number;
-  tim_poksi: string;
+  pesertaCount?: number;
+  timPoksi: string;
   mak: string;
-  created_at?: string;
-  file_link?: string;
+  createdAt?: string;
+  fileLink?: string;
 }
 
 export interface SptjmData {
-  id_sptjm: string;
-  nama_lengkap: string;
+  id: string;
+  namaLengkap: string;
   nip: string;
   jabatan: string;
   tujuan: string;
-  tanggal_perjalanan: string;
-  tanggal_kembali: string;
-  tiket_berangkat: number;
-  tiket_pulang: number;
-  biaya_sbm: number;
-  total_biaya: number;
-  tanggal_ttd: string;
-  tim_poksi: string;
-  created_at?: string;
-  file_link?: string;
+  tanggalPerjalanan: string;
+  tanggalKembali: string;
+  tiketBerangkat: number;
+  tiketPulang: number;
+  biayaSbm: number;
+  totalBiaya: number;
+  tanggalTtd: string;
+  timPoksi: string;
+  createdAt?: string;
+  fileLink?: string;
 }
 
 export interface PegawaiData {
@@ -58,7 +60,7 @@ export interface PegawaiData {
   kode?: string;
   namaLengkap: string;
   nip: string;
-  pangkatGolRuang?: string; // Drizzle property name: pangkatGolRuang (SQL: pangkat_gol_ruang)
+  pangkatGolRuang?: string;
   golongan?: string;
   jabatan?: string;
   poksi?: string;
@@ -68,37 +70,40 @@ export interface PegawaiData {
 }
 
 export interface SbmData {
-  ibu_kota: string;
-  tujuan_lengkap: string;
-  uang_harian: number;
-  tiket_bisnis: number;
-  tiket_ekonomi: number;
-  taxi_jakarta: number;
-  taxi_daerah: number;
+  id?: number;
+  kecKab: string;
+  uangHarian: number;
+  uangPenginapan: number;
+  golongan?: string;
+  pesawat?: boolean;
+  tujuanLengkap?: string;
+  tiketBisnis?: number;
+  tiketEkonomi?: number;
+  taxiJakarta?: number;
+  taxiDaerah?: number;
+  data?: any;
 }
 
 export interface SuratData {
-  id_surat: string;
-  tim_poksi: string;
-  tipe_surat: 'Masuk' | 'Keluar';
-  kategori_surat: string;
-  sifat_surat: string;
-  nomor_surat: string;
-  tanggal_masuk: string;
-  tanggal_surat: string;
-  asal_tujuan: string;
+  id: string;
+  timPoksi: string;
+  tipeSurat: 'Masuk' | 'Keluar';
+  kategoriSurat: string;
+  sifatSurat: string;
+  nomorSurat: string;
+  tanggalMasuk: string;
+  tanggalSurat: string;
+  asalTujuan: string;
   perihal: string;
-  tgl_acara_mulai?: string;
-  tgl_acara_selesai?: string;
-  disposisi_ke?: string[];
-  tgl_disposisi?: string;
-  tindak_lanjut?: string;
-  file_surat?: string;
-  file_notulensi?: string;
-  created_at?: string;
+  tglAcaraMulai?: string;
+  tglAcaraSelesai?: string;
+  disposisiKe?: string[];
+  tglDisposisi?: string;
+  tindakLanjut?: string;
+  fileSurat?: string;
+  fileNotulensi?: string;
+  createdAt?: string;
 }
-
-// ===== Kwitansi SPJ — Struktur BPK 119 kolom =====
 
 export interface SpjUangHarian {
   perhari: number | string;
@@ -124,53 +129,48 @@ export interface SpjTiket {
   dari: string;
   ke: string;
   maskapai: string;
-  kode_booking: string;
-  no_tiket: string;
+  kodeBooking: string;
+  noTiket: string;
   harga: number | string;
 }
 
 export interface SpjData {
   id: string;
-  // BPK Identitas
-  nomor_st: string;
-  asal_instansi: string;
+  nomorSt: string;
+  asalInstansi: string;
   nip: string;
   nama: string;
-  pangkat_gol: string;
+  pangkatGol: string;
   gol: string;
-  maksud_tujuan: string;
-  jumlah_dibayar: number | string;
-  // BPK Tujuan & Waktu
-  tujuan_1: string;
-  tujuan_2: string;
-  tujuan_3: string;
-  lama_tugas: number | string;
-  tgl_berangkat: string;
-  tgl_kembali: string;
-  // Sub-items
-  uang_harian: SpjUangHarian[];
+  maksudTujuan: string;
+  jumlahDibayar: number | string;
+  tujuan1: string;
+  tujuan2: string;
+  tujuan3: string;
+  lamaTugas: number | string;
+  tglBerangkat: string;
+  tglKembali: string;
+  uangHarian: SpjUangHarian[];
   penginapan: SpjPenginapan[];
   transport: SpjTransport[];
-  tiket_berangkat: SpjTiket[];
-  tiket_pulang: SpjTiket[];
-  // Biaya lain
+  tiketBerangkat: SpjTiket[];
+  tiketPulang: SpjTiket[];
   taksi: number | string;
   representasi: number | string;
-  uang_lainnya: number | string;
-  // Sistem / Template
-  no_spd: string;
-  no_urut_spd: string; // 3 digit urutan SPD (001, dst)
-  no_akun: string;
-  kode_mak: string; // Kode MAK
-  kode_kapoksi: string;
-  nomor_ls: string;
-  uraian_pembayaran: string;
+  uangLainnya: number | string;
+  noSpd: string;
+  noUrutSpd: string;
+  noAkun: string;
+  kodeMak: string;
+  kodeKapoksi: string;
+  nomorLs: string;
+  uraianPembayaran: string;
   jabatan: string;
-  tingkat_biaya: string;
+  tingkatBiaya: string;
   kendaraan: string;
-  tgl_perintah: string;
-  tim_poksi: string;
-  file_link?: string;
-  file_bukti?: string;
-  created_at?: string;
+  tglPerintah: string;
+  timPoksi: string;
+  fileLink?: string;
+  fileBukti?: string;
+  createdAt?: string;
 }

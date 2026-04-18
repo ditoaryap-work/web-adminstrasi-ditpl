@@ -65,7 +65,7 @@ configRouter.put('/:timPoksi', requireSuperAdmin, zValidator('json', configSchem
           const teamFilePath = path.join(timDir, tpl.filename);
           if (fs.existsSync(teamFilePath)) {
             fs.unlinkSync(teamFilePath);
-            console.log(`[Config Update] Cache template ${tpl.id} untuk tim "${timPoksiId}" dihapus. Akan di-regenerasi dari Drive ID baru.`);
+            console.log(`[Config Update] Cache template ${tpl.id} untuk tim "${timPoksiId}" dihapus. Sistem akan menggunakan versi MASTER.`);
           }
         }
       }
@@ -76,7 +76,7 @@ configRouter.put('/:timPoksi', requireSuperAdmin, zValidator('json', configSchem
 
     return c.json({
       status: true,
-      message: `Konfigurasi tim "${timPoksiId}" berhasil diperbarui. Cache template direset dan akan diunduh ulang dari Drive pada pembuatan dokumen berikutnya.`,
+      message: `Konfigurasi tim "${timPoksiId}" berhasil diperbarui. Cache template tim telah direset ke versi MASTER lokal.`,
       data: result[0]
     });
   } catch (error: any) {

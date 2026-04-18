@@ -31,11 +31,11 @@
               <ul class="space-y-3">
                 <li class="flex items-start gap-3 text-sm text-blue-800">
                   <div class="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                  <span>Proses ini akan memperbarui data <strong>Pegawai, SPJ, SBM, dan Admin</strong> secara massal.</span>
+                  <span>Data dari <strong>PostgreSQL</strong> akan diekspor massal ke 8 Tab Google Sheets (Admin, Config, SBM, Pegawai, SPT, SPTJM, Surat, Perjadin).</span>
                 </li>
                 <li class="flex items-start gap-3 text-sm text-blue-800">
                   <div class="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                  <span>Aman dari <i>Rate Limit</i> Google karena menggunakan metode Batch Overwrite.</span>
+                  <span>Gunakan ini sebagai <strong>Back-up / Mirror</strong> untuk kebutuhan audit dan arsip.</span>
                 </li>
               </ul>
             </div>
@@ -90,7 +90,7 @@
                 <tr class="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-8">
                   <th class="py-4 pl-8">Tim / Poksi</th>
                   <th class="py-4">Folder SPT</th>
-                  <th class="py-4">Template SPT</th>
+                  <th class="py-4">Folder SPTJM</th>
                   <th class="py-4">Folder SPJ</th>
                   <th class="py-4 pr-8 text-right">Aksi</th>
                 </tr>
@@ -99,7 +99,7 @@
                 <tr v-for="item in configs" :key="item.timPoksi" class="hover:bg-gray-50/30 transition-colors">
                   <td class="py-5 pl-8 text-gray-900">{{ item.timPoksi }}</td>
                   <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSpt || '-' }}</td>
-                  <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.templateIdSptV2 || '-' }}</td>
+                  <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSptjm || '-' }}</td>
                   <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSpj || '-' }}</td>
                   <td class="py-5 pr-8 text-right">
                     <button 
@@ -135,14 +135,14 @@
             Hanya <strong>Super Admin</strong> yang memiliki akses penuh untuk mengubah Folder ID dan Template ID sistem. 
             Admin biasa hanya dapat melihat konfigurasi ini.
           </p>
-          <div class="space-y-4">
-            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-              <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                <Lock :size="14" />
+           <div class="space-y-4">
+            <div class="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10">
+              <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400">
+                <Lock :size="16" />
               </div>
-              <div class="text-xs">
-                <p class="font-bold">Role Anda:</p>
-                <p class="text-emerald-400">{{ userRole }}</p>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role Anda</p>
+                <p class="text-sm font-bold text-emerald-400">{{ userRole }}</p>
               </div>
             </div>
           </div>
@@ -235,31 +235,25 @@ const saving = ref(false)
 const editForm = reactive<any>({
   folderIdSpt: '',
   folderIdSptjm: '',
-  templateIdSptV1: '',
-  templateIdSptV2: '',
-  templateIdSptjm: '',
   folderIdSuratMasuk: '',
   folderIdSuratKeluar: '',
   folderIdNotulensi: '',
-  folderIdSpj: '',
-  templateIdSpj: ''
+  folderIdSpj: ''
 })
 
 const fieldLabels = {
   folderIdSpt: 'Folder Google Drive (SPT)',
-  templateIdSptV2: 'Template Google Doc (SPT)',
-  folderIdSpj: 'Folder Google Drive (Kwitansi SPJ)',
-  templateIdSpj: 'Template Google Doc (Kwitansi SPJ)',
   folderIdSptjm: 'Folder Drive (SPTJM)',
-  templateIdSptjm: 'Template Doc (SPTJM)',
+  folderIdSpj: 'Folder Google Drive (Kwitansi SPJ)',
   folderIdSuratMasuk: 'Folder Surat Masuk',
-  folderIdSuratKeluar: 'Folder Surat Keluar'
+  folderIdSuratKeluar: 'Folder Surat Keluar',
+  folderIdNotulensi: 'Folder Notulensi'
 }
 
 const tips = [
-  'Sinkronisasi manual sebaiknya dilakukan setelah Anda selesai melakukan banyak perubahan data.',
-  'ID Folder dapat ditemukan di URL folder Google Drive setelah tab "/folders/".',
-  'Jangan mengubah konfigurasi ini sembarangan karena akan memutus integrasi dokumen otomatis.'
+  'PostgreSQL adalah basis data utama. Google Sheets hanya berfungsi sebagai cadangan (Mirror) audit.',
+  'Sinkronisasi massal akan menimpa (overwrite) data lama di seluruh tab Google Sheets.',
+  'ID Folder yang diubah di sini akan menentukan di mana file PDF/Docx hasil generate akan disimpan di Google Drive.'
 ]
 
 onMounted(async () => {
@@ -289,7 +283,7 @@ const triggerSync = async () => {
   syncStatus.value = ''
   
   try {
-    const response = await api.post('/api/sync')
+    const response = await api.post('/api/settings/sync-sheets')
     if (response.data.status) {
       syncStatus.value = 'Berhasil!'
       setTimeout(() => { if (syncStatus.value === 'Berhasil!') syncStatus.value = '' }, 3000)

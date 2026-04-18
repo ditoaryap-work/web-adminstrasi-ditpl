@@ -44,7 +44,7 @@
         </div>
         <NavItem to="/pegawai" :icon="Users" label="Data Pegawai" />
         <NavItem to="/admin" :icon="Shield" label="Manajer Admin" />
-        <NavItem v-if="adminProfile?.role === 'Super Admin'" to="/templates" :icon="FileCode" label="Sistem Template" />
+        <NavItem v-if="adminProfile?.role === 'Super Admin' || isDev" to="/templates" :icon="FileCode" label="Sistem Template" />
         <NavItem to="/settings" :icon="Settings" label="Pengaturan Sistem" />
       </nav>
 
@@ -75,11 +75,11 @@
         <div v-if="adminProfile" class="flex items-center gap-3 lg:gap-4">
           <div class="text-right flex flex-col justify-center border-l border-gray-100 pl-4">
             <p class="text-xs lg:text-sm font-bold text-gray-800 leading-none mb-1 text-right">
-              {{ adminProfile.nama_admin }}
+              {{ adminProfile.namaAdmin }}
             </p>
             <span
               class="text-[9px] lg:text-[10px] text-kementan-green font-bold tracking-widest uppercase bg-kementan-green/10 px-2 py-0.5 rounded-full border border-kementan-green/20 self-end whitespace-nowrap">
-              {{ adminProfile.tim_poksi }}
+              {{ adminProfile.timPoksi }}
             </span>
           </div>
 
@@ -89,7 +89,7 @@
               class="absolute -inset-1 bg-gradient-to-r from-kementan-green to-emerald-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300" />
             <div
               class="relative w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full bg-gradient-to-br from-kementan-green to-emerald-600 text-white font-bold border-2 border-white shadow-sm text-sm lg:text-base selection-none">
-              {{ adminProfile.nama_admin?.charAt(0).toUpperCase() || 'A' }}
+              {{ adminProfile.namaAdmin?.charAt(0).toUpperCase() || 'A' }}
             </div>
           </div>
         </div>
@@ -121,12 +121,24 @@ import { AdminData } from '../types/api'
 const router = useRouter()
 const route = useRoute()
 const adminProfile = ref<AdminData | null>(null)
+const isDev = import.meta.env.DEV
 const isSidebarOpen = ref(false)
 
 onMounted(() => {
   const storedData = localStorage.getItem('adminData')
   if (storedData) {
-    adminProfile.value = JSON.parse(storedData)
+    try {
+      const parsed = JSON.parse(storedData)
+      // CLEAN CODE: Robust Normalization for legacy and updated data structures
+      adminProfile.value = {
+        ...parsed,
+        namaAdmin: parsed.namaAdmin || parsed.nama_admin || parsed.nama,
+        role: parsed.role,
+        timPoksi: parsed.timPoksi || parsed.tim_poksi
+      }
+    } catch (e) {
+      console.error('Failed to parse admin data', e)
+    }
   }
 })
 

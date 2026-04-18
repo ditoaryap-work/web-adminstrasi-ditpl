@@ -36,9 +36,19 @@ export async function generatePdfFromDocx(templatePath: string, data: any): Prom
 
         console.log(`[Templating] Rendering DOCX logic (JS)...`);
         const content = fs.readFileSync(templatePath, 'binary');
+        
+        // AUTO-DETECTION DELIMITERS: Jika konten mengandung '{{', gunakan legacy delimiters.
+        // Jika hanya '{', gunakan SPTJM style. Default ke legacy jika bingung.
+        const isLegacy = content.includes('{{');
+        const delimiters = isLegacy 
+            ? { start: '{{', end: '}}' } 
+            : { start: '{', end: '}' };
+            
+        console.log(`[Templating] Using Delimiters: ${delimiters.start} ${delimiters.end} (Legacy: ${isLegacy})`);
+
         const zip = new PizZip(content);
         const doc = new Docxtemplater(zip, {
-            delimiters: { start: '{{', end: '}}' },
+            delimiters: delimiters,
             paragraphLoop: true,
             linebreaks: true,
             nullGetter: () => ""

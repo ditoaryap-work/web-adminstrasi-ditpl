@@ -54,13 +54,19 @@
 
         <div class="p-6 flex-1">
           <div class="flex items-start gap-4 mb-4">
-             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                <FileWord class="w-6 h-6 text-blue-600" />
+             <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border"
+                  :class="isSpreadsheetTemplate(tpl) ? 'bg-green-50 border-green-100' : 'bg-blue-50 border-blue-100'">
+                <FileSpreadsheet v-if="isSpreadsheetTemplate(tpl)" class="w-6 h-6 text-green-600" />
+                <FileWord v-else class="w-6 h-6 text-blue-600" />
              </div>
              <div>
                 <h3 class="font-bold text-gray-800 text-lg leading-tight">{{ tpl.name }}</h3>
-                <span class="inline-block mt-1 text-[10px] font-bold tracking-widest text-blue-600 bg-blue-50 uppercase px-2 py-0.5 rounded border border-blue-200/50">
+                <span class="inline-block mt-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded border"
+                      :class="isSpreadsheetTemplate(tpl) ? 'text-green-600 bg-green-50 border-green-200/50' : 'text-blue-600 bg-blue-50 border-blue-200/50'">
                   MODUL: {{ tpl.module }}
+                </span>
+                <span v-if="tpl.acceptedTypes" class="ml-1 text-[9px] text-gray-400 font-semibold uppercase">
+                  {{ tpl.acceptedTypes.join(' / ') }}
                 </span>
              </div>
           </div>
@@ -92,7 +98,7 @@
           </button>
           
           <div class="flex-1 relative">
-             <input type="file" :id="'file_'+tpl.id" accept=".docx" class="hidden" @change="(e) => onFileSelected(e, tpl.id)" />
+             <input type="file" :id="'file_'+tpl.id" :accept="getAcceptString(tpl)" class="hidden" @change="(e) => onFileSelected(e, tpl.id)" />
              <button @click="triggerUpload(tpl.id)"
                     class="w-full flex justify-center items-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all disabled:opacity-50"
                     :class="isAdmin ? 'bg-kementan-green text-white hover:bg-emerald-600 shadow-sm' : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
@@ -122,7 +128,7 @@
 import { ref, onMounted, computed } from 'vue';
 import api from '../config/api';
 import { 
-  FileBox as FileWord, 
+  FileBox as FileWord, FileSpreadsheet,
   Download, Upload, CheckCircle2, 
   XCircle, Info, ShieldAlert, Loader2, RefreshCw
 } from 'lucide-vue-next';
@@ -137,7 +143,18 @@ interface TemplateInfo {
     exists: boolean;
     sizeKb: number;
     lastModified: string | null;
+    acceptedTypes: string[];
 }
+
+const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'];
+
+const isSpreadsheetTemplate = (tpl: TemplateInfo) => {
+    return tpl.acceptedTypes?.some(t => t === '.xls' || t === '.xlsx');
+};
+
+const getAcceptString = (tpl: TemplateInfo) => {
+    return (tpl.acceptedTypes || ['.docx']).join(',');
+};
 
 const templates = ref<TemplateInfo[]>([]);
 const loading = ref(false);
@@ -178,8 +195,9 @@ const adminData = computed<AdminData | null>(() => {
     return null;
 });
 
+const isDev = import.meta.env.DEV
 const isAdmin = computed(() => {
-    return adminData.value?.role === 'Super Admin';
+    return adminData.value?.role === 'Super Admin' || isDev;
 });
 
 const fetchTemplates = async () => {
@@ -237,9 +255,17 @@ const onFileSelected = async (event: Event, id: string) => {
     
     const file = target.files[0];
     
-    // Validasi ekstensi file
-    if (!file.name.toLowerCase().endsWith('.docx')) {
-        showNotification('warning', 'Format Tidak Sesuai', 'Sistem hanya menerima file dengan ekstensi .docx untuk keperluan templating.');
+    // Validasi ekstensi file (multi-format)
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        showNotification('warning', 'Format Tidak Sesuai', `Ekstensi "${ext}" tidak diizinkan. Hanya: ${ALLOWED_EXTENSIONS.join(', ')}`);
+        target.value = '';
+        return;
+    }
+    
+    // Validasi ukuran (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        showNotification('warning', 'File Terlalu Besar', `Ukuran file (${(file.size / 1024 / 1024).toFixed(1)}MB) melebihi batas maksimum 10MB.`);
         target.value = '';
         return;
     }

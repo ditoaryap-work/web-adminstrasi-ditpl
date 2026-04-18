@@ -69,8 +69,37 @@ sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
        return c.json({ status: false, message: `Template SPTJM untuk tim ${user.timPoksi} tidak ditemukan. Pastikan file tersedia di Google Drive.` }, 400);
     }
     
-    // Mutex Locked PDF Processing
-    const pdfBuffer = await generatePdfFromDocx(localTemplatePath, sptjmData);
+    // MUTEX LOCKED PDF PROCESSING
+    // 2. Persiapkan data gabungan (Dual-format Keys) untuk Docxtemplater Placeholder
+    // Menyesuaikan dengan 'Gambar 2' (Template SPTJM)
+    const { numberToTerbilang, formatRupiah } = await import('../utils/formatter');
+    
+    const formattedDateRange = `${sptjmData.tanggalPerjalanan ? sptjmData.tanggalPerjalanan : '-'} s/d ${sptjmData.tanggalKembali ? sptjmData.tanggalKembali : '-'}`;
+    
+    const renderData = {
+       ...sptjmData,
+       // Pascal Case untuk Template (Gambar 2)
+       "Nama Lengkap": sptjmData.namaLengkap,
+       "NIP": sptjmData.nip,
+       "Jabatan": sptjmData.jabatan,
+       "Tujuan": sptjmData.tujuan,
+       "Tanggal": formattedDateRange,
+       "Total": formatRupiah(Number(sptjmData.totalBiaya || 0)),
+       "Terbilang": numberToTerbilang(Number(sptjmData.totalBiaya || 0)) + " Rupiah",
+       "Tiket Berangkat": formatRupiah(Number(sptjmData.tiketBerangkat || 0)),
+       "Tiket Pulang": formatRupiah(Number(sptjmData.tiketPulang || 0)),
+       "Biaya SBM": formatRupiah(Number(sptjmData.biayaSbm || 0)),
+       "Tanggal TTD": sptjmData.tanggalTtd,
+       "Nama": sptjmData.namaLengkap,
+       "NIP BAWAH": sptjmData.nip ? `NIP. ${sptjmData.nip}` : '-',
+       
+       // Legacy Fallback
+       nama_lengkap: sptjmData.namaLengkap,
+       nip_formatted: sptjmData.nip ? `NIP. ${sptjmData.nip}` : '-',
+       tanggal_ttd: sptjmData.tanggalTtd
+    };
+
+    const pdfBuffer = await generatePdfFromDocx(localTemplatePath, renderData);
     
     // Upload PDF ke Google Drive
     const pdfFilename = `SPTJM_${sptjmData.namaLengkap ? sptjmData.namaLengkap.replace(/\s+/g, '_') : sptjmData.id}.pdf`;

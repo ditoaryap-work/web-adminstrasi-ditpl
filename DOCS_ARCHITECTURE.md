@@ -1,6 +1,6 @@
 # Arsitektur & Database Master [APP] E-Office Dit. PL
 
-Dokumen ini adalah cetak biru mutlak keseluruhan infrastruktur Google Drive dan Google Sheets yang menggerakan web E-Office Dit. PL. Digunakan sebagai peta untuk pengembangan fitur selanjutnya.
+Dokumen ini adalah cetak biru mutlak keseluruhan infrastruktur **Hybrid (PostgreSQL & Google Cloud)** yang menggerakan web E-Office Dit. PL. PostgreSQL berfungsi sebagai database utama (CRUD), sementara Google Sheets berfungsi sebagai mirror/arsip audit otomatis.
 
 ## 1. Peta Hierarki Google Drive
 
@@ -11,11 +11,12 @@ Sistem penyimpanan membagi arsip berdasarkan *Tim Poksi*. Setiap Tim memegang ko
  ├── 📁 1_Database
  │    └── 📊 Database E-Office (Spreadsheet Induk dengan 7 Tab)
  │
- ├── 📁 2_Template_Sistem
+  ├── 📁 2_Template_Sistem (Arsip/Legacy)
  │    ├── 📄 1_Template_SPT_v1
  │    ├── 📄 2_Template_SPT_v2
  │    ├── 📄 3_Template_SPJ / Kuitansi
  │    └── 📄 4_Template_SPTJM
+ │    *Catatan: Sistem sekarang menggunakan template lokal di folder /backend/template.*
  │
   ├── 📁 3_Arsip_Dokumen
  │    ├── 📁 TU_Direktorat_PL
@@ -37,7 +38,7 @@ Sistem penyimpanan membagi arsip berdasarkan *Tim Poksi*. Setiap Tim memegang ko
 
 ## 2. Struktur Relasional Database (Google Sheets)
 
-Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`. File ini berisikan setidaknya 7 Tab:
+Semua pergerakan basis data ditangani terpusat melalui **PostgreSQL**. Google Sheets digunakan sebagai Mirror Database 1-way (Postgres -> Sheets) yang berisikan 8 Tab:
 
 ### TAB 1: `DATA_ADMIN` (Manajemen Pengguna)
 - `A` - **username**: Username untuk login.
@@ -51,19 +52,15 @@ Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`.
 - `A` - **tim_poksi**: Primary Key.
 - `B` - **folder_id_spt**
 - `C` - **folder_id_sptjm**
-- `D` - **template_id_spt_v1**
-- `E` - **template_id_spt_v2**
-- `F` - **template_id_sptjm**
-- `G` - **folder_id_surat_masuk** (Modul E-Arsip)
-- `H` - **folder_id_surat_keluar** (Modul E-Arsip)
-- `I` - **folder_id_notulensi**    (Modul E-Arsip)
-- `J` - **folder_id_spj**          (Modul SPJ)
-- `K` - **template_id_spj**        (Modul SPJ)
+- `D` - **folder_id_surat_masuk**
+- `E` - **folder_id_surat_keluar**
+- `F` - **folder_id_notulensi**
+- `G` - **folder_id_spj**
 
 ### TAB 3: `SBM` (Kamus Standar Biaya Masukan)
 - Tabel masif ini menyimpan referensi akuntansi uang harian, tiket, pajak bandara, dll. Sistem membaca kota `Kec_Kab` dan parameter `Pesawat` maupun Golongan Eselon.
 
-### TAB 4: `MASTER_PEGAWAI` (Data Fungsional Pejabat)
+### TAB 4: `DATA_PEGAWAI` (Data Fungsional Pejabat)
 - `A` - Kode
 - `B` - **nama_lengkap**
 - `C` - nip
@@ -85,6 +82,7 @@ Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`.
 - `H` - file_link
 - `I` - mak
 - `J` - created_at
+- `K` - **kegiatan**: Deskripsi kegiatan SPT.
 
 ### TAB 6: `SPTJM` (Rekam Penerbitan Pakta Biaya Riil)
 - `A` - id_sptjm
@@ -96,8 +94,8 @@ Semua pergerakan basis data ditangani terpusat melalui file `Database E-Office`.
 - `G` - tanggal_kembali
 - `H` - tiket_berangkat
 - `I` - tiket_pulang
-- `J` - biaya_sbm
-- `K` - total_biaya
+- `J` - biaya_sbm: (Referensi SBM - Tidak dihitung ke total).
+- `K` - **total_biaya**: (Hanya jumlah Tiket Berangkat + Pulang).
 - `L` - tanggal_ttd
 - `M` - **tim_poksi**: Filter otorisasi.
 - `N` - file_link
@@ -159,10 +157,10 @@ Aplikasi menggunakan sistem otorisasi berbasis peran (role) untuk menentukan bat
 - **Super Admin**: Peran tingkat tinggi. Memiliki hak akses penuh untuk melihat seluruh data dari semua Tim Poksi di setiap modul (Dashboard, SPT, SPTJM, dan Arsip Persuratan).
 
 ### 3.2. Mekanisme Filter Global
-Untuk mendukung akses lintas unit bagi Super Admin, sistem menggunakan logika khusus pada Backend (GAS):
+Untuk mendukung akses lintas unit bagi Super Admin, sistem menggunakan logika khusus pada Backend:
 1. **Keyword 'SEMUA'**: Saat Super Admin mengakses data, Frontend akan mengirimkan parameter `tim_poksi: 'SEMUA'`.
-2. **Bypass Filter**: Di sisi GAS, jika parameter yang diterima adalah `'SEMUA'`, maka pencarian data di Spreadsheet akan mengabaikan filter kolom `tim_poksi` dan mengembalikan seluruh baris data.
-3. **Persistensi Role**: Informasi role disimpan pada **Kolom G** di tab `DATA_ADMIN`. Sistem secara otomatis memastikan kolom ini tersedia saat melakukan pengambilan/penyimpanan data admin.
+2. **Bypass Filter**: Jika parameter yang diterima adalah `'SEMUA'`, maka pencarian data akan mengabaikan filter kolom `tim_poksi`.
+3. **Persistensi Role**: Informasi role disimpan pada **Kolom F** di tab `DATA_ADMIN`.
 
 ### 3.3. Keamanan Sisi Klien (Frontend)
 - **Session Management**: Data role disimpan dalam `localStorage` saat login.
@@ -182,16 +180,58 @@ Sistem mengimplementasikan konversi URL Google Drive secara otomatis untuk mengh
 - **Mekanisme**: Mengambil File ID dari URL `/file/d/[ID]/view` dan mengubahnya menjadi endpoint `/uc?export=download&id=[ID]`.
 - **Trigger**: Menggunakan elemen `<a>` tersembunyi dengan atribut `download` untuk memicu penyimpanan file langsung ke sistem operasi pengguna.
 
-### 4.2. Standarisasi Hirarki Tombol Aksi
-Seluruh modul manajer (SPT, SPJ, SPTJM, Arsip) mengikuti hirarki tombol aksi yang terpadu:
-1. **Preview (Primary)**: Warna Biru (`bg-blue-600`), Ikon `Eye`. Membuka modal pratinjau internal.
-2. **Download (Secondary)**: Warna Indigo (`bg-indigo-50`), Ikon `Download`. Memicu unduhan file langsung.
-3. **Edit (Management)**: Warna Emerald (`bg-emerald-50`), Ikon `Edit`. Membuka form modifikasi data.
-4. **Hapus (Destructive)**: Warna Rose (`bg-rose-50`), Ikon `Trash2`. Menghapus data dengan konfirmasi.
+### 4.2. Standarisasi Tabel Manajemen (Premium Layout)
+Seluruh modul manajer utama telah direfaktor menjadi arsitektur modular untuk meningkatkan performa dan kemudahan pemeliharaan. Desain tabel "Premium" diimplementasikan di dalam komponen `*List.vue`:
+- **Kolom Informasi Pelaksana**: Menampilkan Avatar (inisial nama) dengan badge status tambahan (seperti `+N LAINNYA` jika peserta > 1).
+- **Kolom Rincian Perjalanan**: Menggunakan perpaduan teks tebal untuk tujuan dan *background-badges* untuk tanggal serta label Tim Poksi.
+- **Hirarki Tombol Aksi**:
+    - **PREVIEW (Primary)**: Biru (`bg-blue-600`), Ikon `Eye`. Membuka pratinjau PDF.
+    - **DOWNLOAD (Indigo)**: Indigo (`bg-indigo-50`), Ikon `Download`. Unduh file langsung via `drive.ts`.
+    - **EDIT (Emerald)**: Emerald (`bg-emerald-50`), Ikon `Edit3`. Form modifikasi.
+    - **HAPUS (Rose)**: Rose (`bg-rose-50`), Ikon `Trash2`. Penghapusan permanen.
 
-### 4.3. Pola Navigasi Sidebar (Re-mount)
+### 4.3. Normalisasi Data Administratif (Auth Compatibility)
 File: `src/components/Layout.vue`
 
+Untuk mengatasi perbedaan format antara sistem lama dan baru, dilakukan normalisasi di level komponen utama:
+- `nama_admin` dipetakan dari `parsed.nama_admin` atau `parsed.nama`.
+- `tim_poksi` dipetakan dari `parsed.tim_poksi` atau `parsed.timPoksi`.
+- Hal ini memastikan profil pengguna tetap terbaca meskipun versi token/auth berubah.
+
+### 4.4. Perilaku Navigasi (Router Key)
 Untuk memastikan user dapat mereset tampilan halaman (misalnya keluar dari Form Mode kembali ke List Mode) hanya dengan mengklik menu yang sama di sidebar:
-- **Timestamp Query**: Klik pada menu yang sedang aktif akan menambahkan parameter unik `_t=[timestamp]` ke URL.
 - **Full-Path Key**: `router-view` menggunakan `:key="$route.fullPath"` sehingga setiap perubahan parameter (termasuk timestamp) akan memaksa komponen halaman untuk melakukan insialisasi ulang (re-mount).
+
+### 4.5. Arsitektur Komponen Modular (Manager-List-Form)
+Modul utama (`SPJ`, `SPT`, `SPTJM`, `ArsipSurat`) dipisahkan menjadi tiga lapisan tanggung jawab:
+1. **Orchestrator (Manager)**: File di `src/pages/*.vue`. Mengelola state global, API fetching (`api.get`, `api.post`), manajemen cache `useDataStore`, dan koordinasi modal (File Preview, Notifikasi).
+2. **List Component**: File di `src/components/[folder]/*List.vue`. Menangani UI tabel, pencarian lokal, filter, paginasi, dan event aksi (Edit/Delete/Preview).
+3. **Form Component**: File di `src/components/[folder]/*Form.vue`. Menangani input data, validasi, kalkulasi dinamis, dan integrasi `SearchableDropdown` untuk data pegawai.
+
+Keuntungan: Reduksi baris kode per file (dari 1000+ ke <400 baris), efisiensi token AI dalam proses debugging, dan isolasi logika form yang kompleks.
+
+### 4.6. TypeScript Strict Synchronization (Type Safety)
+Sebagai komitmen terhadap arsitektur _production-ready_, aplikasi menuntut sinkronisasi absolut antara Vue Template dan `<script setup lang="ts">`.
+- **Deklarasi Eksplisit**: Semua variabel, *formatter*, dan _event hook_ (seperti `isSubmitting`, `openForm`, `handleRefresh`) yang dipanggil pada template **WAJIB** dideklarasikan secara konkrit di script.
+- **Event Proxy**: Pemanggilan fungsi interaktif dari List atau Form tidak boleh memanipulasi _state_ secara langsung. Melainkan harus diarahkan ke *emit proxies* (contoh: `function handleRefresh() { emit('refresh') }`) demi menjaga data _flow_ dari parent (Orchestrator).
+- **Penanganan Index `v-for`**: Pada Vue, index _loop_ objek sering dipersepsikan sebagai gabungan tipe (`string | number`). Oleh karena itu, *method param* yang bertugas memanipulasi _Array/List_ **WAJIB** dikonversi secara sadar (misal: `idx: number | string` lalu `Number(idx)`) untuk menghindari *lint errors* ketika build `vue-tsc --noEmit`.
+
+### 4.7. AI Agentic Skills & Tooling
+Aplikasi ini dikembangkan menggunakan dukungan asisten AI terintegrasi (seperti Claude Code atau Antigravity). Repositori ini dilengkapi dengan spesialisasi _skills_ yang berada di dalam folder(`.agent/skills/`). 
+Kumpulan _skill_ ini (misalnya `bun-development`, `drizzle-orm-expert`, `vibe-code-auditor`, `production-code-audit`, `testing-patterns`, dsb.) **WAJIB** digunakan oleh agen AI dalam setiap sesi penyesuaian fungsionalitas, migrasi, maupun validasi arsitektur demi menjamin _best practices_ tetap selaras dengan ekosistem lokal.
+
+---
+
+## 5. Sinkronisasi PostgreSQL & Google Sheets
+
+### 5.1. Aliran Data (Flow)
+Sistem menggunakan pola **Local-First with Cloud Archive**:
+1. **Write**: Aplikasi menulis data langsung ke PostgreSQL (menggunakan Bun + Drizzle ORM).
+2. **Mirror**: Admin dapat memicu sinkronisasi massal melalui menu **Pengaturan Sistem**.
+3. **Overwrite**: Proses sinkronisasi akan menghapus data lama di Google Sheets dan menulis ulang data terbaru dari Postgres untuk memastikan integritas data mirror.
+
+### 5.2. Manajemen Template Lokal
+Konfigurasi template tidak lagi menggunakan ID Google Docs dari database.
+- **Lokasi**: `backend/template/`
+- **Metode**: Sistem membaca file `.docx` langsung dari server.
+- **Update**: Pengguna dapat mengupdate template melalui menu **Sistem Template** di dashboard admin, yang akan mengunggah file baru ke folder lokal server.

@@ -124,11 +124,11 @@
             <!-- Left: Profile Info -->
             <div class="flex items-center gap-4 min-w-0 flex-1">
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 text-kementan-green font-bold flex items-center justify-center border border-kementan-green/20 shadow-sm shrink-0">
-                {{ admin.nama_admin ? admin.nama_admin.charAt(0).toUpperCase() : '?' }}
+                {{ admin.namaAdmin ? admin.namaAdmin.charAt(0).toUpperCase() : '?' }}
               </div>
               <div class="min-w-0">
                 <p class="text-sm font-bold text-gray-800 truncate">
-                  {{ admin.nama_admin }}
+                  {{ admin.namaAdmin }}
                 </p>
                 <p class="text-xs text-gray-400 font-medium truncate">
                   @{{ admin.username }}
@@ -139,7 +139,7 @@
             <!-- Center: Poksi Badge -->
             <div class="hidden md:flex flex-col items-end justify-center shrink-0 min-w-[180px] text-right gap-1.5">
               <span class="inline-block px-3 py-1 bg-kementan-green/10 text-kementan-green border border-kementan-green/20 rounded-full text-[10px] font-bold uppercase tracking-tight shadow-sm leading-tight max-w-[240px]">
-                {{ admin.tim_poksi }}
+                {{ admin.timPoksi }}
               </span>
               <span 
                 class="inline-block px-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm"
@@ -338,7 +338,7 @@
             <div>
               <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Nama Lengkap <span class="text-red-400">*</span></label>
               <input
-                v-model="formData.nama_admin"
+                v-model="formData.namaAdmin"
                 type="text"
                 required
                 class="w-full border border-gray-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all bg-white"
@@ -348,7 +348,7 @@
 
             <div>
               <CustomDropdown
-                v-model:value="formData.tim_poksi"
+                v-model:value="formData.timPoksi"
                 label="Afiliasi Tim Poksi"
                 :required="true"
                 :options="POKSI_OPTIONS"
@@ -443,7 +443,7 @@ const isSubmitting = ref(false)
 const showFormPassword = ref(false)
 
 const formData = ref({
-  username: '', password: '', nama_admin: '', tim_poksi: '', role: 'Admin'
+  username: '', password: '', namaAdmin: '', timPoksi: '', role: 'Admin'
 })
 
 const notificationModal = ref({
@@ -495,14 +495,14 @@ const openForm = (admin: AdminData | null = null) => {
     formData.value = { 
       username: admin.username || '', 
       password: admin.password || '', 
-      nama_admin: admin.nama_admin || '', 
-      tim_poksi: admin.tim_poksi,
+      namaAdmin: admin.namaAdmin || '', 
+      timPoksi: admin.timPoksi,
       role: admin.role || 'Admin'
     }
     isEditMode.value = true
   } else {
     formData.value = {
-      username: '', password: '', nama_admin: '', tim_poksi: '', role: 'Admin'
+      username: '', password: '', namaAdmin: '', timPoksi: '', role: 'Admin'
     }
     isEditMode.value = false
   }
@@ -515,7 +515,7 @@ const closeForm = () => {
 }
 
 const handleSave = async () => {
-  if (!formData.value.username || !formData.value.password || !formData.value.nama_admin || !formData.value.tim_poksi) {
+  if (!formData.value.username || !formData.value.password || !formData.value.namaAdmin || !formData.value.timPoksi) {
     showNotification('warning', 'Data Belum Lengkap', 'Semua kolom bertanda bintang wajib diisi.')
     return
   }
@@ -582,9 +582,9 @@ const handleDelete = (username: string) => {
 const filteredAdmins = computed(() => {
   const q = searchQuery.value.toLowerCase()
   return admins.value.filter(admin =>
-    (admin.nama_admin?.toLowerCase() || '').includes(q) ||
+    (admin.namaAdmin?.toLowerCase() || '').includes(q) ||
     (admin.username?.toLowerCase() || '').includes(q) ||
-    (admin.tim_poksi?.toLowerCase() || '').includes(q)
+    (admin.timPoksi?.toLowerCase() || '').includes(q)
   )
 })
 

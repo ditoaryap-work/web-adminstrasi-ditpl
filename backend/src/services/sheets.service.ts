@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { db } from '../db';
-import { perjadin, config, pegawai, sbm, users } from '../db/schema';
+import { perjadin, config, pegawai, sbm, users, spt, sptjm, surat } from '../db/schema';
 import { eq, sql, desc } from 'drizzle-orm';
 
 // Inisialisasi Auth menggunakan Service Account (Scope Sheets & Drive)
@@ -247,70 +247,34 @@ export async function deleteSpjFromSheets(id: string) {
 }
 
 /**
- * Mengambil data dari tab CONFIG di Google Sheets dan memperbarui tabel config di PostgreSQL.
+ * Memperbarui Tab CONFIG di Google Sheets berdasarkan data dari PostgreSQL.
+ * Sesuai arsitektur baru: Postgres adalah Source of Truth.
  */
-export async function fetchAndSyncConfig() {
+export async function pushConfigToSheets() {
   if (!SPREADSHEET_ID) return;
   const sheetName = 'CONFIG';
 
   try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${sheetName}!A2:K`, // Ambil kolom A sampai K (tim_poksi sampai template_id_spj)
+    const allConfigs = await db.select().from(config);
+    const rows = allConfigs.map(c => [
+        c.timPoksi,
+        c.folderIdSpt,
+        c.folderIdSptjm,
+        c.folderIdSuratMasuk,
+        c.folderIdSuratKeluar,
+        c.folderIdNotulensi,
+        c.folderIdSpj
+    ]);
+
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${sheetName}!A2`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: rows.length ? rows : [['']] },
     });
-
-    const rows = response.data.values || [];
-    console.log(`[Config Sync] Found ${rows.length} config rows in Sheets.`);
-
-    for (const row of rows) {
-      const [
-        timPoksi,
-        folderIdSpt,
-        folderIdSptjm,
-        templateIdSptV1,
-        templateIdSptV2,
-        templateIdSptjm,
-        folderIdSuratMasuk,
-        folderIdSuratKeluar,
-        folderIdNotulensi,
-        folderIdSpj,
-        templateIdSpj
-      ] = row;
-
-      if (!timPoksi) continue;
-
-      // upsert ke database
-      await db.insert(config).values({
-        timPoksi,
-        folderIdSpt,
-        folderIdSptjm,
-        templateIdSptV1,
-        templateIdSptV2,
-        templateIdSptjm,
-        folderIdSuratMasuk,
-        folderIdSuratKeluar,
-        folderIdNotulensi,
-        folderIdSpj,
-        templateIdSpj
-      }).onConflictDoUpdate({
-        target: config.timPoksi,
-        set: {
-          folderIdSpt,
-          folderIdSptjm,
-          templateIdSptV1,
-          templateIdSptV2,
-          templateIdSptjm,
-          folderIdSuratMasuk,
-          folderIdSuratKeluar,
-          folderIdNotulensi,
-          folderIdSpj,
-          templateIdSpj
-        }
-      });
-    }
-    console.log('[Config Sync] PostgreSQL config table synchronized with Sheets.');
+    console.log('[Config Push] Tab CONFIG updated with PostgreSQL data.');
   } catch (error) {
-    console.error('[Config Sync Error]', error);
+    console.error('[Config Push Error]', error);
   }
 }
 
@@ -656,8 +620,67 @@ export async function deleteSbmFromSheets(kecKab: string) {
 }
 
 // ============================================
-// ADMIN SYNC
+// SPT, SPTJM, & SURAT MAPPING
 // ============================================
+
+export function mapSptToSheet(data: any): any[] {
+    return [
+        data.id || '',
+        data.no || '',
+        data.tanggalSurat || '',
+        data.maksudPerjalanan || '',
+        JSON.stringify(data.peserta || []),
+        data.pesertaCount || 0,
+        data.timPoksi || '',
+        data.fileLink || '',
+        data.mak || '',
+        data.createdAt ? new Date(data.createdAt).toISOString() : '',
+        data.kegiatan || ''
+    ];
+}
+
+export function mapSptjmToSheet(data: any): any[] {
+    return [
+        data.id || '',
+        data.namaLengkap || '',
+        data.nip || '',
+        data.jabatan || '',
+        data.tujuan || '',
+        data.tanggalPerjalanan || '',
+        data.tanggalKembali || '',
+        data.tiketBerangkat || 0,
+        data.tiketPulang || 0,
+        data.biayaSbm || 0,
+        data.totalBiaya || 0,
+        data.tanggalTtd || '',
+        data.timPoksi || '',
+        data.fileLink || '',
+        data.createdAt ? new Date(data.createdAt).toISOString() : ''
+    ];
+}
+
+export function mapSuratToSheet(data: any): any[] {
+    return [
+        data.id || '',
+        data.timPoksi || '',
+        data.tipeSurat || '',
+        data.kategoriSurat || '',
+        data.sifatSurat || '',
+        data.nomorSurat || '',
+        data.tanggalMasuk || '',
+        data.tanggalSurat || '',
+        data.asalTujuan || '',
+        data.perihal || '',
+        data.tglAcaraMulai || '',
+        data.tglAcaraSelesai || '',
+        JSON.stringify(data.disposisiKe || []),
+        data.tglDisposisi || '',
+        data.tindakLanjut || '',
+        data.fileSurat || '',
+        data.fileNotulensi || '',
+        data.createdAt ? new Date(data.createdAt).toISOString() : ''
+    ];
+}
 
 export function mapAdminToSheet(data: any): any[] {
   return [
@@ -763,15 +786,19 @@ export async function batchPushAllToSheets() {
   console.log('[Batch Sync] Memulai proses sync massal DB -> Sheets...');
 
   try {
-    // 1. Ambil data dari Postgres
-    const [allPegawai, allAdmin, allSbm, allSpj] = await Promise.all([
+    // 1. Ambil seluruh data dari Postgres secara paralel untuk performa maksimal
+    const [allPegawai, allAdmin, allSbm, allSpj, allSpt, allSptjm, allSurat, allConfigs] = await Promise.all([
       db.select().from(pegawai).orderBy(sql`CAST(NULLIF(${pegawai.kode}, '') AS INTEGER) ASC`),
       db.select().from(users).orderBy(desc(users.createdAt)),
       db.select().from(sbm).orderBy(desc(sbm.id)),
-      db.select().from(perjadin).orderBy(desc(perjadin.createdAt))
+      db.select().from(perjadin).orderBy(desc(perjadin.createdAt)),
+      db.select().from(spt).orderBy(desc(spt.createdAt)),
+      db.select().from(sptjm).orderBy(desc(sptjm.createdAt)),
+      db.select().from(surat).orderBy(desc(surat.createdAt)),
+      db.select().from(config)
     ]);
 
-    // 2. Mapping
+    // 2. Mapping data ke format Flat Array (Sesuai DOCS_ARCHITECTURE.md)
     const rowsPegawai = allPegawai.map(mapPegawaiToSheet);
     const rowsAdmin = allAdmin.map(a => [
       a.username || '', 
@@ -783,35 +810,57 @@ export async function batchPushAllToSheets() {
     ]);
     const rowsSbm = allSbm.map(mapSbmToSheet);
     const rowsSpj = allSpj.map(mapToSheetRow);
+    const rowsSpt = allSpt.map(mapSptToSheet);
+    const rowsSptjm = allSptjm.map(mapSptjmToSheet);
+    const rowsSurat = allSurat.map(mapSuratToSheet);
+    const rowsConfig = allConfigs.map(c => [
+        c.timPoksi, 
+        c.folderIdSpt, 
+        c.folderIdSptjm, 
+        c.folderIdSuratMasuk, 
+        c.folderIdSuratKeluar, 
+        c.folderIdNotulensi, 
+        c.folderIdSpj
+    ]);
 
-    // 3. Kita hapus data lama terlebih dahulu agar jika ada penghapusan di Postgres, baris kosong di akhir sheets tidak tertinggal
+    // 3. Clear existing data (A2 to end) di seluruh tab utama agar tidak ada data basi
+    console.log('[Batch Sync] Membersihkan data lama di Sheets...');
     await sheets.spreadsheets.values.batchClear({
       spreadsheetId: SPREADSHEET_ID,
       requestBody: {
         ranges: [
-          "DATA_PEGAWAI!A2:I",
           "DATA_ADMIN!A2:F",
+          "CONFIG!A2:G",
           "SBM!A2:X",
+          "DATA_PEGAWAI!A2:I",
+          "SPT!A2:K",
+          "SPTJM!A2:O",
+          "SURAT!A2:R",
           "PERJADIN!A2:DU"
         ]
       }
     });
     
-    // 4. Batch Update data baru
+    // 4. Batch Update data baru ke seluruh tab
+    console.log('[Batch Sync] Menulis data baru ke 8 Tab...');
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId: SPREADSHEET_ID,
       requestBody: {
         valueInputOption: "USER_ENTERED",
         data: [
-          { range: "DATA_PEGAWAI!A2:I", values: rowsPegawai.length ? rowsPegawai : [['']] },
           { range: "DATA_ADMIN!A2:F", values: rowsAdmin.length ? rowsAdmin : [['']] },
+          { range: "CONFIG!A2:G", values: rowsConfig.length ? rowsConfig : [['']] },
           { range: "SBM!A2:X", values: rowsSbm.length ? rowsSbm : [['']] },
+          { range: "DATA_PEGAWAI!A2:I", values: rowsPegawai.length ? rowsPegawai : [['']] },
+          { range: "SPT!A2:K", values: rowsSpt.length ? rowsSpt : [['']] },
+          { range: "SPTJM!A2:O", values: rowsSptjm.length ? rowsSptjm : [['']] },
+          { range: "SURAT!A2:R", values: rowsSurat.length ? rowsSurat : [['']] },
           { range: "PERJADIN!A2:DU", values: rowsSpj.length ? rowsSpj : [['']] }
         ] as any[]
       }
     });
 
-    console.log('[Batch Sync] Sinkronisasi massal berhasil diselesaikan.');
+    console.log('[Batch Sync] Sinkronisasi massal seluruh modul (8 Tab) berhasil diselesaikan.');
   } catch (error: any) {
     console.error('[Batch Sync Error]', error?.response?.data || error);
     throw error;

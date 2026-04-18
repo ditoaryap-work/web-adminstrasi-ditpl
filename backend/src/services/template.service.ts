@@ -1,17 +1,35 @@
 import fs from 'fs';
 import path from 'path';
-import { drive } from './drive.service';
-import { db } from '../db';
-import { config } from '../db/schema';
-import { eq } from 'drizzle-orm';
 
-export const TEMPLATE_DIR = path.resolve(__dirname, '../../template');
+// Production-ready: path relatif dari root project, bukan hardcode absolut
+export const TEMPLATE_DIR = path.resolve(process.cwd(), 'template');
 
+// --- Allowed Extensions & MIME Map ---
+const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'] as const;
+type AllowedExt = typeof ALLOWED_EXTENSIONS[number];
+
+const MIME_MAP: Record<AllowedExt, string> = {
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
+
+// Magic bytes untuk validasi konten biner (bukan hanya ekstensi)
+const MAGIC_BYTES: Record<string, number[]> = {
+    // ZIP-based formats (.docx, .xlsx) — PK header
+    'zip': [0x50, 0x4B, 0x03, 0x04],
+    // OLE2 Compound files (.doc, .xls) — ÐÏà¡
+    'ole2': [0xD0, 0xCF, 0x11, 0xE0],
+};
+
+// --- Registry ---
+// acceptedTypes: ekstensi yang dibolehkan untuk template ini
 export const TEMPLATE_REGISTRY = [
-    { id: 'TPL_SPT_V1', filename: '1_Template_SPT_v1.docx', name: 'SPT v1 (1 Lembar)', module: 'SPT' },
-    { id: 'TPL_SPT_V2', filename: '2_Template_SPT_v2.docx', name: 'SPT v2 (Dengan Lampiran)', module: 'SPT' },
-    { id: 'TPL_SPJ', filename: '3_Template_SPJ.docx', name: 'Format Kwitansi & SPJ', module: 'SPJ' },
-    { id: 'TPL_SPTJM', filename: '4_Template_SPTJM.docx', name: 'Format SPTJM', module: 'SPTJM' },
+    { id: 'TPL_SPT_V1', filename: '1_Template_SPT_v1.docx', name: 'SPT v1 (1 Lembar)', module: 'SPT', acceptedTypes: ['.doc', '.docx'] as AllowedExt[] },
+    { id: 'TPL_SPT_V2', filename: '2_Template_SPT_v2.docx', name: 'SPT v2 (Dengan Lampiran)', module: 'SPT', acceptedTypes: ['.doc', '.docx'] as AllowedExt[] },
+    { id: 'TPL_SPJ', filename: '3_Template_SPJ', name: 'Format Kwitansi & SPJ', module: 'SPJ', acceptedTypes: ['.doc', '.docx', '.xls', '.xlsx'] as AllowedExt[] },
+    { id: 'TPL_SPTJM', filename: '4_Template_SPTJM.docx', name: 'Format SPTJM', module: 'SPTJM', acceptedTypes: ['.doc', '.docx'] as AllowedExt[] },
 ];
 
 export interface TemplateInfo {
@@ -22,33 +40,103 @@ export interface TemplateInfo {
     exists: boolean;
     sizeKb: number;
     lastModified: string | null;
+    acceptedTypes: string[];
 }
 
+// Max upload size: 10 MB (sudah lebih dari cukup untuk dokumen template)
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Cari file yang cocok di disk, mendukung penamaan tanpa ekstensi (TPL_SPJ).
+ * Karena TPL_SPJ bisa .docx ATAU .xlsx, kita scan filesystem.
+ */
+const findActualFile = (baseFilename: string): { fullPath: string; actualFilename: string } | null => {
+    // Jika sudah punya ekstensi, cek langsung
+    const ext = path.extname(baseFilename);
+    if (ext) {
+        const fullPath = path.join(TEMPLATE_DIR, baseFilename);
+        if (fs.existsSync(fullPath)) return { fullPath, actualFilename: baseFilename };
+        return null;
+    }
+
+    // Tanpa ekstensi: scan semua kemungkinan
+    for (const allowedExt of ALLOWED_EXTENSIONS) {
+        const candidate = baseFilename + allowedExt;
+        const fullPath = path.join(TEMPLATE_DIR, candidate);
+        if (fs.existsSync(fullPath)) return { fullPath, actualFilename: candidate };
+    }
+    return null;
+};
+
+/**
+ * Mendapatkan MIME type berdasarkan ekstensi file.
+ */
+export const getMimeType = (filename: string): string => {
+    const ext = path.extname(filename).toLowerCase() as AllowedExt;
+    return MIME_MAP[ext] || 'application/octet-stream';
+};
+
+/**
+ * Validasi magic bytes file untuk memastikan konten valid (bukan rename malware).
+ */
+export const validateFileContent = async (file: File): Promise<boolean> => {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer.slice(0, 4));
+
+    const isZip = MAGIC_BYTES['zip'].every((b, i) => bytes[i] === b);
+    const isOle2 = MAGIC_BYTES['ole2'].every((b, i) => bytes[i] === b);
+
+    return isZip || isOle2;
+};
+
+/**
+ * Validasi ekstensi file terhadap daftar yang diizinkan untuk template tertentu.
+ */
+export const validateExtension = (filename: string, templateId: string): { valid: boolean; ext: AllowedExt | null; message: string } => {
+    const ext = path.extname(filename).toLowerCase() as AllowedExt;
+    const tpl = TEMPLATE_REGISTRY.find(t => t.id === templateId);
+
+    if (!tpl) return { valid: false, ext: null, message: 'Template ID tidak terdaftar.' };
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        return { valid: false, ext: null, message: `Ekstensi "${ext}" tidak diizinkan. Hanya: ${ALLOWED_EXTENSIONS.join(', ')}` };
+    }
+    if (!tpl.acceptedTypes.includes(ext)) {
+        return { valid: false, ext: null, message: `Template "${tpl.name}" hanya menerima: ${tpl.acceptedTypes.join(', ')}` };
+    }
+
+    return { valid: true, ext, message: 'OK' };
+};
+
+// --- Public API ---
+
 export const getTemplateList = (): TemplateInfo[] => {
-    // Memastikan direktori tujuannya sudah dibuat secara lazim
     if (!fs.existsSync(TEMPLATE_DIR)) {
         fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
     }
 
     return TEMPLATE_REGISTRY.map(tpl => {
-        const fullPath = path.join(TEMPLATE_DIR, tpl.filename);
-        const exists = fs.existsSync(fullPath);
-        
+        const found = findActualFile(tpl.filename);
+
         let sizeKb = 0;
         let lastModified = null;
+        let actualFilename = tpl.filename;
 
-        if (exists) {
-            const stats = fs.statSync(fullPath);
-            // Mengubah byes ke Kilobytes
+        if (found) {
+            const stats = fs.statSync(found.fullPath);
             sizeKb = parseFloat((stats.size / 1024).toFixed(2));
-            lastModified = stats.mtime.toISOString(); // Timestamp terakhir edit
+            lastModified = stats.mtime.toISOString();
+            actualFilename = found.actualFilename;
         }
 
         return {
-            ...tpl,
-            exists,
+            id: tpl.id,
+            name: tpl.name,
+            module: tpl.module,
+            filename: actualFilename,
+            exists: !!found,
             sizeKb,
-            lastModified
+            lastModified,
+            acceptedTypes: tpl.acceptedTypes,
         };
     });
 };
@@ -56,132 +144,86 @@ export const getTemplateList = (): TemplateInfo[] => {
 export const getTemplatePath = async (id: string, timPoksi?: string): Promise<string | null> => {
     const tpl = TEMPLATE_REGISTRY.find(t => t.id === id);
     if (!tpl) return null;
-    
-    // Path: template/[timPoksi]/[filename] atau template/[filename] (legacy fallback)
-    // Path Master (Root) - Prioritas utama sebagai "Manual Override"
-    const masterPath = path.join(TEMPLATE_DIR, tpl.filename);
-    if (fs.existsSync(masterPath)) return masterPath;
 
-    // Path Tim (Subfolder) - Jika tidak ada di root, cari di folder tim
-    const timDir = timPoksi ? path.join(TEMPLATE_DIR, timPoksi.replace(/\s+/g, '_')) : null;
-    const timPath = timDir ? path.join(timDir, tpl.filename) : null;
+    // [1] Root master path — cari dengan flexible extension
+    const masterFound = findActualFile(tpl.filename);
+    if (masterFound) return masterFound.fullPath;
 
-    if (timPath && fs.existsSync(timPath)) return timPath;
-
-    // [2] Jika TIDAK ADA di kedua tempat, dan kita punya timPoksi, coba download dari GDrive
-    if (timPoksi && timPath) {
-        try {
-            console.log(`[SmartSync] Template ${id} untuk ${timPoksi} tidak ditemukan. Mendownload dari GDrive...`);
-            
-            const timConfig = await db.select().from(config).where(eq(config.timPoksi, timPoksi)).limit(1);
-            if (!timConfig[0]) return null;
-
-            let driveFileId: string | null = null;
-            if (id === 'TPL_SPT_V1') driveFileId = timConfig[0].templateIdSptV1;
-            else if (id === 'TPL_SPT_V2') driveFileId = timConfig[0].templateIdSptV2;
-            else if (id === 'TPL_SPTJM') driveFileId = timConfig[0].templateIdSptjm;
-            else if (id === 'TPL_SPJ') driveFileId = timConfig[0].templateIdSpj;
-
-            if (driveFileId) {
-                await downloadFileFromDrive(driveFileId, timPath);
-                return timPath;
-            }
-        } catch (err) {
-            console.error(`[SmartSync Error] Gagal download template ${id}:`, err);
+    // [2] Subfolder tim (fallback kustomisasi lokal)
+    if (timPoksi) {
+        const timDir = path.join(TEMPLATE_DIR, timPoksi.replace(/\s+/g, '_'));
+        // Cari di subfolder tim
+        const baseName = path.parse(tpl.filename).name;
+        for (const ext of ALLOWED_EXTENSIONS) {
+            const candidate = path.join(timDir, baseName + ext);
+            if (fs.existsSync(candidate)) return candidate;
         }
     }
-    
+
+    console.warn(`[Template Service] Template ${id} tidak ditemukan secara lokal.`);
     return null;
-};
-
-/**
- * Utility: Download file dari GDrive ke path tujuan secara atomik
- */
-const downloadFileFromDrive = async (fileId: string, destPath: string) => {
-    const dir = path.dirname(destPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    // Deteksi tipe file (Google Doc vs Binary)
-    const meta = await drive.files.get({ fileId, fields: 'mimeType' });
-    const mimeType = meta.data.mimeType || '';
-
-    const isGoogleDoc = mimeType === 'application/vnd.google-apps.document';
-    
-    if (isGoogleDoc) {
-        const res = await drive.files.export(
-            { fileId, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
-            { responseType: 'arraybuffer' }
-        );
-        fs.writeFileSync(destPath, Buffer.from(res.data as ArrayBuffer));
-    } else {
-        const res = await drive.files.get(
-            { fileId, alt: 'media' },
-            { responseType: 'arraybuffer' }
-        );
-        fs.writeFileSync(destPath, Buffer.from(res.data as ArrayBuffer));
-    }
-    console.log(`[Drive] Downloaded ${fileId} to ${destPath}`);
-};
-
-/**
- * Paksa sinkronisasi ulang seluruh template dari Google Drive ke VPS lokal
- */
-export const syncAllTemplatesFromDrive = async () => {
-    const allConfigs = await db.select().from(config);
-    console.log(`[Sync] Memulakan sinkronisasi ${allConfigs.length} tim...`);
-
-    for (const conf of allConfigs) {
-        const timDir = path.join(TEMPLATE_DIR, conf.timPoksi.replace(/\s+/g, '_'));
-        
-        const tasks = [
-            { id: 'TPL_SPT_V1', driveId: conf.templateIdSptV1, filename: '1_Template_SPT_v1.docx' },
-            { id: 'TPL_SPT_V2', driveId: conf.templateIdSptV2, filename: '2_Template_SPT_v2.docx' },
-            { id: 'TPL_SPTJM', driveId: conf.templateIdSptjm, filename: '4_Template_SPTJM.docx' },
-            { id: 'TPL_SPJ', driveId: conf.templateIdSpj, filename: '3_Template_SPJ.docx' },
-        ];
-
-        for (const task of tasks) {
-            if (task.driveId) {
-                const dest = path.join(timDir, task.filename);
-                try {
-                    await downloadFileFromDrive(task.driveId, dest);
-                } catch (err) {
-                    console.error(`[Sync Fail] Tim ${conf.timPoksi} - ${task.id}:`, err);
-                }
-            }
-        }
-    }
-    return true;
 };
 
 export const saveTemplate = async (id: string, file: File): Promise<boolean> => {
     const tpl = TEMPLATE_REGISTRY.find(t => t.id === id);
-    if (!tpl) throw new Error("Template ID tidak dikenali");
+    if (!tpl) throw new Error('Template ID tidak dikenali');
 
     if (!fs.existsSync(TEMPLATE_DIR)) {
         fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
     }
 
-    const masterPath = path.join(TEMPLATE_DIR, tpl.filename);
-    
-    // [1] Simpan ke root folder sebagai master override dengan Native Bun Write
-    await Bun.write(masterPath, file);
-    console.log(`[TemplateManager] Master template ${id} updated specialized at ${masterPath}`);
+    // Validasi ukuran file
+    if (file.size > MAX_UPLOAD_BYTES) {
+        throw new Error(`Ukuran file melebihi batas maksimum (${MAX_UPLOAD_BYTES / 1024 / 1024}MB).`);
+    }
 
-    // [2] INVALIDATION CACHE: Hapus semua versi file ini di subfolder tim agar mereka menggunakan master baru
+    // Validasi ekstensi
+    const extCheck = validateExtension(file.name, id);
+    if (!extCheck.valid || !extCheck.ext) {
+        throw new Error(extCheck.message);
+    }
+
+    // Validasi konten biner (magic bytes)
+    const isContentValid = await validateFileContent(file);
+    if (!isContentValid) {
+        throw new Error('Konten file tidak valid. File mungkin rusak atau bukan dokumen Office yang asli.');
+    }
+
+    // Tentukan nama file final: base dari registry + ekstensi dari file yang diupload
+    const baseName = path.parse(tpl.filename).name;
+    const finalFilename = baseName + extCheck.ext;
+    const masterPath = path.join(TEMPLATE_DIR, finalFilename);
+
+    // [CLEANUP] Hapus file lama dengan ekstensi berbeda untuk mencegah orphan
+    // Contoh: user replace 3_Template_SPJ.docx dengan .xlsx → hapus versi .docx
+    for (const ext of ALLOWED_EXTENSIONS) {
+        const oldFile = path.join(TEMPLATE_DIR, baseName + ext);
+        if (oldFile !== masterPath && fs.existsSync(oldFile)) {
+            fs.unlinkSync(oldFile);
+            console.log(`[Cleanup] Removed old template variant: ${baseName + ext}`);
+        }
+    }
+
+    // Simpan file baru dengan Native Bun Write (streaming, zero-copy)
+    await Bun.write(masterPath, file);
+    console.log(`[TemplateManager] Master template ${id} updated → ${finalFilename}`);
+
+    // [INVALIDATION] Hapus semua versi di subfolder tim
     try {
         const subdirs = fs.readdirSync(TEMPLATE_DIR, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory());
-        
+
         for (const dir of subdirs) {
-            const teamFilePath = path.join(TEMPLATE_DIR, dir.name, tpl.filename);
-            if (fs.existsSync(teamFilePath)) {
-                fs.unlinkSync(teamFilePath);
-                console.log(`[Cache Invalidation] Deleted team-specific template for ${dir.name}: ${tpl.filename}`);
+            for (const ext of ALLOWED_EXTENSIONS) {
+                const teamFilePath = path.join(TEMPLATE_DIR, dir.name, baseName + ext);
+                if (fs.existsSync(teamFilePath)) {
+                    fs.unlinkSync(teamFilePath);
+                    console.log(`[Cache Invalidation] Deleted team template: ${dir.name}/${baseName + ext}`);
+                }
             }
         }
     } catch (err) {
-        console.error("[Cache Invalidation Error] Gagal membersihkan cache tim:", err);
+        console.error('[Cache Invalidation Error]', err);
     }
 
     return true;

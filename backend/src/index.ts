@@ -15,6 +15,8 @@ import spjRouter from './routes/spj';
 import templateRouter from './routes/template';
 import adminRouter from './routes/admin';
 import syncRouter from './routes/sync';
+import legacyRouter from './routes/legacy';
+import settingsRouter from './routes/settings';
 
 const app = new Hono();
 
@@ -50,6 +52,8 @@ app.route('/api/upload', uploadRouter);
 app.route('/api/templates', templateRouter);
 app.route('/api/admin', adminRouter);
 app.route('/api/sync', syncRouter);
+app.route('/api/settings', settingsRouter);
+app.route('/api/legacy-handler', legacyRouter);
 
 // Route dasar
 app.get('/', (c) => c.json({ status: 'ok', message: 'E-Office API is running' }));

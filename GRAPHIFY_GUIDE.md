@@ -6,7 +6,7 @@ Dokumen ini berisi panduan untuk mengelola *Knowledge Graph* proyek menggunakan 
 
 ## 🚀 Cara Menjalankan (Trigger Re-index)
 
-Gunakan perintah ini jika Anda telah menambahkan banyak fitur baru, mengubah struktur database, atau menambah file dokumentasi baru.
+Gunakan perintah ini jika Anda telah menambahkan banyak fitur baru, mengubah struktur database (Drizzle Schema), atau menambah file dokumentasi baru.
 
 ### 1. Melalui Chat AI (Rekomendasi)
 Cukup ketik perintah ini di chat:
@@ -33,12 +33,22 @@ Setiap kali dijalankan, Graphify akan memperbarui folder `graphify-out/`:
 
 ---
 
+## 🧬 Pemetaan AST (Drizzle & Hono)
+
+Dalam proyek ini, Graphify dikonfigurasi secara khusus untuk memahami relasi modern:
+1. **Schema Mapping**: Menghubungkan definisi tabel di `backend/src/db/schema.ts` (PostgreSQL via Drizzle) ke endpoint API di `backend/src/routes/`.
+2. **Type Safety**: Melacak ketergantungan tipe data **camelCase** dari Backend menuju `frontend/src/types/api.ts`.
+3. **UI Lineage**: Membantu AI mengetahui komponen Vue mana saja yang akan terpengaruh jika skema database diubah.
+4. **Template Logic**: Memetakan relasi antara `backend/template/` dengan servis generator dokumen.
+
+---
+
 ## 💡 Manfaat di Proyek Ini
 
-Dalam proyek **Web Administrasi Dit. PL**, Graphify membantu menghubungkan:
 1. **Frontend (Vue)**: Melihat ketergantungan komponen UI ke API.
-2. **Backend (Bun/Hono)**: Memahami alur dari Route ke Service.
-3. **Database (Sheets)**: Melacak kolom mana di Spreadsheet yang digunakan oleh fungsi mana di Backend.
+2. **Backend (Bun/Hono)**: Memahami alur dari Route ke Service, serta integrasi **Drizzle ORM** dengan database **Postgres**.
+3. **Database (Drizzle & Postgres)**: Melacak kolom mana di database yang digunakan oleh fungsi mana di Backend.
+4. **Sistem Template**: Memahami bagaimana file lokal diunggah dan digunakan untuk generator dokumen.
 
 ---
 
@@ -46,18 +56,16 @@ Dalam proyek **Web Administrasi Dit. PL**, Graphify membantu menghubungkan:
 
 Setelah graf terupdate, Anda bisa bertanya hal-hal cerdas seperti:
 
-- *"Jelaskan hubungan antara `PegawaiManager.vue` dengan `sheets.service.ts`."*
-- *"Jika saya menghapus kolom `tim_poksi` di Google Sheets, fungsi apa saja yang akan error?"*
-- *"Di mana letak logika penomoran surat otomatis?"*
-- *"Tunjukkan semua fungsi yang menggunakan library `pdf.service.ts`."*
+- *"Jelaskan hubungan antara `PegawaiManager.vue` dengan backend schema."*
+- *"Jika saya mengubah tipe data `totalBiaya` di Drizzle, file apa saja yang harus di-update?"*
+- *"Tunjukkan semua fungsi yang memanggil `drive.service.ts`."*
 
 ---
 
 ## ⚠️ Troubleshooting
 
 - **Error Expat/Python 3.14**: Gunakan Python 3.11 yang sudah dikonfigurasi di `~/.gemini/antigravity/mcp_config.json`.
-- **Graf Tidak Update**: Pastikan Anda menjalankan `/graphify .` (dengan titik) untuk merujuk ke direktori saat ini.
-- **Node Tidak Ditemukan**: Jika file baru belum muncul di graf, jalankan kembali perintah `/graphify .`.
+- **Graf Tidak Update**: Pastikan Anda menjalankan `/graphify .` (dengan titik).
 
 ---
 *Dibuat oleh Antigravity untuk Administrasi Dit. PL.*
