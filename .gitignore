@@ -31,6 +31,7 @@ Thumbs.db
 # IDEs & Editors
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.suo
 *.ntvs*
@@ -43,9 +44,27 @@ Thumbs.db
 .env.local
 *.local
 
+# Cache & Build Tools
+.vite/
+.eslintcache
+__pycache__/
+*.pyc
+*.pyo
+
 # Project Specific (Root)
 db.dbml
 db.dbdiagram
 PROGRESS_LOG.md
 RENCANA_PENGEMBANGAN.md
 example_sptjmscript.gs
+
+# Cleanup & Audit
+backend/scratch/
+backend/tests/scratch_*
+*.log
+pm2.log
+out.log
+err.log
+.~lock.*
+graphify-out/
+.agent/

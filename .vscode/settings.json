@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "bun.lock": "plaintext"
+    },
+    "json.format.enable": true,
+    "json.validate.enable": true,
+    "json.schemas": [],
+    "files.exclude": {
+        "**/.DS_Store": true
+    }
+}

@@ -14,5 +14,12 @@
     "types": [
       "bun"
     ]
-  }
+  },
+  "include": [
+    "src/**/*",
+    "scripts/**/*",
+    "scratch/**/*",
+    "tests/**/*",
+    "*.ts"
+  ]
 }

@@ -19,7 +19,7 @@
         <div class="inline-flex items-center gap-2.5 bg-white/60 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-white/80">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-white to-gray-50 flex items-center justify-center shadow-md p-1 border border-gray-100">
             <img
-              src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png"
+              src="/logo-pertanian.png"
               alt="Logo Kementan"
               class="w-full h-full object-contain drop-shadow-sm"
             >
@@ -41,7 +41,7 @@
             <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-white/20 mb-8 shadow-xl p-2.5 relative overflow-hidden">
               <div class="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 pointer-events-none" />
               <img
-                src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png"
+                src="/logo-pertanian.png"
                 alt="Logo Kementan"
                 class="w-full h-full object-contain drop-shadow-md z-10"
               >

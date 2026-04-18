@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import { db } from './src/db';
-import { users, config } from './src/db/schema';
+import { db } from '../src/db';
+import { users, config } from '../src/db/schema';
 import { sql } from 'drizzle-orm';
-import { fetchAndSyncConfig, fetchAndSyncPegawai, fetchAndSyncSbm } from './src/services/sheets.service';
+import { fetchAndSyncConfig, fetchAndSyncPegawai, fetchAndSyncSbm } from '../src/services/sheets.service';
 
 async function seed() {
   console.log('🚀 Memulai seeding database...');

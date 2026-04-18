@@ -14,7 +14,7 @@
         <div class="flex items-center gap-3">
           <div
             class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 border border-gray-100">
-            <img src="/Logo_Kementerian_Pertanian_Republik_Indonesia.svg (3).png" alt="Logo Kementan"
+            <img src="/logo-pertanian.png" alt="Logo Kementan"
               class="w-full h-full object-contain">
           </div>
           <div>
