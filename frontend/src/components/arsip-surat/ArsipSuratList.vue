@@ -30,17 +30,17 @@
           class="flex items-center gap-1 sm:gap-2 bg-gray-50 p-1 rounded-xl border border-gray-100 overflow-x-auto custom-scrollbar shrink-0 max-w-full">
           <button v-for="tab in filterTabs" :key="tab.value"
             class="px-3 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap"
-            :class="filterTipe === tab.value ? 'bg-white text-kementan-green shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'"
+            :class="filterTipe === tab.value ? 'bg-white text-kementan-green shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-700'"
             @click="filterTipe = tab.value">
             {{ tab.label }}
           </button>
         </div>
 
         <div class="relative flex-1">
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" :size="18" />
           <input v-model="localSearchQuery" type="text"
             placeholder="Cari berdasarkan nomor surat, perihal, atau asal tujuan..."
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400">
+            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600">
         </div>
         <button
           class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
@@ -96,13 +96,13 @@
                       <p class="text-sm font-bold text-gray-800">
                         {{ surat.nomorSurat || '[Nomor Belum Diisi]' }}
                       </p>
-                      <p class="text-[10px] text-gray-400 font-medium mt-0.5">
+                      <p class="text-[10px] text-gray-600 font-medium mt-0.5">
                         {{ surat.asalTujuan }}
                       </p>
-                      <p class="text-[10px] text-gray-500 font-bold tracking-widest mt-1 uppercase">
+                      <p class="text-[10px] text-gray-700 font-bold tracking-widest mt-1 uppercase">
                         {{ formatIndoDate(surat.tanggalSurat) }}
-                        <span v-if="surat.createdAt" class="mx-1 lowercase text-gray-300 font-normal">|</span>
-                        <span v-if="surat.createdAt" class="text-[9px] font-normal capitalize opacity-75">Dibuat: {{
+                        <span v-if="surat.createdAt" class="mx-1 lowercase text-gray-500 font-normal">|</span>
+                        <span v-if="surat.createdAt" class="text-[9px] font-bold capitalize opacity-100">Dibuat: {{
                           surat.createdAt }}</span>
                       </p>
                     </div>
@@ -195,9 +195,9 @@
               <tr v-else>
                 <td colspan="4" class="py-16 text-center">
                   <div class="flex flex-col items-center gap-3">
-                    <Inbox :size="32" class="text-gray-300" />
-                    <p class="text-gray-400 font-medium text-sm">
-                      Berdasarkan pencarian, tidak ditemukan data surat yang sesuai.
+                    < Inbox :size="32" class="text-gray-400" />
+                    <p class="text-gray-600 font-bold text-sm uppercase tracking-widest">
+                      Data Tidak Ditemukan
                     </p>
                   </div>
                 </td>
@@ -209,7 +209,7 @@
         <!-- Pagination -->
         <div v-if="filteredList.length > 0 && !isLoading"
           class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
-          <p class="text-xs text-gray-500 font-medium">
+          <p class="text-xs text-gray-600 font-medium">
             Menampilkan <span class="font-bold text-gray-700">{{ (currentPage - 1) * ITEMS_PER_PAGE + 1 }}–{{
               Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length) }}</span> dari <span
               class="font-bold text-gray-700">{{ filteredList.length }}</span>

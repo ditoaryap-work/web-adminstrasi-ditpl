@@ -27,12 +27,12 @@
       <div v-motion :initial="{ opacity: 0, y: 10 }" :enter="{ opacity: 1, y: 0 }"
         class="glass-card p-4 rounded-2xl flex flex-col lg:flex-row gap-4">
         <div class="relative flex-1">
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
-          <input v-model="localSearchQuery" type="text" placeholder="Cari berdasarkan nomor surat atau maksud perjalanan..."
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400">
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" :size="18" />
+          <input v-model="localSearchQuery" type="text" placeholder="Cari berdasarkan nama atau tujuan perjalanan..."
+            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600">
         </div>
         <button
-          class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
+          class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-700 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
           :disabled="isLoading" title="Refresh Data dari Server" @click="handleRefresh">
           <RefreshCw :size="18" :class="{ 'animate-spin': isLoading }" />
           <span class="hidden sm:inline">Refresh Data</span>
@@ -44,7 +44,7 @@
         <div v-if="isLoading && sptList.length === 0"
           class="flex flex-col items-center justify-center py-20 bg-white/50 h-full absolute inset-0">
           <div class="w-10 h-10 border-4 border-kementan-green/20 border-t-kementan-green rounded-full animate-spin" />
-          <p class="mt-4 text-sm font-bold text-gray-500 uppercase tracking-widest animate-pulse">
+          <p class="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest animate-pulse">
             Memuat Data...
           </p>
         </div>
@@ -53,7 +53,7 @@
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr
-                class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
+                class="bg-gray-50/80 text-gray-600 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
                 <th class="py-5 px-6 w-[35%]">
                   Informasi Pelaksana
                 </th>
@@ -72,23 +72,23 @@
                   class="group hover:bg-emerald-50/10 transition-colors">
                   <!-- INFORMASI PELAKSANA -->
                   <td class="py-5 px-6 align-middle">
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
                       <!-- Avatar mapping: First participant if available -->
                       <div
-                        class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold border-2 border-emerald-100 text-lg shadow-sm">
+                        class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-sm shrink-0">
                         {{ (spt.peserta?.[0]?.namaLengkap || 'S').charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-[14px] font-bold text-gray-800 leading-tight mb-1">
+                        <p class="text-sm font-bold text-gray-900 leading-tight mb-1">
                           {{ spt.peserta?.[0]?.namaLengkap || 'Tanpa Nama' }}
                           <span v-if="(spt.peserta?.length || 0) > 1"
-                            class="ml-1 text-[10px] text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-100">+{{
+                            class="ml-1 text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-200">+{{
                               (spt.peserta?.length || 0) - 1 }} LAINNYA</span>
                         </p>
                         <div class="space-y-0.5">
-                          <p class="text-[11px] font-bold text-gray-400 tracking-wider truncate max-w-[200px]">{{ spt.no
+                          <p class="text-[11px] font-bold text-gray-600 tracking-wider truncate max-w-[200px]">{{ spt.no
                             || '[NOMOR BELUM DIISI]' }}</p>
-                          <p class="text-[9px] text-gray-300 font-medium lowercase italic">Dibuat: {{ spt.createdAt ||
+                          <p class="text-[9px] text-gray-600 font-medium lowercase italic">Dibuat: {{ spt.createdAt ||
                             '-' }}</p>
                         </div>
                       </div>
@@ -99,18 +99,18 @@
                   <td class="py-5 px-6 align-middle">
                     <div class="space-y-2">
                       <div class="flex flex-col">
-                        <span class="text-sm font-extrabold text-gray-700 truncate max-w-[250px]"
+                        <span class="text-sm font-extrabold text-gray-900 truncate max-w-[250px]"
                           :title="spt.peserta?.[0]?.tujuan">
                           Tujuan: {{ spt.peserta?.[0]?.tujuan || '-' }}
                         </span>
                       </div>
                       <div class="inline-flex items-center px-3 py-1 rounded bg-gray-100/80 border border-gray-200">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase">
+                        <span class="text-[10px] font-bold text-gray-600 uppercase">
                           {{ formatIndoDate(spt.tanggalSurat) }}
                         </span>
                       </div>
                       <div
-                        class="ml-2 inline-block px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[8px] font-black text-emerald-600 uppercase tracking-widest">
+                        class="ml-2 inline-block px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[8px] font-black text-emerald-700 uppercase tracking-widest">
                         {{ spt.timPoksi || 'UMUM' }}
                       </div>
                     </div>
@@ -136,7 +136,7 @@
                       </div>
                       <div v-else class="flex items-center">
                         <span
-                          class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">Menunggu
+                          class="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">Menunggu
                           Draft</span>
                       </div>
 
@@ -160,13 +160,13 @@
               <tr v-else>
                 <td colspan="4" class="py-16 text-center">
                   <div class="flex flex-col items-center gap-3 py-12">
-                    <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-200 mb-2 border border-gray-100">
+                    <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300 mb-2 border border-gray-100">
                       <FileText :size="32" />
                     </div>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                    <p class="text-gray-700 font-bold uppercase tracking-widest text-[10px]">
                       Data Tidak Ditemukan
                     </p>
-                    <p class="text-gray-300 text-xs max-w-[200px] text-center leading-relaxed">
+                    <p class="text-gray-600 text-xs max-w-[200px] text-center leading-relaxed">
                       Belum ada data SPT yang sesuai dengan pencarian Anda.
                     </p>
                   </div>
@@ -179,7 +179,7 @@
         <!-- Pagination -->
         <div v-if="filteredList.length > 0 && !isLoading"
           class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
-          <p class="text-xs text-gray-500 font-medium">
+          <p class="text-xs text-gray-600 font-medium">
             Menampilkan <span class="font-bold text-gray-700">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{
               Math.min(safePage *
                 ITEMS_PER_PAGE, filteredList.length) }}</span> dari <span class="font-bold text-gray-700">{{

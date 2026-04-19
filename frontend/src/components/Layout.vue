@@ -30,7 +30,7 @@
       </div>
 
       <nav class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto custom-scrollbar">
-        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-4 mt-2">
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-4 mt-2">
           Menu Utama
         </div>
         <NavItem to="/dashboard" :icon="LayoutDashboard" label="Dashboard" />
@@ -39,7 +39,7 @@
         <NavItem to="/kwitansi-spj" :icon="Receipt" label="Kwitansi & SPD" />
         <NavItem to="/arsip-surat" :icon="Inbox" label="Arsip Persuratan" />
 
-        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-4 mt-6">
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-4 mt-6">
           Database
         </div>
         <NavItem to="/pegawai" :icon="Users" label="Data Pegawai" />
@@ -50,7 +50,7 @@
 
       <div class="p-4 mt-auto border-t border-gray-100">
         <button
-          class="flex items-center gap-3 px-4 py-3 w-full hover:bg-red-50 rounded-xl text-gray-500 hover:text-red-500 transition-all font-semibold text-sm"
+          class="flex items-center gap-3 px-4 py-3 w-full hover:bg-red-50 rounded-xl text-gray-600 hover:text-red-500 transition-all font-semibold text-sm"
           @click="handleLogout">
           <LogOut :size="18" />
           <span class="underline-offset-4">Keluar Sistem</span>
@@ -67,7 +67,7 @@
             <Menu :size="24" />
           </button>
           <div class="h-8 w-[3px] bg-kementan-green rounded-full hidden md:block" />
-          <h1 class="text-xs lg:text-sm font-bold tracking-widest text-gray-500 uppercase hidden sm:block">
+          <h1 class="text-xs lg:text-sm font-bold tracking-widest text-gray-600 uppercase hidden sm:block">
             Dit. Penyediaan Lahan
           </h1>
         </div>
@@ -176,7 +176,7 @@ const NavItem = defineComponent({
         'flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold',
         isActive.value
           ? 'bg-kementan-green/10 text-kementan-green border border-kementan-green/20 shadow-sm'
-          : 'text-gray-500 hover:text-kementan-green hover:bg-gray-50'
+          : 'text-gray-700 hover:text-kementan-green hover:bg-gray-50'
       ].join(' ')
     }, [
       h('div', {

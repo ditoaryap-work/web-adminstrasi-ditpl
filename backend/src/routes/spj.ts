@@ -11,6 +11,7 @@ import { uploadBufferToDrive } from '../services/drive.service';
 import { getTemplatePath } from '../services/template.service';
 import path from 'path';
 import fs from 'fs/promises';
+import { sanitizeFilename, formatFilenameDate } from '../utils/filename';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
 const spjRouter = new Hono<HonoEnv>();
@@ -125,7 +126,13 @@ spjRouter.post('/', async (c) => {
             const masterPdfBuffer = await mergePdfs(pdfBuffers);
 
             // d. Archive to Google Drive
-            const fileName = `${savedSpj.tglBerangkat || 'SPJ'}_${savedSpj.nama?.replace(/\s+/g, '_')}_Master.pdf`;
+            const cleanNama = sanitizeFilename(savedSpj.nama, 30);
+            const cleanTujuan = sanitizeFilename(savedSpj.tujuan1 || 'Dinas', 30);
+            const cleanDate = formatFilenameDate(savedSpj.tglBerangkat);
+            
+            // Format: SPJ_[Nama]_[Tujuan]_[Tanggal].pdf
+            const fileName = `SPJ_${cleanNama || savedSpj.id}_${cleanTujuan}_${cleanDate}.pdf`.replace(/_{2,}/g, '_');
+            
             const driveLink = await uploadBufferToDrive(masterPdfBuffer, 'application/pdf', fileName, folderId);
 
             // e. Update Database dengan Link Drive Final

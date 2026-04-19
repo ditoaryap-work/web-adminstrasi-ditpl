@@ -27,9 +27,9 @@
       <div v-motion :initial="{ opacity: 0, y: 10 }" :enter="{ opacity: 1, y: 0 }"
         class="glass-card p-4 rounded-2xl flex flex-col lg:flex-row gap-4">
         <div class="relative flex-1">
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" :size="18" />
           <input v-model="localSearchQuery" type="text" placeholder="Cari berdasarkan nama atau tujuan perjalanan..."
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400">
+            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600">
         </div>
         <button
           class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
@@ -72,18 +72,18 @@
                   class="group hover:bg-emerald-50/10 transition-colors">
                   <!-- INFORMASI PELAKSANA -->
                   <td class="py-5 px-6 align-middle">
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
                       <!-- Avatar mapping -->
                       <div
-                        class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold border-2 border-emerald-100 text-lg shadow-sm">
+                        class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-sm shrink-0">
                         {{ (item.namaLengkap || 'P').charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-[14px] font-bold text-gray-800 leading-tight mb-1">{{ item.namaLengkap }}</p>
+                        <p class="text-sm font-bold text-gray-800 leading-tight mb-1">{{ item.namaLengkap }}</p>
                         <div class="space-y-0.5">
-                          <p class="text-[11px] font-bold text-gray-400 tracking-wider truncate max-w-[200px]">{{ item.nip ||
+                          <p class="text-[11px] font-bold text-gray-600 tracking-wider truncate max-w-[200px]">{{ item.nip ||
                             '-' }}</p>
-                          <p class="text-[9px] text-gray-300 font-medium italic">
+                          <p class="text-[9px] text-gray-600 font-medium italic">
                             Dibuat: {{ item.createdAt ? formatIndoDate(item.createdAt) : '-' }}
                           </p>
                         </div>
@@ -131,7 +131,7 @@
                       </div>
                       <div v-else class="flex items-center">
                         <span
-                          class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">Menunggu
+                          class="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">Menunggu
                           Draft</span>
                       </div>
 
@@ -184,12 +184,12 @@
           <div class="flex gap-1">
             <button :disabled="safePage <= 1"
               class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
-              @click="currentPage--">
+              @click="localCurrentPage--">
               <ChevronLeft :size="16" />
             </button>
             <button :disabled="safePage >= totalPages"
               class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
-              @click="currentPage++">
+              @click="localCurrentPage++">
               <ChevronRight :size="16" />
             </button>
           </div>

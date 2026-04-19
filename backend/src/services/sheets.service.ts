@@ -457,24 +457,24 @@ export function mapSbmToSheet(data: any): any[] {
   // Mapping balik dari format DB + JSONB ke flat 24 kolom
   const ext = data.data || {};
   return [
-    ext.noKec || '',
-    ext.ibuKotaKabupaten || '',
+    ext.nomorKecamatan || '',
+    ext.ibukotaKabupaten || '',
     ext.kabupatenKota || '',
-    ext.prov || '',
+    ext.provinsi || '',
     data.kecKab || '',
     ext.tujuan2 || '',
     ext.tujuan1 || '',
-    ext.prov1 || '',
-    ext.tujuanPesawat || '',
+    ext.provinsi1 || '',
+    ext.bandaraTujuan || '',
     data.uangHarian || '',
     ext.es1 || '',
     ext.es2 || '',
-    data.uangPenginapan || '', // Biasanya Es III/IV/Gol IV di DB kita simpan ke uangPenginapan utama
+    data.uangPenginapan || '',
     ext.es4 || '',
     ext.fb || '',
     ext.fd || '',
-    ext.pBisnis || '',
-    ext.pEkonomi || '',
+    ext.tiketBisnis || '',
+    ext.tiketEkonomi || '',
     ext.airportTax || '',
     ext.taxiJakarta || '',
     ext.taxiDaerah || '',
@@ -549,8 +549,27 @@ export async function fetchAndSyncSbm() {
         golongan: 'IV', // Default
         pesawat: !!pEkonomi,
         data: {
-          noKec, ibuKotaKabupaten, kabupatenKota, prov, tujuan2, tujuan1, prov1, tujuanPesawat,
-          es1, es2, es4, fb, fd, pBisnis, pEkonomi, airportTax, taxiJakarta, taxiDaerah, b, dlmKota, diklat
+          nomorKecamatan: noKec, 
+          ibukotaKabupaten: ibuKotaKabupaten, 
+          kabupatenKota, 
+          provinsi: prov, 
+          tujuan2, 
+          tujuan1, 
+          provinsi1: prov1, 
+          bandaraTujuan: tujuanPesawat,
+          es1, 
+          es2, 
+          es4, 
+          fb, 
+          fd, 
+          tiketBisnis: pBisnis, 
+          tiketEkonomi: pEkonomi, 
+          airportTax, 
+          taxiJakarta, 
+          taxiDaerah, 
+          b, 
+          dlmKota, 
+          diklat
         }
       }).onConflictDoUpdate({
         target: sbm.kecKab,
@@ -558,8 +577,27 @@ export async function fetchAndSyncSbm() {
           uangHarian: uangHarian?.replace(/[^\d]/g, '') || '0',
           uangPenginapan: es3?.replace(/[^\d]/g, '') || '0',
           data: {
-            noKec, ibuKotaKabupaten, kabupatenKota, prov, tujuan2, tujuan1, prov1, tujuanPesawat,
-            es1, es2, es4, fb, fd, pBisnis, pEkonomi, airportTax, taxiJakarta, taxiDaerah, b, dlmKota, diklat
+            nomorKecamatan: noKec, 
+            ibukotaKabupaten: ibuKotaKabupaten, 
+            kabupatenKota, 
+            provinsi: prov, 
+            tujuan2, 
+            tujuan1, 
+            provinsi1: prov1, 
+            bandaraTujuan: tujuanPesawat,
+            es1, 
+            es2, 
+            es4, 
+            fb, 
+            fd, 
+            tiketBisnis: pBisnis, 
+            tiketEkonomi: pEkonomi, 
+            airportTax, 
+            taxiJakarta, 
+            taxiDaerah, 
+            b, 
+            dlmKota, 
+            diklat
           }
         }
       });

@@ -9,6 +9,7 @@ import { generatePdfFromDocx } from '../services/pdf.service';
 import { uploadBufferToDrive } from '../services/drive.service';
 import { getTemplatePath } from '../services/template.service';
 import fs from 'fs';
+import { sanitizeFilename, formatFilenameDate } from '../utils/filename';
 
 type HonoEnv = { Variables: { user: JwtPayload } };
 const sptRouter = new Hono<HonoEnv>();
@@ -93,7 +94,13 @@ sptRouter.post('/', zValidator('json', sptSchemaValidator), async (c) => {
     const pdfBuffer = await generatePdfFromDocx(finalTemplatePath, renderData);
     
     // 5. Stream Buffer ke Google Drive
-    const pdfFilename = `SPT_${sptData.no ? sptData.no.replace(/\//g, '_') : sptData.id}.pdf`;
+    const cleanNo = sanitizeFilename(sptData.no, 20);
+    const cleanKegiatan = sanitizeFilename(sptData.kegiatan, 30);
+    const cleanDate = formatFilenameDate(sptData.tanggalSurat);
+    
+    // Format: SPT_[Nomor]_[Kegiatan]_[Tanggal].pdf
+    const pdfFilename = `SPT_${cleanNo || sptData.id}_${cleanKegiatan}_${cleanDate}.pdf`.replace(/_{2,}/g, '_');
+
     const driveLink = await uploadBufferToDrive(pdfBuffer, 'application/pdf', pdfFilename, timConfig.folderIdSpt);
     
     // 6. Update Link Drive di database

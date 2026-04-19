@@ -11,7 +11,7 @@ Gunakan perintah ini jika Anda telah menambahkan banyak fitur baru, mengubah str
 ### 1. Melalui Chat AI (Rekomendasi)
 Cukup ketik perintah ini di chat:
 ```bash
-/graphify .
+graphify .
 ```
 AI akan otomatis mendeteksi file, mengekstrak fungsi/kelas, dan memperbarui peta arsitektur.
 

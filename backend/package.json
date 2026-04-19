@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "db:push": "bunx drizzle-kit push",
-    "db:generate": "bunx drizzle-kit generate",
-    "db:studio": "bunx drizzle-kit studio",
+    "db:push": "npx drizzle-kit push",
+    "db:generate": "npx drizzle-kit generate",
+    "db:studio": "npx drizzle-kit studio",
     "seed": "bun run scripts/seed.ts",
     "kill-port": "lsof -ti:3000 | xargs kill -9 || true"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
+    "adm-zip": "^0.5.17",
     "async-mutex": "^0.5.0",
     "docxtemplater": "^3.68.5",
     "dotenv": "^17.4.2",
@@ -25,6 +26,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/bun": "^1.3.12",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",

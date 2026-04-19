@@ -166,3 +166,21 @@ export async function uploadBufferToDrive(buffer: Buffer, mimeType: string, file
      throw new Error('Gagal upload hasil render dokumen ke Google Drive');
    }
 }
+
+/**
+ * Menghapus file dari Google Drive berdasarkan ID.
+ * Digunakan untuk cleanup file lama saat update dokumen.
+ */
+export async function deleteFileFromDrive(fileId: string) {
+  try {
+    await drive.files.delete({ fileId });
+    console.log(`[Drive] File deleted successfully: ${fileId}`);
+  } catch (error: any) {
+    // Jika file sudah tidak ada (404), kita abaikan saja
+    if (error.code === 404) {
+      console.warn(`[Drive] File not found for deletion: ${fileId}`);
+      return;
+    }
+    console.error(`[Drive] Error deleting file ${fileId}:`, error.message);
+  }
+}

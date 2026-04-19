@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-black text-gray-800 tracking-tight">Manajemen Template</h1>
-        <p class="text-sm text-gray-500 mt-1">Konfigurasi struktur dokumen dasar untuk sistem administrasi</p>
+        <p class="text-sm text-gray-700 mt-1 font-bold">Konfigurasi struktur dokumen dasar untuk sistem administrasi</p>
       </div>
       <div class="flex items-center gap-3">
         <button v-if="isAdmin" @click="syncTemplates" 
@@ -65,24 +65,24 @@
                       :class="isSpreadsheetTemplate(tpl) ? 'text-green-600 bg-green-50 border-green-200/50' : 'text-blue-600 bg-blue-50 border-blue-200/50'">
                   MODUL: {{ tpl.module }}
                 </span>
-                <span v-if="tpl.acceptedTypes" class="ml-1 text-[9px] text-gray-400 font-semibold uppercase">
+                <span v-if="tpl.acceptedTypes" class="ml-1 text-[9px] text-gray-600 font-black uppercase">
                   {{ tpl.acceptedTypes.join(' / ') }}
                 </span>
              </div>
           </div>
 
           <div class="space-y-2 mt-6">
-            <div class="flex justify-between text-xs text-gray-500 pb-2 border-b border-gray-100">
-              <span class="font-semibold">Nama File:</span>
-              <span class="truncate max-w-[150px]" :title="tpl.filename">{{ tpl.filename }}</span>
+            <div class="flex justify-between text-xs text-gray-700 pb-2 border-b border-gray-100">
+              <span class="font-bold">Nama File:</span>
+              <span class="truncate max-w-[150px] font-medium" :title="tpl.filename">{{ tpl.filename }}</span>
             </div>
-            <div class="flex justify-between text-xs text-gray-500 pb-2 border-b border-gray-100">
-              <span class="font-semibold">Ukuran Size:</span>
-              <span>{{ tpl.sizeKb > 0 ? tpl.sizeKb + ' KB' : '-' }}</span>
+            <div class="flex justify-between text-xs text-gray-700 pb-2 border-b border-gray-100">
+              <span class="font-bold">Ukuran Size:</span>
+              <span class="font-medium">{{ tpl.sizeKb > 0 ? tpl.sizeKb + ' KB' : '-' }}</span>
             </div>
-            <div class="flex justify-between text-xs text-gray-500 pb-2">
-              <span class="font-semibold">Modifikasi Terakhir:</span>
-              <span>{{ tpl.lastModified ? new Date(tpl.lastModified).toLocaleString('id-ID') : '-' }}</span>
+            <div class="flex justify-between text-xs text-gray-700 pb-2">
+              <span class="font-bold">Modifikasi Terakhir:</span>
+              <span class="font-medium">{{ tpl.lastModified ? new Date(tpl.lastModified).toLocaleString('id-ID') : '-' }}</span>
             </div>
           </div>
         </div>

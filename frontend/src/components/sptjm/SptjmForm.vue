@@ -163,62 +163,31 @@
                 placeholder="Contoh: Bogor" :is-loading="isSbmLoading" />
 
               <transition name="fade">
-                <div v-if="selectedSbm" class="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-3 mt-4">
+                <div v-if="selectedSbm" class="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-4 mt-4">
                   <div>
-                    <p class="text-[10px] font-bold text-blue-400 uppercase">
+                    <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">
                       Tujuan Spesifik
                     </p>
                     <p class="text-sm font-bold text-blue-900 leading-tight">
                       {{ selectedSbm.tujuanLengkap || "-" }}
                     </p>
                   </div>
-                  <div class="pt-2 border-t border-blue-100/50">
-                    <p class="text-[10px] font-bold text-blue-400 uppercase">
-                      Uang Harian
+                  <div class="pt-3 border-t border-blue-100/50">
+                    <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">
+                      Tiket Ekonomi SBM
                     </p>
-                    <p class="text-lg font-extrabold text-kementan-green">
-                      Rp {{ formatNumber(selectedSbm.uangHarian) }}
+                    <p class="text-2xl font-black text-blue-600">
+                      {{ formatSbmVal(selectedSbm.tiketEkonomi) }}
                     </p>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2 pt-2 border-t border-blue-100/50 text-[10px]">
-                    <div>
-                      <p class="font-bold text-blue-400 uppercase">
-                        T. Bisnis
-                      </p>
-                      <p class="font-bold text-blue-900">
-                        {{ formatSbmVal(selectedSbm.tiketBisnis) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="font-bold text-blue-400 uppercase">
-                        T. Ekonomi
-                      </p>
-                      <p class="font-bold text-blue-900">
-                        {{ formatSbmVal(selectedSbm.tiketEkonomi) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="font-bold text-blue-400 uppercase">
-                        Taxi Jkt
-                      </p>
-                      <p class="font-bold text-blue-900">
-                        {{ formatSbmVal(selectedSbm.taxiJakarta) }}
-                      </p>
-                    </div>
-                    <div>
-                      <p class="font-bold text-blue-400 uppercase">
-                        Taxi Daerah
-                      </p>
-                      <p class="font-bold text-blue-900">
-                        {{ formatSbmVal(selectedSbm.taxiDaerah) }}
-                      </p>
-                    </div>
+                    <p class="text-[9px] text-blue-400 font-medium mt-1">
+                      *Nilai referensi untuk perbandingan SPTJM
+                    </p>
                   </div>
 
                   <button type="button"
-                    class="w-full mt-2 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+                    class="w-full mt-2 py-3 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2"
                     @click="handleApplySbm">
-                    ↓ Terapkan ke Form
+                    <Plus :size="14" /> Terapkan ke Form
                   </button>
                 </div>
                 <div v-else class="bg-gray-50 border border-gray-100 rounded-xl p-6 text-center mt-4">
@@ -303,7 +272,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ChevronLeft, Plus, Trash2, Save, Search, CheckCircle, Eye, Download } from 'lucide-vue-next'
 import SearchableDropdown from '../SearchableDropdown.vue'
 import { triggerDownload } from '../../utils/drive'
@@ -340,25 +309,88 @@ const successModal = ref<{
   item: null
 })
 
+const fullSbmList = ref<any[]>([])
+
+// Sync formData when parent updates initialData (critical for auto-fill NIP/Jabatan)
+watch(() => props.initialData, (newVal) => {
+  formData.value = JSON.parse(JSON.stringify(newVal))
+}, { deep: true })
+
+// Update selectedSbm panel when dropdown value changes
+watch(sbmQuery, (newVal) => {
+  if (!newVal) {
+    selectedSbm.value = null
+    return
+  }
+  const item = fullSbmList.value.find(s => String(s.id) === String(newVal))
+  if (item) {
+    const extraData = item.data || {}
+    selectedSbm.value = {
+      ...item,
+      tujuanLengkap: item.kecKab,
+      tiketEkonomi: extraData.tiketEkonomi || extraData.pEkonomi || 0, 
+      tiketBisnis: extraData.tiketBisnis || extraData.pBisnis || 0,
+      taxiJakarta: extraData.taxiJakarta || 0,
+      taxiDaerah: extraData.taxiDaerah || 0,
+      uangHarian: item.uangHarian || 0
+    }
+  }
+})
+
+const fetchSbmList = async () => {
+  isSbmLoading.value = true
+  try {
+    const response = await api.get('/api/sbm')
+    const res = response.data
+    if (res.status && res.data) {
+      fullSbmList.value = res.data
+      sbmOptions.value = res.data.map((item: any) => ({
+        label: item.kecKab,
+        value: item.id
+      }))
+    }
+  } catch (err) {
+    console.error('SBM Fetch Error:', err)
+  } finally {
+    isSbmLoading.value = false
+  }
+}
+
 // --- Number formatting ---
+// --- Number formatting helper that handles both DB strings (480000.00) and manual inputs (480.000)
+const parseVal = (val: any): number => {
+  if (typeof val === 'number') return val
+  if (!val) return 0
+  const s = String(val).trim()
+  
+  // Case A: Format database "150000.00" (Drizzle/Numeric return)
+  // Memiliki tepat satu titik, tidak ada koma, dan 2 angka di belakang titik
+  const parts = s.split('.')
+  if (parts.length === 2 && parts[1].length === 2 && !s.includes(',')) {
+    return Math.floor(parseFloat(s))
+  }
+  
+  // Case B: Format input Indonesia "200.000" (Thousands separator is dot)
+  // Kita hapus semua titik, karena di sistem ini input uang tidak pakai desimal koma
+  const cleanStr = s.replace(/\./g, '')
+  const num = parseInt(cleanStr.replace(/\D/g, ''), 10)
+  return isNaN(num) ? 0 : num
+}
+
 const formatNumber = (val: any): string => {
-  if (!val && val !== 0) return '0'
-  const num = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
-  if (isNaN(num)) return '0'
+  const num = parseVal(val)
   return new Intl.NumberFormat('id-ID').format(num)
 }
 
 const formatNumberForInput = (val: any): string => {
-  if (!val && val !== 0) return ''
-  const num = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
-  if (isNaN(num)) return ''
+  const num = parseVal(val)
+  if (num === 0) return ''
   return new Intl.NumberFormat('id-ID').format(num)
 }
 
 const formatSbmVal = (val: any): string => {
-  if (!val && val !== 0) return '-'
-  const num = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
-  if (isNaN(num)) return '-'
+  const num = parseVal(val)
+  if (num === 0) return '-'
   return 'Rp ' + new Intl.NumberFormat('id-ID').format(num)
 }
 
@@ -372,42 +404,14 @@ const handlePegawaiChange = (index: number) => {
   emit('pegawaiChange', index)
 }
 
-// --- Rincian Pesawat ---
-const addRincianPesawat = () => {
-    if (!formData.value.rincianPesawat) formData.value.rincianPesawat = []
-    formData.value.rincianPesawat.push({ maskapai: '', nomorAtauTgl: '', noTiket: '', harga: '' })
-}
-
-const removeRincianPesawat = (index: number) => {
-    formData.value.rincianPesawat.splice(index, 1)
-}
-
 // --- Sum calculations ---
-const sumToNumber = (val: string | number | undefined): number => {
-    if(!val) return 0
-    if(typeof val === 'number') return val
-    const p = parseInt(val.replace(/\D/g, ''), 10)
-    return isNaN(p) ? 0 : p
+const sumToNumber = (val: any): number => {
+    return parseVal(val)
 }
 
 const totalSum = computed(() => {
     return sumToNumber(formData.value.tiketBerangkat) +
-           sumToNumber(formData.value.tiketPulang) +
-           sumToNumber(formData.value.biayaSbm)
-})
-
-const totalHargaTiket = computed(() => {
-    if (!formData.value.rincianPesawat) return 0;
-    return formData.value.rincianPesawat.reduce((sum: number, item: any) => sum + sumToNumber(item.harga), 0)
-})
-const totalPenginapanBiaya = computed(() => {
-    return sumToNumber(formData.value.biayaPenginapan)
-})
-const totalTransportasiBiaya = computed(() => {
-    return sumToNumber(formData.value.biayaTransportasi)
-})
-const totalRiil = computed(() => {
-    return totalHargaTiket.value + totalPenginapanBiaya.value + totalTransportasiBiaya.value
+           sumToNumber(formData.value.tiketPulang)
 })
 
 // --- SBM Lookup ---
@@ -417,15 +421,19 @@ const handleApplySbm = () => {
   formData.value.biayaSbm = selectedSbm.value.tiketEkonomi?.toString() || ''
 }
 
-// --- Save & Preview ---
+// --- Save ---
 const handleSave = () => {
-    formData.value.totalBiaya = totalRiil.value.toString()
-    emit('save', formData.value)
-}
-
-const handleSubmit = () => {
-    formData.value.totalBiaya = totalRiil.value.toString()
-    emit('save', formData.value)
+    // 1. Koreksi Total Simpan: Gunakan totalSum (Berangkat + Pulang)
+    formData.value.totalBiaya = totalSum.value.toString()
+    
+    const payload = JSON.parse(JSON.stringify(formData.value))
+    
+    // 2. Hapus ID Kosong: Agar database bisa generate UUID otomatis untuk data baru
+    if (payload.id === "") {
+        delete payload.id
+    }
+    
+    emit('save', payload)
 }
 
 const openPreview = (url: string) => {
@@ -434,4 +442,8 @@ const openPreview = (url: string) => {
 }
 
 const closeForm = () => emit('cancel')
-</script>\n
+
+onMounted(() => {
+  fetchSbmList()
+})
+</script>

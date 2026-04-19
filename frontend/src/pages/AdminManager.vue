@@ -19,7 +19,7 @@
           <h1 class="text-3xl font-extrabold text-gray-800">
             Manajer Admin
           </h1>
-          <p class="text-gray-500 mt-2 text-sm max-w-lg font-medium">
+          <p class="text-gray-600 mt-2 text-sm max-w-lg font-bold leading-relaxed">
             Kelola hak akses pengguna dan keanggotaan Poksi masing-masing tim.
           </p>
         </div>
@@ -74,14 +74,14 @@
       >
         <div class="relative">
           <Search
-            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
             :size="18"
           />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Cari berdasarkan nama, username, atau poksi..."
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-400 shadow-sm text-sm"
+            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all font-medium placeholder:text-gray-600 shadow-sm text-sm"
           >
         </div>
       </div>
@@ -130,7 +130,7 @@
                 <p class="text-sm font-bold text-gray-800 truncate">
                   {{ admin.namaAdmin }}
                 </p>
-                <p class="text-xs text-gray-400 font-medium truncate">
+                <p class="text-xs text-gray-600 font-bold truncate">
                   @{{ admin.username }}
                 </p>
               </div>
@@ -158,7 +158,7 @@
                 <Edit :size="13" /> Edit
               </button>
               <button
-                class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
                 title="Hapus Admin"
                 @click="handleDelete(admin.username!)"
               >
@@ -173,8 +173,8 @@
           v-if="filteredAdmins.length > 0 && !isLoading"
           class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50"
         >
-          <p class="text-xs text-gray-500 font-medium">
-            Menampilkan <span class="font-bold text-gray-700">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{ Math.min(safePage * ITEMS_PER_PAGE, filteredAdmins.length) }}</span> dari <span class="font-bold text-gray-700">{{ filteredAdmins.length }}</span> admin
+          <p class="text-xs text-gray-600 font-medium">
+            Menampilkan <span class="font-bold text-gray-800">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{ Math.min(safePage * ITEMS_PER_PAGE, filteredAdmins.length) }}</span> dari <span class="font-bold text-gray-800">{{ filteredAdmins.length }}</span> admin
           </p>
           <div class="flex items-center gap-1">
             <button

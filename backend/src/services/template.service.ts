@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import AdmZip from 'adm-zip';
 
 // Production-ready: path relatif dari root project, bukan hardcode absolut
 export const TEMPLATE_DIR = path.resolve(process.cwd(), 'template');
@@ -45,6 +46,26 @@ export interface TemplateInfo {
 
 // Max upload size: 10 MB (sudah lebih dari cukup untuk dokumen template)
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+// --- Metadata Management (Custom Nama) ---
+const METADATA_PATH = path.join(TEMPLATE_DIR, 'metadata.json');
+
+const getMetadata = (): Record<string, { customName?: string }> => {
+    try {
+        if (fs.existsSync(METADATA_PATH)) {
+            return JSON.parse(fs.readFileSync(METADATA_PATH, 'utf-8'));
+        }
+    } catch (e) {
+        console.error('[Template Service] Gagal membaca metadata:', e);
+    }
+    return {};
+};
+
+const saveMetadata = (id: string, customName: string) => {
+    const meta = getMetadata();
+    meta[id] = { ...meta[id], customName };
+    fs.writeFileSync(METADATA_PATH, JSON.stringify(meta, null, 2));
+};
 
 /**
  * Cari file yang cocok di disk, mendukung penamaan tanpa ekstensi (TPL_SPJ).
@@ -114,8 +135,11 @@ export const getTemplateList = (): TemplateInfo[] => {
         fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
     }
 
+    const metadata = getMetadata();
+
     return TEMPLATE_REGISTRY.map(tpl => {
         const found = findActualFile(tpl.filename);
+        const meta = metadata[tpl.id];
 
         let sizeKb = 0;
         let lastModified = null;
@@ -130,7 +154,7 @@ export const getTemplateList = (): TemplateInfo[] => {
 
         return {
             id: tpl.id,
-            name: tpl.name,
+            name: meta?.customName || tpl.name,
             module: tpl.module,
             filename: actualFilename,
             exists: !!found,
@@ -227,4 +251,38 @@ export const saveTemplate = async (id: string, file: File): Promise<boolean> => 
     }
 
     return true;
+};
+
+/**
+ * Update metadata (label nama) untuk template tertentu.
+ */
+export const updateTemplateMeta = async (id: string, customName: string): Promise<boolean> => {
+    const tpl = TEMPLATE_REGISTRY.find(t => t.id === id);
+    if (!tpl) throw new Error('Template ID tidak dikenali');
+
+    saveMetadata(id, customName);
+    return true;
+};
+
+/**
+ * Mengkompres semua template yang tersedia menjadi satu file ZIP.
+ */
+export const zipAllTemplates = async (): Promise<Buffer> => {
+    const zip = new AdmZip();
+    const list = getTemplateList();
+
+    let count = 0;
+    for (const tpl of list) {
+        if (tpl.exists) {
+            const found = findActualFile(tpl.filename);
+            if (found) {
+                zip.addLocalFile(found.fullPath);
+                count++;
+            }
+        }
+    }
+
+    if (count === 0) throw new Error('Tidak ada file template untuk di-ZIP.');
+
+    return zip.toBuffer();
 };

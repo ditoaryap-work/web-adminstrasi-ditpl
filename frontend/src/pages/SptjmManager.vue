@@ -50,11 +50,64 @@
 
     <!-- File Preview Modal -->
     <FilePreviewModal :is-open="showPreview" :file-url="previewUrl" @close="showPreview = false" />
+
+    <!-- SPTJM Success Result Modal -->
+    <Teleport to="body">
+      <transition name="modal-fade">
+        <div v-if="showSuccessResult" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="handleSuccessDone" />
+          
+          <div 
+            v-motion
+            :initial="{ opacity: 0, scale: 0.9, y: 20 }"
+            :enter="{ opacity: 1, scale: 1, y: 0 }"
+            class="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100"
+          >
+            <div class="p-8 text-center">
+              <div class="w-20 h-20 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-6">
+                <CheckCircle :size="40" class="text-emerald-500" />
+              </div>
+              <h3 class="text-2xl font-bold text-slate-800 mb-2">Simpan Berhasil</h3>
+              <p class="text-slate-500 text-sm leading-relaxed px-4">
+                Dokumen SPTJM telah berhasil digenerate dan disimpan ke sistem.
+              </p>
+            </div>
+
+            <div class="px-6 pb-8 space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <button 
+                  @click="handlePreviewGenerated"
+                  class="flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  <Eye :size="18" />
+                  Lihat PDF
+                </button>
+                <button 
+                  @click="handleDownloadGenerated"
+                  class="flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  <Download :size="18" />
+                  Download
+                </button>
+              </div>
+              
+              <button 
+                @click="handleSuccessDone"
+                class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]"
+              >
+                Selesai & Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { CheckCircle, Eye, Download } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 import SptjmList from '../components/sptjm/SptjmList.vue'
@@ -90,6 +143,9 @@ const notificationModal = ref({
   onConfirm: () => { },
 })
 
+const showSuccessResult = ref(false)
+const lastGeneratedUrl = ref('')
+
 const adminProfile = computed(() => {
   try {
     return JSON.parse(localStorage.getItem('adminData') || '{}')
@@ -113,6 +169,7 @@ const getDefaultForm = () => ({
   keteranganTransportasi: '',
   biayaTransportasi: '',
   totalBiaya: '',
+  tanggalTtd: new Date().toISOString().split('T')[0],
   fileLink: '',
   createdAt: ''
 })
@@ -125,9 +182,9 @@ const pegawaiOptions = computed(() => {
   if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
     list = list.filter(p => p.timPoksi === adminProfile.value.timPoksi)
   }
-  return list.map(item => ({
-    label: `${item.namaLengkap} - ${item.nip || 'Non NIP'}`,
-    value: item.namaLengkap
+  return list.map((item, index) => ({
+    label: item.namaLengkap,
+    value: index
   }))
 })
 
@@ -229,7 +286,8 @@ const openForm = (data: any = null) => {
       ...data,
       rincianPesawat: Array.isArray(data.rincianPesawat) ? data.rincianPesawat : [],
       tanggalPerjalanan: formatDateForInput(data.tanggalPerjalanan),
-      tanggalKembali: formatDateForInput(data.tanggalKembali)
+      tanggalKembali: formatDateForInput(data.tanggalKembali),
+      tanggalTtd: formatDateForInput(data.tanggalTtd)
     }
     let pList = pegawaiList.value
     if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
@@ -259,23 +317,47 @@ const handleRefresh = async () => {
 const handleSubmit = async (updatedFormData: any) => {
   isProcessing.value = true
   try {
-    const response = await api.post('/api/sptjm', updatedFormData)
+    const isEdit = isEditMode.value
+    const endpoint = isEdit ? `/api/sptjm/${updatedFormData.id}` : '/api/sptjm'
+    const method = isEdit ? 'patch' : 'post'
+
+    const response = await api[method](endpoint, updatedFormData)
     const res = response.data
 
-    isProcessing.value = false
     if (res.status) {
-      showNotification('success', 'Berhasil', isEditMode.value ? 'Data SPTJM diperbarui.' : 'Data SPTJM disimpan.', async () => {
-        dataStore.invalidateCache('sptjm')
-        await fetchSptjm(true)
-        closeForm()
-      })
+      // 1. Invalidate cache and fetch immediately
+      dataStore.invalidateCache('sptjm')
+      await fetchSptjm(true)
+      
+      // 2. Prepare success modal
+      lastGeneratedUrl.value = res.data?.fileLink || ''
+      isProcessing.value = false
+      showSuccessResult.value = true
     } else {
+      isProcessing.value = false
       showNotification('error', 'Gagal', res.message)
     }
   } catch (err: any) {
     isProcessing.value = false
     showNotification('error', 'Error System', err.message || 'Terjadi kesalahan tidak terduga.')
   }
+}
+
+const handleDownloadGenerated = () => {
+  if (lastGeneratedUrl.value) {
+    triggerDownload(lastGeneratedUrl.value)
+  }
+}
+
+const handlePreviewGenerated = () => {
+  if (lastGeneratedUrl.value) {
+    window.open(lastGeneratedUrl.value, '_blank')
+  }
+}
+
+const handleSuccessDone = () => {
+  showSuccessResult.value = false
+  closeForm()
 }
 
 const handleDelete = (id: string) => {
@@ -286,19 +368,24 @@ const handleDelete = (id: string) => {
     async () => {
       isProcessing.value = true
       try {
-        const response = await api.delete(`/api/sptjm/${id}`)
-        const res = response.data
-        isProcessing.value = false
-        if (res.status) {
-          showNotification('success', 'Berhasil', 'Dokumen SPTJM telah dihapus.')
+        const res = await api.delete(`/api/sptjm/${id}`)
+        if (res.data.status) {
+          // Optimistic Update: Langsung hapus dari state lokal agar UI segera berubah
+          sptjmList.value = sptjmList.value.filter(item => item.id !== id)
+          dataStore.setSptjmData(sptjmList.value)
           dataStore.invalidateCache('sptjm')
+
+          showNotification('success', 'Berhasil', 'Data SPTJM telah dihapus')
+          
+          // Sinkronisasi ulang dengan server
           await fetchSptjm(true)
         } else {
-          showNotification('error', 'Gagal Menghapus', res.message)
+          showNotification('error', 'Gagal Menghapus', res.data.message)
         }
       } catch (err: any) {
-        isProcessing.value = false
         showNotification('error', 'Error System', err.message || 'Terjadi kesalahan.')
+      } finally {
+        isProcessing.value = false
       }
     },
     'Hapus Permanen'
@@ -319,6 +406,13 @@ onMounted(() => {
 
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-fade-enter-from, .modal-fade-leave-to {
   opacity: 0;
 }
 </style>

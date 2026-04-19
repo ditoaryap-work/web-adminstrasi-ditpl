@@ -23,7 +23,7 @@
             Selamat Datang, <br>
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-kementan-green to-emerald-600 drop-shadow-sm">{{ adminName }}</span>
           </h1>
-          <p class="text-gray-500 max-w-xl text-sm leading-relaxed mb-6 font-medium">
+          <p class="text-gray-700 max-w-xl text-sm leading-relaxed mb-6 font-medium">
             Pantau seluruh arus administrasi Direktorat Penyediaan Lahan dalam satu layar kendali.
           </p>
         </div>
@@ -49,7 +49,7 @@
             <p class="text-4xl font-black text-kementan-green opacity-80">
               {{ currentDay }}
             </p>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+            <p class="text-xs font-bold text-gray-700 uppercase tracking-widest">
               {{ currentMonthYear }}
             </p>
           </div>
@@ -85,7 +85,7 @@
             />
           </div>
           <div>
-            <p class="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+            <p class="text-[9px] sm:text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">
               {{ stat.title }}
             </p>
             <div class="flex items-baseline gap-1.5 sm:gap-2">
@@ -97,7 +97,7 @@
                   {{ stat.val }}
                 </template>
               </h3>
-              <span class="text-[9px] sm:text-[10px] text-gray-400 font-bold hidden sm:inline">DOKUMEN</span>
+              <span class="text-[9px] sm:text-[10px] text-gray-700 font-bold hidden sm:inline">DOKUMEN</span>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@
             <p class="text-sm font-bold text-gray-800">
               Surat Tugas
             </p>
-            <p class="text-[10px] text-gray-500 font-medium">
+            <p class="text-[10px] text-gray-700 font-medium">
               Kelola SPT Direktorat
             </p>
           </div>
@@ -142,7 +142,7 @@
             <p class="text-sm font-bold text-gray-800">
               SPTJM
             </p>
-            <p class="text-[10px] text-gray-500 font-medium">
+            <p class="text-[10px] text-gray-700 font-medium">
               Biaya Rill Perjalanan
             </p>
           </div>
@@ -158,7 +158,7 @@
             <p class="text-sm font-bold text-gray-800">
               Master Pegawai
             </p>
-            <p class="text-[10px] text-gray-500 font-medium">
+            <p class="text-[10px] text-gray-700 font-medium">
               Database Personel
             </p>
           </div>

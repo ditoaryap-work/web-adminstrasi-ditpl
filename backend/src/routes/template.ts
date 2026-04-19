@@ -7,6 +7,8 @@ import {
     validateExtension,
     validateFileContent,
     getMimeType,
+    updateTemplateMeta,
+    zipAllTemplates,
     TEMPLATE_REGISTRY,
     MAX_UPLOAD_BYTES,
 } from '../services/template.service';
@@ -52,6 +54,25 @@ templateRouter.get('/:id/download', async (c) => {
             'Cache-Control': 'no-cache',
         }
     });
+});
+
+// ─── [3] GET /export/zip ─── Export semua template aktif ke dalam satu file ZIP
+templateRouter.get('/export/zip', async (c) => {
+    try {
+        const buffer = await zipAllTemplates();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+        return new Response(buffer, {
+            headers: {
+                'Content-Disposition': `attachment; filename="Templates_E-Office_${timestamp}.zip"`,
+                'Content-Type': 'application/zip',
+                'Content-Length': String(buffer.length),
+                'Cache-Control': 'no-cache',
+            }
+        });
+    } catch (e: any) {
+        return c.json({ status: false, message: 'Gagal membuat ZIP: ' + (e.message || 'Unknown Error') }, 500);
+    }
 });
 
 // ─── [3] PUT /:id/upload ─── Overwrite/Replace File Template
@@ -114,6 +135,28 @@ templateRouter.put('/:id/upload', async (c) => {
     } catch (e: any) {
         console.error('Template Upload Error:', e);
         return c.json({ status: false, message: 'Terjadi kesalahan saat menyimpan file: ' + (e.message || 'Unknown Error') }, 500);
+    }
+});
+
+// ─── [5] PATCH /:id ─── Update Metadata (Custom Nama)
+templateRouter.patch('/:id', async (c) => {
+    try {
+        const { id } = c.req.param();
+        const body = await c.req.json();
+        const { customName } = body;
+
+        if (!customName || typeof customName !== 'string') {
+            return c.json({ status: false, message: 'Nama kustom (customName) wajib diisi.' }, 400);
+        }
+
+        await updateTemplateMeta(id, customName);
+
+        return c.json({
+            status: true,
+            message: `Nama tampilan template berhasil diubah menjadi "${customName}".`
+        });
+    } catch (e: any) {
+        return c.json({ status: false, message: 'Gagal mengupdate metadata: ' + (e.message || 'Unknown Error') }, 500);
     }
 });
 

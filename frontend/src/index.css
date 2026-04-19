@@ -58,6 +58,19 @@
   .text-glow {
     text-shadow: 0 0 10px rgba(0, 102, 51, 0.5);
   }
+
+  /* Accessibility Overrides */
+  ::placeholder {
+    @apply text-gray-500 bg-transparent !important;
+  }
+  
+  th {
+    @apply text-gray-700 font-bold tracking-wide uppercase !important;
+  }
+
+  .subtext {
+    @apply text-gray-600 font-medium !important;
+  }
 }
 
 /* Animasi Pulse lembut untuk background */

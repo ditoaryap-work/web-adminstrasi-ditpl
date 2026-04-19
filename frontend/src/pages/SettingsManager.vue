@@ -4,7 +4,7 @@
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
         <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Pengaturan Sistem</h1>
-        <p class="text-gray-500 mt-1 font-medium">Kelola integrasi Google Sheets dan konfigurasi sistem di satu tempat.</p>
+        <p class="text-gray-700 mt-1 font-bold">Kelola integrasi Google Sheets dan konfigurasi sistem di satu tempat.</p>
       </div>
     </div>
 
@@ -23,7 +23,7 @@
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-800">Sinkronisasi Google Sheets</h3>
-                <p class="text-sm text-gray-500">Ekspor seluruh data dari Database ke Spreadsheet.</p>
+                <p class="text-sm text-gray-700 font-bold">Ekspor seluruh data dari Database ke Spreadsheet.</p>
               </div>
             </div>
 
@@ -58,7 +58,7 @@
                 <span v-else>Jalankan Sinkronisasi Sekarang</span>
               </button>
               
-              <p v-if="syncCooldown > 0" class="text-xs text-gray-400 font-medium">
+              <p v-if="syncCooldown > 0" class="text-xs text-gray-700 font-bold">
                 Anti-spam aktif. Mohon tunggu sejenak.
               </p>
             </div>
@@ -77,7 +77,7 @@
             
             <button 
               @click="fetchConfigs"
-              class="p-2 hover:bg-white rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+              class="p-2 hover:bg-white rounded-lg transition-colors text-gray-600 hover:text-gray-800"
               title="Refresh Data"
             >
               <RotateCcw :size="18" />
@@ -87,7 +87,7 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left">
               <thead>
-                <tr class="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-8">
+                <tr class="bg-gray-50/50 text-[10px] font-bold text-gray-700 uppercase tracking-widest px-8">
                   <th class="py-4 pl-8">Tim / Poksi</th>
                   <th class="py-4">Folder SPT</th>
                   <th class="py-4">Folder SPTJM</th>
@@ -98,9 +98,9 @@
               <tbody class="divide-y divide-gray-50 uppercase text-[11px] font-bold">
                 <tr v-for="item in configs" :key="item.timPoksi" class="hover:bg-gray-50/30 transition-colors">
                   <td class="py-5 pl-8 text-gray-900">{{ item.timPoksi }}</td>
-                  <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSpt || '-' }}</td>
-                  <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSptjm || '-' }}</td>
-                  <td class="py-5 text-gray-500 font-mono truncate max-w-[150px]">{{ item.folderIdSpj || '-' }}</td>
+                  <td class="py-5 text-gray-800 font-mono truncate max-w-[150px]">{{ item.folderIdSpt || '-' }}</td>
+                  <td class="py-5 text-gray-800 font-mono truncate max-w-[150px]">{{ item.folderIdSptjm || '-' }}</td>
+                  <td class="py-5 text-gray-800 font-mono truncate max-w-[150px]">{{ item.folderIdSpj || '-' }}</td>
                   <td class="py-5 pr-8 text-right">
                     <button 
                       @click="editConfig(item)"
@@ -114,7 +114,7 @@
                   <td colspan="5" class="py-20 text-center">
                     <div class="flex flex-col items-center gap-3">
                       <RefreshCw class="animate-spin text-gray-300" :size="32" />
-                      <span class="text-gray-400 text-xs tracking-widest uppercase">Memuat Data Konfigurasi...</span>
+                      <span class="text-gray-700 text-xs tracking-widest uppercase font-bold">Memuat Data Konfigurasi...</span>
                     </div>
                   </td>
                 </tr>
@@ -131,7 +131,7 @@
             <ShieldCheck class="text-emerald-400" :size="20" />
             Keamanan Sistem
           </h4>
-          <p class="text-sm text-gray-300 leading-relaxed mb-6">
+          <p class="text-sm text-gray-100 leading-relaxed mb-6 font-medium">
             Hanya <strong>Super Admin</strong> yang memiliki akses penuh untuk mengubah Folder ID dan Template ID sistem. 
             Admin biasa hanya dapat melihat konfigurasi ini.
           </p>
@@ -141,7 +141,7 @@
                 <Lock :size="16" />
               </div>
               <div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role Anda</p>
+                <p class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Role Anda</p>
                 <p class="text-sm font-bold text-emerald-400">{{ userRole }}</p>
               </div>
             </div>
@@ -153,7 +153,7 @@
           <div class="space-y-4">
             <div v-for="(tip, i) in tips" :key="i" class="flex gap-3">
               <span class="text-kementan-green font-bold text-xs">{{ i+1 }}.</span>
-              <p class="text-[11px] text-gray-500 leading-relaxed">{{ tip }}</p>
+              <p class="text-[11px] text-gray-700 leading-relaxed font-medium">{{ tip }}</p>
             </div>
           </div>
         </div>
@@ -167,14 +167,14 @@
         <div class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8 overflow-y-auto max-h-[90vh]">
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-gray-800">Edit Konfigurasi: {{ selectedConfig?.timPoksi }}</h3>
-            <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600">
+            <button @click="isModalOpen = false" class="text-gray-600 hover:text-gray-800">
               <X :size="24" />
             </button>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div v-for="(val, key) in fieldLabels" :key="key" class="space-y-1.5">
-              <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+              <label class="text-[10px] font-bold text-gray-600 uppercase tracking-widest pl-1">
                 {{ val }}
               </label>
               <input 

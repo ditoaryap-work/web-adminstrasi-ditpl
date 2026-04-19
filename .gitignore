@@ -60,7 +60,9 @@ example_sptjmscript.gs
 
 # Cleanup & Audit
 backend/scratch/
+backend/scratch_*.ts
 backend/tests/scratch_*
+backend/package-lock.json
 *.log
 pm2.log
 out.log

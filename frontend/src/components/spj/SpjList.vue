@@ -24,9 +24,9 @@
     <div v-motion :initial="{ opacity: 0, y: 10 }" :enter="{ opacity: 1, y: 0 }"
       class="glass-card p-4 rounded-2xl flex flex-col lg:flex-row gap-4">
       <div class="relative flex-1">
-        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" :size="18" />
         <input v-model="localSearchQuery" type="text" placeholder="Cari berdasarkan nama, tujuan, atau NIP..."
-          class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400">
+          class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600">
       </div>
       <button
         class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
@@ -62,16 +62,16 @@
                 <td class="py-4 px-6">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 text-sm shrink-0">
+                      class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-sm shrink-0">
                       {{ String(item.nama || '?').charAt(0) }}
                     </div>
                     <div>
                       <p class="text-sm font-bold text-gray-800">{{ item.nama }} <span
-                          class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded">{{ item.gol }}</span></p>
-                      <p class="text-[11px] text-gray-400 font-medium tracking-wider">
+                          class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded border border-emerald-100">{{ item.gol }}</span></p>
+                      <p class="text-[11px] text-gray-600 font-medium tracking-wider">
                         NIP: {{ item.nip || 'Tak Ada NIP' }}
-                        <span v-if="item.nomorSt" class="mx-1 lowercase text-gray-300 font-normal">|</span>
-                        <span v-if="item.nomorSt" class="text-[10px] font-normal opacity-75">ST: {{ item.nomorSt
+                        <span v-if="item.nomorSt" class="mx-1 lowercase text-gray-500 font-normal">|</span>
+                        <span v-if="item.nomorSt" class="text-[10px] font-bold opacity-100">ST: {{ item.nomorSt
                           }}</span>
                       </p>
                     </div>
@@ -108,7 +108,7 @@
                     </div>
 
                     <span v-if="!item.fileLink"
-                      class="px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-100 text-[10px] font-bold uppercase tracking-wider">Belum
+                      class="px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg border border-gray-100 text-[10px] font-bold uppercase tracking-wider">Belum
                       Ada</span>
 
                     <!-- Admin Actions Group -->
@@ -131,9 +131,8 @@
             <tr v-else>
               <td colspan="3" class="py-16 text-center">
                 <div class="flex flex-col items-center gap-3">
-                  <FileText :size="32" class="text-gray-300" />
-                  <p class="text-gray-400 font-medium text-sm">Berdasarkan pencarian, tidak ditemukan data SPJ yang
-                    sesuai.</p>
+                  <FileText :size="32" class="text-gray-400" />
+                  <p class="text-gray-600 font-bold text-sm uppercase tracking-widest">Data Tidak Ditemukan</p>
                 </div>
               </td>
             </tr>
@@ -144,7 +143,7 @@
       <!-- Pagination -->
       <div v-if="filteredList.length > 0 && !isLoading"
         class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
-        <p class="text-xs text-gray-500 font-medium">
+        <p class="text-xs text-gray-600 font-medium">
           Menampilkan <span class="font-bold text-gray-700">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{
             Math.min(safePage *
               ITEMS_PER_PAGE, filteredList.length) }}</span> dari <span class="font-bold text-gray-700">{{

@@ -19,7 +19,7 @@
           <h1 class="text-3xl font-extrabold text-gray-800">
             Manajemen Pegawai
           </h1>
-          <p class="text-gray-500 mt-2 text-sm max-w-lg font-medium">
+          <p class="text-gray-600 mt-2 text-sm max-w-lg font-medium leading-relaxed">
             Kelola data induk pegawai, pangkat, dan jabatan untuk otomasi penugasan.
           </p>
         </div>
@@ -46,14 +46,14 @@
       >
         <div class="relative flex-1">
           <Search
-            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
             :size="18"
           />
           <input 
             v-model="searchQuery" 
             type="text" 
             placeholder="Cari berdasarkan Nama atau NIP..."
-            class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-800 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400"
+            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600"
           >
         </div>
       </div>
@@ -110,7 +110,7 @@
                         <p class="text-sm font-bold text-gray-800 truncate">
                           {{ p.namaLengkap }}
                         </p>
-                        <p class="text-[11px] text-gray-400 font-medium tracking-wider">
+                        <p class="text-[11px] text-gray-600 font-bold tracking-wider">
                           {{ p.nip }}
                         </p>
                       </div>
@@ -159,7 +159,7 @@
               <tr v-else>
                 <td
                   colspan="4"
-                  class="py-16 text-center text-gray-400 font-medium"
+                  class="py-16 text-center text-gray-600 font-bold uppercase tracking-widest text-sm"
                 >
                   Tidak ditemukan data pegawai yang cocok.
                 </td>
@@ -172,8 +172,8 @@
           v-if="filteredPegawai.length > 0 && !isLoading"
           class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50"
         >
-          <p class="text-xs text-gray-500 font-medium">
-            Menampilkan <span class="font-bold text-gray-700">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{ Math.min(safePage * ITEMS_PER_PAGE, filteredPegawai.length) }}</span> dari <span class="font-bold text-gray-700">{{ filteredPegawai.length }}</span> pegawai
+          <p class="text-xs text-gray-600 font-medium">
+            Menampilkan <span class="font-bold text-gray-800">{{ (safePage - 1) * ITEMS_PER_PAGE + 1 }}–{{ Math.min(safePage * ITEMS_PER_PAGE, filteredPegawai.length) }}</span> dari <span class="font-bold text-gray-800">{{ filteredPegawai.length }}</span> pegawai
           </p>
           <div class="flex items-center gap-1">
             <button
