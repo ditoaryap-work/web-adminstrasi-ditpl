@@ -82,7 +82,7 @@
               type="button"
               class="w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors"
               :class="[
-                opt.value === value
+                String(opt.value) === String(value)
                   ? 'bg-kementan-green/5 text-kementan-green'
                   : 'text-gray-700 hover:bg-gray-50'
               ]"
@@ -100,7 +100,7 @@
                 </p>
               </div>
               <Check
-                v-if="opt.value === value"
+                v-if="String(opt.value) === String(value)"
                 :size="16"
                 class="text-kementan-green shrink-0 ml-2"
               />
@@ -160,7 +160,7 @@ const dropdownRef = ref<HTMLDivElement | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 const selectedOption = computed(() => 
-  (props.options || []).find(opt => opt.value === props.value)
+  (props.options || []).find(opt => String(opt.value) === String(props.value))
 )
 
 const filtered = computed(() => {

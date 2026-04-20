@@ -244,7 +244,7 @@ const fetchPegawai = async () => {
 const handlePegawaiChange = (id: string) => {
   selectedPegawaiId.value = id
   if (id) {
-    const peg = pegawaiList.value.find(p => p.id === id)
+    const peg = pegawaiList.value.find(p => String(p.id) === String(id))
     if (peg) {
       formData.value.namaLengkap = peg.namaLengkap
       formData.value.nip = peg.nip || '-'
