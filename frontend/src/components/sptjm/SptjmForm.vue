@@ -402,10 +402,7 @@ const updateNumberField = (field: string, value: string) => {
   formData.value[field] = isNaN(num) ? '' : num.toString()
 }
 
-// --- Pegawai ---
-const handlePegawaiChange = (index: number) => {
-  emit('pegawaiChange', index)
-}
+// --- Pegawai handler moved ---
 
 // --- Sum calculations ---
 const sumToNumber = (val: any): number => {

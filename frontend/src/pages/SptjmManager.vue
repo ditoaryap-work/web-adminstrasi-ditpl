@@ -289,13 +289,14 @@ const openForm = (data: any = null) => {
     }
     let pList = pegawaiList.value
     if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
-      pList = pList.filter(p => p.timPoksi === adminProfile.value.timPoksi)
+      pList = pList.filter(p => String(p.poksi || '').toLowerCase() === String(adminProfile.value.timPoksi || '').toLowerCase())
     }
-    selectedPegawaiIndex.value = pList.findIndex((p: any) => p.namaLengkap === data.namaLengkap)
+    const matchedPegawai = pList.find((p: any) => p.namaLengkap === data.namaLengkap || p.id === data.nip)
+    selectedPegawaiId.value = matchedPegawai ? matchedPegawai.id : ''
   } else {
     isEditMode.value = false
     formData.value = { ...getDefaultForm(), timPoksi: adminProfile.value.timPoksi ?? '' }
-    selectedPegawaiIndex.value = -1
+    selectedPegawaiId.value = ''
   }
   viewMode.value = 'form'
   window.scrollTo({ top: 0, behavior: 'smooth' })
