@@ -26,7 +26,7 @@
                 Identitas Pelaksana
               </h4>
               <SearchableDropdown label="Pilih Pegawai (Ketik untuk mencari)" :options="pegawaiOptions"
-                :value="selectedPegawaiIndex" placeholder="Contoh: Budi Santoso..." :is-loading="isPegawaiLoading"
+                :value="selectedPegawaiId" placeholder="Contoh: Budi Santoso..." :is-loading="isPegawaiLoading"
                 required @change="handlePegawaiChange" />
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
@@ -284,13 +284,13 @@ const props = defineProps<{
   isProcessing: boolean
   pegawaiOptions: any[]
   isPegawaiLoading: boolean
-  selectedPegawaiIndex: number
+  selectedPegawaiId: string
 }>()
 
 const emit = defineEmits<{
   (e: 'cancel'): void
   (e: 'save', formData: any): void
-  (e: 'pegawaiChange', index: number): void
+  (e: 'pegawaiChange', id: string): void
 }>()
 
 const formData = ref<any>(JSON.parse(JSON.stringify(props.initialData)))
@@ -340,17 +340,20 @@ watch(sbmQuery, (newVal) => {
 const fetchSbmList = async () => {
   isSbmLoading.value = true
   try {
+    console.log('[SptjmForm] Menarik data SBM...');
     const response = await api.get('/api/sbm')
     const res = response.data
+    console.log('[SptjmForm] Respon SBM:', res);
     if (res.status && res.data) {
       fullSbmList.value = res.data
       sbmOptions.value = res.data.map((item: any) => ({
         label: item.kecKab,
         value: item.id
       }))
+      console.log(`[SptjmForm] ${sbmOptions.value.length} lokasi SBM dimuat.`);
     }
   } catch (err) {
-    console.error('SBM Fetch Error:', err)
+    console.error('[SptjmForm] Gagal memuat SBM:', err);
   } finally {
     isSbmLoading.value = false
   }
@@ -442,6 +445,10 @@ const openPreview = (url: string) => {
 }
 
 const closeForm = () => emit('cancel')
+
+const handlePegawaiChange = (id: string) => {
+  emit('pegawaiChange', id)
+}
 
 onMounted(() => {
   fetchSbmList()

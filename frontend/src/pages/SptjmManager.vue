@@ -24,10 +24,10 @@
       :is-processing="isProcessing"
       :pegawai-options="pegawaiOptions"
       :is-pegawai-loading="isPegawaiLoading"
-      :selected-pegawai-index="selectedPegawaiIndex"
+      :selected-pegawai-id="selectedPegawaiId"
       @cancel="closeForm"
       @save="handleSubmit"
-      @pegawaiChange="handlePegawaiChange"
+      @pegawai-change="handlePegawaiChange"
     />
 
     <!-- Global Loading Overlay -->
@@ -175,16 +175,16 @@ const getDefaultForm = () => ({
 })
 
 const formData = ref<any>(getDefaultForm())
-const selectedPegawaiIndex = ref(-1)
+const selectedPegawaiId = ref('')
 
 const pegawaiOptions = computed(() => {
   let list = pegawaiList.value
   if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
-    list = list.filter(p => p.timPoksi === adminProfile.value.timPoksi)
+    list = list.filter(p => String(p.poksi || '').toLowerCase() === String(adminProfile.value.timPoksi || '').toLowerCase())
   }
-  return list.map((item, index) => ({
+  return list.map((item) => ({
     label: item.namaLengkap,
-    value: index
+    value: item.id
   }))
 })
 
@@ -241,18 +241,16 @@ const fetchPegawai = async () => {
   }
 }
 
-const handlePegawaiChange = (index: number) => {
-  selectedPegawaiIndex.value = index
-  if (index >= 0) {
-    let filteredList = pegawaiList.value
-    if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
-      filteredList = filteredList.filter(p => p.timPoksi === adminProfile.value.timPoksi)
+const handlePegawaiChange = (id: string) => {
+  selectedPegawaiId.value = id
+  if (id) {
+    const peg = pegawaiList.value.find(p => p.id === id)
+    if (peg) {
+      formData.value.namaLengkap = peg.namaLengkap
+      formData.value.nip = peg.nip || '-'
+      formData.value.jabatan = peg.jabatan
+      formData.value.timPoksi = peg.timPoksi || adminProfile.value.timPoksi
     }
-    const peg = filteredList[index]
-    formData.value.namaLengkap = peg.namaLengkap
-    formData.value.nip = peg.nip || '-'
-    formData.value.jabatan = peg.jabatan
-    formData.value.timPoksi = peg.timPoksi
   } else {
     formData.value.namaLengkap = ''
     formData.value.nip = ''

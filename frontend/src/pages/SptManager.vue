@@ -207,11 +207,11 @@ const formData = ref<any>(getDefaultForm())
 const pegawaiOptions = computed(() => {
   let list = pegawaiList.value
   if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
-    list = list.filter(p => p.timPoksi === adminProfile.value.timPoksi)
+    list = list.filter(p => String((p as any).poksi || '').toLowerCase() === String(adminProfile.value.timPoksi || '').toLowerCase())
   }
   return list.map((item: any) => ({
     label: `${item.namaLengkap} - ${item.nip || 'Non NIP'}`,
-    value: item.namaLengkap
+    value: item.id
   }))
 })
 
