@@ -118,6 +118,9 @@ import {
 } from 'lucide-vue-next'
 import { AdminData } from '../types/api'
 
+import { useDataStore } from '../stores/useDataStore'
+const dataStore = useDataStore()
+
 const router = useRouter()
 const route = useRoute()
 const adminProfile = ref<AdminData | null>(null)
@@ -143,8 +146,10 @@ onMounted(() => {
 })
 
 const handleLogout = () => {
+  dataStore.resetStore()
   localStorage.removeItem('adminData')
-  router.push('/login')
+  // Hard refresh to clear any remaining app state
+  window.location.href = '/login'
 }
 
 

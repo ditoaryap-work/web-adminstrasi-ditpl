@@ -321,7 +321,7 @@ const getPegawaiIndex = (nama: string) => {
 
 const addParticipant = (value: string) => {
   if (!value) return
-  const peg = props.pegawaiList.find(p => p.id === value)
+  const peg = props.pegawaiList.find(p => String(p.id) === String(value))
   if (!peg) return
   
   // Prevent duplicates with Alert

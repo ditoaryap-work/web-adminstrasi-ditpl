@@ -291,7 +291,7 @@ const openForm = (data: any = null) => {
     if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
       pList = pList.filter(p => String(p.poksi || '').toLowerCase() === String(adminProfile.value.timPoksi || '').toLowerCase())
     }
-    const matchedPegawai = pList.find((p: any) => p.namaLengkap === data.namaLengkap || p.id === data.nip)
+    const matchedPegawai = pList.find((p: any) => p.namaLengkap === data.namaLengkap || p.nip === data.nip)
     selectedPegawaiId.value = matchedPegawai ? matchedPegawai.id : ''
   } else {
     isEditMode.value = false

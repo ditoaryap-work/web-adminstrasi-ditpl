@@ -73,6 +73,24 @@ export const useDataStore = defineStore('data', {
       } else {
         this.lastFetchTime[type] = 0
       }
+    },
+
+    resetStore() {
+      this.sptData = []
+      this.sptjmData = []
+      this.pegawaiData = []
+      this.sbmData = []
+      this.suratData = []
+      this.spjData = []
+      this.lastFetchTime = {
+        spt: 0,
+        sptjm: 0,
+        pegawai: 0,
+        sbm: 0,
+        surat: 0,
+        spj: 0
+      }
+      console.log('[DataStore] Store has been reset to clean state.')
     }
   }
 })
