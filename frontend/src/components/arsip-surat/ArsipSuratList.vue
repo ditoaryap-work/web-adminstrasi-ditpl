@@ -103,7 +103,7 @@
                         {{ formatIndoDate(surat.tanggalSurat) }}
                         <span v-if="surat.createdAt" class="mx-1 lowercase text-gray-500 font-normal">|</span>
                         <span v-if="surat.createdAt" class="text-[9px] font-bold capitalize opacity-100">Dibuat: {{
-                          surat.createdAt }}</span>
+                          formatIndoDateTime(surat.createdAt) }}</span>
                       </p>
                     </div>
                   </td>
@@ -235,6 +235,7 @@
 import { computed } from 'vue'
 import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, Inbox, Eye, Download, NotebookPen, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-vue-next'
 import type { SuratData } from '../../types/api'
+import { formatIndoDate, formatIndoDateTime } from '../../utils/date'
 
 const props = defineProps<{
   suratList: SuratData[]
@@ -271,17 +272,6 @@ const localFilterTipe = computed({ get: () => props.filterTipe, set: (val) => { 
 const localCurrentPage = computed({ get: () => props.currentPage, set: (val) => emit('update:currentPage', val) })
 
 const ITEMS_PER_PAGE = 10
-
-const formatIndoDate = (dateStr: string): string => {
-  if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-  } catch {
-    return dateStr
-  }
-}
 
 const filteredList = computed(() => {
   let list = props.suratList

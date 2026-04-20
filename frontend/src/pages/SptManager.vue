@@ -205,13 +205,24 @@ const getDefaultForm = () => ({
 const formData = ref<any>(getDefaultForm())
 
 const pegawaiOptions = computed(() => {
-  let list = pegawaiList.value
-  if (adminProfile.value.role !== 'Super Admin' && adminProfile.value.timPoksi) {
-    list = list.filter(p => String((p as any).poksi || '').toLowerCase() === String(adminProfile.value.timPoksi || '').toLowerCase())
+  const list = [...pegawaiList.value]
+  const userPoksi = String(adminProfile.value.timPoksi || '').toLowerCase()
+  
+  // LOGIC: Show ALL, but sort same Poksi to top
+  if (adminProfile.value.role !== 'Super Admin' && userPoksi) {
+    list.sort((a, b) => {
+      const aPoksi = String((a as any).poksi || '').toLowerCase() === userPoksi
+      const bPoksi = String((b as any).poksi || '').toLowerCase() === userPoksi
+      if (aPoksi && !bPoksi) return -1
+      if (!aPoksi && bPoksi) return 1
+      return 0
+    })
   }
+
   return list.map((item: any) => ({
     label: `${item.namaLengkap} - ${item.nip || 'Non NIP'}`,
-    value: item.id
+    value: item.id,
+    subtitle: `${item.jabatan || ''}${item.poksi ? ` [${item.poksi}]` : ''}`
   }))
 })
 

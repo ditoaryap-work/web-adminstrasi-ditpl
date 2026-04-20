@@ -69,10 +69,11 @@
                       <p class="text-sm font-bold text-gray-800">{{ item.nama }} <span
                           class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded border border-emerald-100">{{ item.gol }}</span></p>
                       <p class="text-[11px] text-gray-600 font-medium tracking-wider">
-                        NIP: {{ item.nip || 'Tak Ada NIP' }}
-                        <span v-if="item.nomorSt" class="mx-1 lowercase text-gray-500 font-normal">|</span>
                         <span v-if="item.nomorSt" class="text-[10px] font-bold opacity-100">ST: {{ item.nomorSt
                           }}</span>
+                      </p>
+                      <p v-if="item.createdAt" class="text-[9px] text-gray-500 font-medium italic mt-0.5">
+                        Dibuat: {{ formatIndoDateTime(item.createdAt) }}
                       </p>
                     </div>
                   </div>
@@ -172,6 +173,7 @@ import { computed } from 'vue'
 import { FileText, Plus, Search, Download, Edit, Trash2, ChevronLeft, ChevronRight, Eye, RefreshCw } from 'lucide-vue-next'
 import type { SpjData } from '../../types/api'
 import { triggerDownload } from '../../utils/drive'
+import { formatIndoDateTime } from '../../utils/date'
 
 const props = defineProps<{
   sptjmList: SpjData[]

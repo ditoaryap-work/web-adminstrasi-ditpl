@@ -87,7 +87,7 @@
                             {{ spt.peserta?.length || 0 }} Peserta
                           </span>
                           <p class="text-[9px] text-gray-500 font-medium italic border-l border-gray-200 pl-2">
-                            Dibuat: {{ spt.createdAt ? formatIndoDate(spt.createdAt) : '-' }}
+                            Dibuat: {{ spt.createdAt ? formatIndoDateTime(spt.createdAt) : '-' }}
                           </p>
                         </div>
                       </div>
@@ -205,6 +205,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, FileSignature, Eye, Download, RefreshCw } from 'lucide-vue-next'
+import { formatIndoDate, formatIndoDateTime } from '../../utils/date'
 
 const props = defineProps<{
   sptList: any[]
@@ -229,17 +230,6 @@ const localSearchQuery = computed({ get: () => props.searchQuery, set: (val) => 
 const localCurrentPage = computed({ get: () => props.currentPage, set: (val) => emit('update:currentPage', val) })
 
 const ITEMS_PER_PAGE = 10
-
-const formatIndoDate = (dateStr: string): string => {
-  if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-  } catch {
-    return dateStr
-  }
-}
 
 const filteredList = computed(() => {
   let list = props.sptList

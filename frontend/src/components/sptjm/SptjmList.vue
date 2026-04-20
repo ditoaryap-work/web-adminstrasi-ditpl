@@ -84,7 +84,7 @@
                           <p class="text-[11px] font-bold text-gray-600 tracking-wider truncate max-w-[200px]">{{ item.nip ||
                             '-' }}</p>
                           <p class="text-[9px] text-gray-600 font-medium italic">
-                            Dibuat: {{ item.createdAt ? formatIndoDate(item.createdAt) : '-' }}
+                            Dibuat: {{ item.createdAt ? formatIndoDateTime(item.createdAt) : '-' }}
                           </p>
                         </div>
                       </div>
@@ -200,7 +200,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, FileSignature, Eye, Download, RefreshCw } from 'lucide-vue-next'
+import { Eye, Download, Edit, Trash2, ChevronLeft, ChevronRight, RefreshCw, Plus, Search, FileSignature } from 'lucide-vue-next'
+import { formatIndoDate, formatIndoDateTime } from '../../utils/date'
 
 const props = defineProps<{
   sptjmList: any[]
@@ -225,17 +226,6 @@ const localSearchQuery = computed({ get: () => props.searchQuery, set: (val) => 
 const localCurrentPage = computed({ get: () => props.currentPage, set: (val) => emit('update:currentPage', val) })
 
 const ITEMS_PER_PAGE = 10
-
-const formatIndoDate = (dateStr: string): string => {
-  if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-  } catch {
-    return dateStr
-  }
-}
 
 const filteredList = computed(() => {
   let list = props.sptjmList

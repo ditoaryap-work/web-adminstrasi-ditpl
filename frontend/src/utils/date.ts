@@ -9,6 +9,19 @@ export const formatIndoDate = (isoDate: string): string => {
   } catch { return isoDate }
 }
 
+export const formatIndoDateTime = (isoDate: string): string => {
+  if (!isoDate) return '-'
+  try {
+    const d = new Date(isoDate)
+    if (isNaN(d.getTime())) return isoDate
+    
+    const datePart = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    const timePart = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })
+    
+    return `${datePart} ${timePart}`
+  } catch { return isoDate }
+}
+
 export const formatSmartDateRange = (startStr: string, endStr: string): string => {
   if (!startStr || !endStr) return `${formatIndoDate(startStr)} s/d ${formatIndoDate(endStr)}`
   
