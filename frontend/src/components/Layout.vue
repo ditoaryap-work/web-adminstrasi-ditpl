@@ -166,6 +166,9 @@ const NavItem = defineComponent({
     const isActive = computed(() => route.path === props.to)
 
     const handleClick = () => {
+      if (route.path === props.to) {
+        window.dispatchEvent(new CustomEvent('sidebar-click-same', { detail: { path: props.to } }))
+      }
       router.push(props.to as string)
       isSidebarOpen.value = false
     }

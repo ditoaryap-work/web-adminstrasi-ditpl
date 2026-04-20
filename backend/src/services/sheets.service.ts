@@ -401,6 +401,54 @@ export async function fetchAndSyncPegawai() {
 }
 
 /**
+ * Sinkronisasi data Config (Folder IDs) dari Google Sheets ke PostgreSQL.
+ */
+export async function fetchAndSyncConfig() {
+  if (!SPREADSHEET_ID) return;
+  const sheetName = 'CONFIG';
+
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!A2:G`,
+    });
+
+    const rows = response.data.values || [];
+    for (const row of rows) {
+      const [
+        timPoksi, folderIdSpt, folderIdSptjm, folderIdSuratMasuk, 
+        folderIdSuratKeluar, folderIdNotulensi, folderIdSpj
+      ] = row;
+
+      if (!timPoksi) continue;
+
+      await db.insert(config).values({
+        timPoksi: timPoksi.trim(),
+        folderIdSpt: folderIdSpt || null,
+        folderIdSptjm: folderIdSptjm || null,
+        folderIdSuratMasuk: folderIdSuratMasuk || null,
+        folderIdSuratKeluar: folderIdSuratKeluar || null,
+        folderIdNotulensi: folderIdNotulensi || null,
+        folderIdSpj: folderIdSpj || null,
+      }).onConflictDoUpdate({
+        target: config.timPoksi,
+        set: {
+          folderIdSpt: folderIdSpt || null,
+          folderIdSptjm: folderIdSptjm || null,
+          folderIdSuratMasuk: folderIdSuratMasuk || null,
+          folderIdSuratKeluar: folderIdSuratKeluar || null,
+          folderIdNotulensi: folderIdNotulensi || null,
+          folderIdSpj: folderIdSpj || null,
+        }
+      });
+    }
+    console.log(`[Config Sync] ${rows.length} records synced to PostgreSQL.`);
+  } catch (error) {
+    console.error('[Config Fetch Sync Error]', error);
+  }
+}
+
+/**
  * Menghapus rujukan pegawai di Google Sheets berdasarkan NIP.
  */
 export async function deletePegawaiFromSheets(kode: string) {

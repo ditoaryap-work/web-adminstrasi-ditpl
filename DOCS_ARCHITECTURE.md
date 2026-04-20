@@ -235,3 +235,12 @@ Konfigurasi template tidak lagi menggunakan ID Google Docs dari database.
 - **Lokasi**: `backend/template/`
 - **Metode**: Sistem membaca file `.docx` langsung dari server.
 - **Update**: Pengguna dapat mengupdate template melalui menu **Sistem Template** di dashboard admin, yang akan mengunggah file baru ke folder lokal server.
+
+### 5.3. Pembersihan File Google Drive (Drive Cleanup)
+Untuk mencegah penumpukan file PDF di Google Drive, sistem mengimplementasikan **auto-cleanup** saat operasi EDIT dan DELETE:
+- **Fungsi**: `deleteFileFromDrive(fileId)` di `drive.service.ts`.
+- **Utilitas**: `extractFileId(webViewLink)` mengekstrak File ID dari URL `webViewLink` yang tersimpan di database.
+- **Alur EDIT (PATCH)**: Sebelum meng-upload file baru, file PDF lama dihapus dari Drive terlebih dahulu.
+- **Alur DELETE**: File PDF di Drive dihapus sebelum record dihapus dari PostgreSQL.
+- **Fault Tolerant**: Jika file sudah tidak ada di Drive (404), proses tetap lanjut tanpa error.
+- **Status Implementasi**: ✅ SPTJM | ⬜ SPT | ⬜ SPJ (perlu diterapkan dengan pola yang sama).

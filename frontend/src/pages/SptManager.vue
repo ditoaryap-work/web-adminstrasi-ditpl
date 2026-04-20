@@ -49,11 +49,64 @@
 
     <!-- File Preview Modal -->
     <FilePreviewModal :is-open="showPreview" :file-url="previewUrl" @close="showPreview = false" />
+
+    <!-- SPT Success Result Modal -->
+    <Teleport to="body">
+      <transition name="modal-fade">
+        <div v-if="showSuccessResult" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="handleSuccessDone" />
+          
+          <div 
+            v-motion
+            :initial="{ opacity: 0, scale: 0.9, y: 20 }"
+            :enter="{ opacity: 1, scale: 1, y: 0 }"
+            class="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100"
+          >
+            <div class="p-8 text-center">
+              <div class="w-20 h-20 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-6">
+                <CheckCircle :size="40" class="text-emerald-500" />
+              </div>
+              <h3 class="text-2xl font-bold text-slate-800 mb-2">Simpan Berhasil</h3>
+              <p class="text-slate-500 text-sm leading-relaxed px-4">
+                Dokumen SPT telah berhasil digenerate dan disimpan ke sistem.
+              </p>
+            </div>
+
+            <div class="px-6 pb-8 space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <button 
+                  @click="handlePreviewGenerated"
+                  class="flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  <Eye :size="18" />
+                  Lihat PDF
+                </button>
+                <button 
+                  @click="handleDownloadGenerated"
+                  class="flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  <Download :size="18" />
+                  Download
+                </button>
+              </div>
+              
+              <button 
+                @click="handleSuccessDone"
+                class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]"
+              >
+                Selesai & Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { CheckCircle, Eye, Download } from 'lucide-vue-next'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 import SptList from '../components/spt/SptList.vue'
@@ -80,6 +133,43 @@ const currentPage = ref(1)
 const showPreview = ref(false)
 const previewUrl = ref('')
 
+const showSuccessResult = ref(false)
+const lastGeneratedUrl = ref('')
+
+const handleDownloadGenerated = () => {
+  if (lastGeneratedUrl.value) {
+    triggerDownload(lastGeneratedUrl.value)
+  }
+}
+
+const handlePreviewGenerated = () => {
+  if (lastGeneratedUrl.value) {
+    openPreview(lastGeneratedUrl.value)
+  }
+}
+
+const handleSuccessDone = () => {
+  showSuccessResult.value = false
+  closeForm()
+}
+
+const showNotification = (
+  type: 'success' | 'error' | 'warning' | 'info' | 'confirm',
+  title: string,
+  message: string,
+  onConfirm: (() => void) | null = null,
+  confirmText = ''
+) => {
+  notificationModal.value = {
+    isOpen: true,
+    type,
+    title,
+    message,
+    confirmText,
+    onConfirm: onConfirm ?? (() => { }),
+  }
+}
+
 const notificationModal = ref({
   isOpen: false,
   type: 'success' as 'success' | 'error' | 'warning' | 'info' | 'confirm',
@@ -101,24 +191,13 @@ const getDefaultForm = () => ({
   id: '',
   no: '',
   timPoksi: '',
-  maksudSpt: '',
+  maksudPerjalanan: '',
+  kegiatan: '',
+  mak: '',
   tanggalSurat: '',
-  pejabatMenugaskan: 'Direktur',
   namaPenandatangan: '',
   nipPenandatangan: '',
-  jabatanPenandatangan: 'Direktur',
-  peserta: [
-    {
-      namaLengkap: '',
-      nip: '',
-      jabatan: '',
-      pangkatGolongan: '',
-      tujuan: '',
-      lamanya: '',
-      tanggalMulai: '',
-      tanggalSelesai: ''
-    }
-  ],
+  peserta: [],
   fileLink: '',
   createdAt: ''
 })
@@ -136,22 +215,17 @@ const pegawaiOptions = computed(() => {
   }))
 })
 
-const showNotification = (
-  type: 'success' | 'error' | 'warning' | 'info' | 'confirm',
-  title: string,
-  message: string,
-  onConfirm: (() => void) | null = null,
-  confirmText = ''
-) => {
-  notificationModal.value = {
-    isOpen: true,
-    type,
-    title,
-    message,
-    confirmText,
-    onConfirm: onConfirm ?? (() => { }),
+
+// Reset view mode if user clicks the sidebar menu while already on SPT page
+onMounted(() => {
+  const handleReset = (e: any) => {
+    if (e.detail?.path === '/spt') {
+      viewMode.value = 'list'
+    }
   }
-}
+  window.addEventListener('sidebar-click-same', handleReset)
+  return () => window.removeEventListener('sidebar-click-same', handleReset)
+})
 
 const fetchSpt = async (force = false) => {
   if (!force && dataStore.isCacheValid('spt') && sptList.value.length > 0) return
@@ -262,21 +336,29 @@ const handleRefresh = async () => {
 const handleSubmit = async (updatedFormData: any) => {
   isProcessing.value = true
   try {
-    const payload = {
-      ...updatedFormData,
-      peserta: JSON.stringify(updatedFormData.peserta)
+    // Backend expects peserta as Array (Zod Validation)
+    // No need to JSON.stringify anymore
+    const payload = { ...updatedFormData }
+    
+    let response
+    if (isEditMode.value && updatedFormData.id) {
+      response = await api.patch(`/api/spt/${updatedFormData.id}`, payload)
+    } else {
+      response = await api.post('/api/spt', payload)
     }
-
-    const response = await api.post('/api/spt', payload)
+    
     const res = response.data
 
     isProcessing.value = false
     if (res.status) {
-      showNotification('success', 'Berhasil', isEditMode.value ? 'Data SPT diperbarui.' : 'Data SPT disimpan.', async () => {
-        dataStore.invalidateCache('spt')
-        await fetchSpt(true)
-        closeForm()
-      })
+      // 1. Invalidate cache and fetch immediately
+      dataStore.invalidateCache('spt')
+      await fetchSpt(true)
+      
+      // 2. Prepare success modal
+      lastGeneratedUrl.value = res.data?.fileLink || ''
+      isProcessing.value = false
+      showSuccessResult.value = true
     } else {
       showNotification('error', 'Gagal', res.message)
     }

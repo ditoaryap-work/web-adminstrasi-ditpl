@@ -232,20 +232,28 @@ export const saveTemplate = async (id: string, file: File): Promise<boolean> => 
     await Bun.write(masterPath, file);
     console.log(`[TemplateManager] Master template ${id} updated → ${finalFilename}`);
 
-    // [INVALIDATION] Hapus semua versi di subfolder tim
+    // [INVALIDATION] Hapus semua versi di subfolder tim (Asynchronous)
     try {
-        const subdirs = fs.readdirSync(TEMPLATE_DIR, { withFileTypes: true })
-            .filter(dirent => dirent.isDirectory());
+        const entries = await fs.promises.readdir(TEMPLATE_DIR, { withFileTypes: true });
+        const subdirs = entries.filter(dirent => dirent.isDirectory());
 
+        const unlinkPromises: Promise<void>[] = [];
         for (const dir of subdirs) {
             for (const ext of ALLOWED_EXTENSIONS) {
                 const teamFilePath = path.join(TEMPLATE_DIR, dir.name, baseName + ext);
-                if (fs.existsSync(teamFilePath)) {
-                    fs.unlinkSync(teamFilePath);
-                    console.log(`[Cache Invalidation] Deleted team template: ${dir.name}/${baseName + ext}`);
-                }
+                unlinkPromises.push(
+                    fs.promises.access(teamFilePath)
+                        .then(() => fs.promises.unlink(teamFilePath))
+                        .then(() => {
+                            console.log(`[Cache Invalidation] Deleted team template: ${dir.name}/${baseName + ext}`);
+                        })
+                        .catch(() => {
+                            // File not found, ignore
+                        })
+                );
             }
         }
+        await Promise.all(unlinkPromises);
     } catch (err) {
         console.error('[Cache Invalidation Error]', err);
     }

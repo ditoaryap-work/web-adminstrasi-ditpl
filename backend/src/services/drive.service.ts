@@ -140,7 +140,7 @@ export async function downloadTemplateToLocal(fileId: string, outputFilename: st
  * Upload Buffer memori langsung ke Google Drive menggunakan stream.
  * Sangat efisien dan membebaskan RAM secara instan saat aliran tertransfer ke Google.
  */
-export async function uploadBufferToDrive(buffer: Buffer, mimeType: string, filename: string, folderId: string) {
+export async function uploadBufferToDrive(buffer: Buffer, mimeType: string, filename: string, folderId: string): Promise<string | null> {
    const sanitizedName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_');
    
    try {
@@ -160,7 +160,7 @@ export async function uploadBufferToDrive(buffer: Buffer, mimeType: string, file
        });
      }
      
-     return response.data.webViewLink;
+     return response.data.webViewLink || null;
    } catch (error) {
      console.error('Error saat upload stream Buffer:', error);
      throw new Error('Gagal upload hasil render dokumen ke Google Drive');

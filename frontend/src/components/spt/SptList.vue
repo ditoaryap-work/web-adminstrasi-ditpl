@@ -4,8 +4,8 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div v-motion :initial="{ opacity: 0, x: -20 }" :enter="{ opacity: 1, x: 0 }">
           <div class="flex items-center gap-3 mb-2 text-kementan-green">
-            <FileText :size="20" />
-            <span class="text-xs font-bold tracking-[0.3em] uppercase">Arsip Kedinasan</span>
+            <FileSignature :size="20" />
+            <span class="text-xs font-bold tracking-[0.3em] uppercase">Mekanisme SPPD</span>
           </div>
           <h1 class="text-3xl font-extrabold text-gray-800">
             Manajer SPT
@@ -44,7 +44,7 @@
         <div v-if="isLoading && sptList.length === 0"
           class="flex flex-col items-center justify-center py-20 bg-white/50 h-full absolute inset-0">
           <div class="w-10 h-10 border-4 border-kementan-green/20 border-t-kementan-green rounded-full animate-spin" />
-          <p class="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest animate-pulse">
+          <p class="mt-4 text-sm font-bold text-gray-500 uppercase tracking-widest animate-pulse">
             Memuat Data...
           </p>
         </div>
@@ -53,9 +53,9 @@
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr
-                class="bg-gray-50/80 text-gray-600 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
+                class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
                 <th class="py-5 px-6 w-[35%]">
-                  Informasi Pelaksana
+                  Identitas Dokumen
                 </th>
                 <th class="py-5 px-6 w-[35%]">
                   Rincian Perjalanan
@@ -70,26 +70,25 @@
                 <tr v-for="(spt, i) in paginatedList" :key="spt.id" v-motion :initial="{ opacity: 0, y: 5 }"
                   :enter="{ opacity: 1, y: 0, transition: { delay: i * 30 } }"
                   class="group hover:bg-emerald-50/10 transition-colors">
-                  <!-- INFORMASI PELAKSANA -->
+                  <!-- IDENTITAS DOKUMEN -->
                   <td class="py-5 px-6 align-middle">
                     <div class="flex items-center gap-3">
-                      <!-- Avatar mapping: First participant if available -->
+                      <!-- Document Icon/Badge -->
                       <div
-                        class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-sm shrink-0">
-                        {{ (spt.peserta?.[0]?.namaLengkap || 'S').charAt(0) }}
+                        class="w-9 h-9 rounded-full bg-gradient-to-br from-kementan-green/10 to-emerald-100 flex items-center justify-center text-kementan-green font-bold border border-kementan-green/20 text-xs shrink-0">
+                        SPT
                       </div>
                       <div>
-                        <p class="text-sm font-bold text-gray-900 leading-tight mb-1">
-                          {{ spt.peserta?.[0]?.namaLengkap || 'Tanpa Nama' }}
-                          <span v-if="(spt.peserta?.length || 0) > 1"
-                            class="ml-1 text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full border border-indigo-200">+{{
-                              (spt.peserta?.length || 0) - 1 }} LAINNYA</span>
+                        <p class="text-sm font-bold text-gray-900 leading-tight mb-1 truncate max-w-[250px]" :title="spt.no">
+                          {{ spt.no || '[NOMOR BELUM DIISI]' }}
                         </p>
-                        <div class="space-y-0.5">
-                          <p class="text-[11px] font-bold text-gray-600 tracking-wider truncate max-w-[200px]">{{ spt.no
-                            || '[NOMOR BELUM DIISI]' }}</p>
-                          <p class="text-[9px] text-gray-600 font-medium lowercase italic">Dibuat: {{ spt.createdAt ||
-                            '-' }}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                          <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-100">
+                            {{ spt.peserta?.length || 0 }} Peserta
+                          </span>
+                          <p class="text-[9px] text-gray-500 font-medium italic border-l border-gray-200 pl-2">
+                            Dibuat: {{ spt.createdAt ? formatIndoDate(spt.createdAt) : '-' }}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -105,7 +104,7 @@
                         </span>
                       </div>
                       <div class="inline-flex items-center px-3 py-1 rounded bg-gray-100/80 border border-gray-200">
-                        <span class="text-[10px] font-bold text-gray-600 uppercase">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase">
                           {{ formatIndoDate(spt.tanggalSurat) }}
                         </span>
                       </div>
@@ -160,10 +159,10 @@
               <tr v-else>
                 <td colspan="4" class="py-16 text-center">
                   <div class="flex flex-col items-center gap-3 py-12">
-                    <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300 mb-2 border border-gray-100">
-                      <FileText :size="32" />
+                    <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-200 mb-2 border border-gray-100">
+                      <FileSignature :size="32" />
                     </div>
-                    <p class="text-gray-700 font-bold uppercase tracking-widest text-[10px]">
+                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
                       Data Tidak Ditemukan
                     </p>
                     <p class="text-gray-600 text-xs max-w-[200px] text-center leading-relaxed">
@@ -205,7 +204,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, FileText, Eye, Download, RefreshCw } from 'lucide-vue-next'
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, FileSignature, Eye, Download, RefreshCw } from 'lucide-vue-next'
 
 const props = defineProps<{
   sptList: any[]

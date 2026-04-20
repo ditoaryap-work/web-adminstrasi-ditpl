@@ -351,7 +351,7 @@ const handleDownloadGenerated = () => {
 
 const handlePreviewGenerated = () => {
   if (lastGeneratedUrl.value) {
-    window.open(lastGeneratedUrl.value, '_blank')
+    openPreview(lastGeneratedUrl.value)
   }
 }
 

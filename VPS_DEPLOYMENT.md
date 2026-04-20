@@ -8,6 +8,7 @@ Arsitektur deployment menggunakan **split hosting**:
 *   **Repo GitHub**: `https://github.com/ditoaryap-work/web-adminstrasi-ditpl`
 *   **Domain Frontend**: `administrasi.ditpl.web.id` (Cloudflare Pages)
 *   **Domain API**: `api.ditpl.web.id` (VPS)
+*   **Domain DB Studio**: `db.administrasi.ditpl.web.id` (VPS — pgweb + Nginx basic auth)
 
 ---
 
@@ -134,6 +135,55 @@ sudo systemctl restart nginx
 - Pastikan Port 80/443 dibuka di Firewall VPS.
 - Gunakan Certbot untuk SSL Gratis: `sudo apt install certbot python3-certbot-nginx && sudo certbot --nginx`.
 
+### 2.6 Database Browser (pgweb)
+Tool web ringan untuk monitoring & editing database langsung dari browser. Dilindungi password Nginx.
+
+> **Catatan**: Drizzle Studio v0.31+ menggunakan Cloud Relay dan tidak bisa di-reverse-proxy. Oleh karena itu, kita menggunakan **pgweb** sebagai pengganti.
+
+```bash
+# Install pgweb
+curl -L https://github.com/sosedoff/pgweb/releases/download/v0.16.2/pgweb_linux_amd64.zip -o /tmp/pgweb.zip
+sudo apt install -y unzip apache2-utils
+unzip /tmp/pgweb.zip -d /tmp/
+sudo mv /tmp/pgweb_linux_amd64 /usr/local/bin/pgweb
+sudo chmod +x /usr/local/bin/pgweb
+
+# Buat password proteksi
+sudo htpasswd -c /etc/nginx/.htpasswd admin
+
+# Jalankan pgweb sebagai PM2 daemon
+cd ~/eoffice-ditpl/backend
+pm2 start "pgweb --bind 127.0.0.1 --listen 4983 --url $(grep DATABASE_URL .env | cut -d'=' -f2-)" --name "db-studio"
+pm2 save
+```
+
+**Konfigurasi Nginx untuk subdomain DB:**
+```bash
+cat << 'EOF' | sudo tee /etc/nginx/sites-available/db-studio
+server {
+    listen 80;
+    server_name db.administrasi.ditpl.web.id;
+
+    auth_basic "Restricted Access";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    location / {
+        proxy_pass http://127.0.0.1:4983;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+    }
+}
+EOF
+
+sudo ln -sf /etc/nginx/sites-available/db-studio /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+**DNS di Cloudflare:** Tambahkan A record `db.administrasi` → IP VPS (Proxied ✅).
+
 ---
 
 ## 3. Update / Redeploy
@@ -161,6 +211,8 @@ pm2 restart backend-eoffice
 ## 🛠️ Tips Maintenance
 
 - **Log Backend**: `pm2 logs backend-eoffice`
-- **Database Studio**: `bun run db:studio` (gunakan tunnel SSH jika port tidak dibuka publik).
+- **Log DB Studio**: `pm2 logs db-studio`
+- **Database Browser**: Buka `https://db.administrasi.ditpl.web.id` (login dengan password Nginx yang sudah di-set).
 - **Restart jika crash**: PM2 otomatis restart. Cek status: `pm2 status`.
 - **Update Template**: Selalu pastikan file `.docx` di `backend/template` memiliki nama yang tepat sesuai konfigurasi di Dashboard Admin → Sistem Template.
+- **Git Pull Gagal di VPS**: Jika ada file lokal yang berubah (misal template `.docx`), jalankan `git stash` lalu `git pull origin main`.
