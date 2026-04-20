@@ -195,7 +195,7 @@
               <tr v-else>
                 <td colspan="4" class="py-16 text-center">
                   <div class="flex flex-col items-center gap-3">
-                    < Inbox :size="32" class="text-gray-400" />
+                    <Inbox :size="32" class="text-gray-400" />
                     <p class="text-gray-600 font-bold text-sm uppercase tracking-widest">
                       Data Tidak Ditemukan
                     </p>

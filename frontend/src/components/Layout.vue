@@ -43,7 +43,7 @@
           Database
         </div>
         <NavItem to="/pegawai" :icon="Users" label="Data Pegawai" />
-        <NavItem to="/admin" :icon="Shield" label="Manajer Admin" />
+        <NavItem v-if="adminProfile?.role === 'Super Admin'" to="/admin" :icon="Shield" label="Manajer Admin" />
         <NavItem v-if="adminProfile?.role === 'Super Admin' || isDev" to="/templates" :icon="FileCode" label="Sistem Template" />
         <NavItem to="/settings" :icon="Settings" label="Pengaturan Sistem" />
       </nav>

@@ -330,7 +330,11 @@ const handlePegawaiSearch = () => {
     showPegawaiDropdown.value = false
     return
   }
-  filteredPegawai.value = props.pegawaiList.filter(p => p.namaLengkap.toLowerCase().includes(q) || p.nip.toLowerCase().includes(q)).slice(0, 6)
+  filteredPegawai.value = props.pegawaiList.filter(p => {
+    const nameSearch = (p.namaLengkap || '').toLowerCase().includes(q)
+    const nipSearch = (p.nip || '').toLowerCase().includes(q)
+    return nameSearch || nipSearch
+  }).slice(0, 6)
   showPegawaiDropdown.value = true
 }
 
