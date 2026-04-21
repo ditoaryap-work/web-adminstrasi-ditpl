@@ -12,11 +12,19 @@
       :admin-tim-poksi="adminData.timPoksi"
       @refresh="handleRefresh"
       @add="() => openForm()"
-      @edit="(s) => openForm(s)"
+      @edit="openForm"
       @delete="handleDelete"
       @preview="openPreview"
       @download="triggerDownload"
-      @openNotulensi="openNotulensiModal"
+      @open-notulensi="openNotulensiModal"
+      @view-detail="handleViewDetail"
+    />
+
+    <ArsipSuratDetail
+      :is-open="detailModal.isOpen"
+      :surat="detailModal.data"
+      @close="detailModal.isOpen = false"
+      @download="triggerDownload"
     />
 
     <!-- VIEW MODE: FORM -->
@@ -26,6 +34,7 @@
       :is-edit-mode="isEditMode"
       :is-processing="isProcessing"
       :pegawai-list="pegawaiList"
+      :admin-tim-poksi="adminData.timPoksi"
       @cancel="closeForm"
       @save="handleSubmit"
       @notify="showNotification"
@@ -42,55 +51,63 @@
       @notify="showNotification"
     />
 
-    <!-- Success Modal Baru (Instant Feedback) -->
+    <!-- Success Modal (Standard SPT/SPTJM Style) -->
     <Teleport to="body">
-      <transition name="fade">
+      <transition name="modal-fade">
         <div v-if="successModal.isOpen"
-          class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          class="fixed inset-0 z-[11000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div class="absolute inset-0" @click="successModal.isOpen = false" />
+          
           <div v-motion :initial="{ opacity: 0, scale: 0.9, y: 20 }" :enter="{ opacity: 1, scale: 1, y: 0 }"
-            class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-emerald-100">
-            <div class="h-2 bg-emerald-500 w-full" />
-            <div class="p-8 text-center">
-              <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <!-- CheckCircle2 has been extracted safely -->
-                <svg class="w-12 h-12 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            class="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+            
+            <div class="pt-10 pb-6 text-center">
+              <div class="w-20 h-20 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-6">
+                <CheckCircle2 :size="40" class="text-emerald-500" />
               </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">{{ successModal.title }}</h3>
-              <p class="text-sm text-gray-500 mb-8 leading-relaxed">
-                Berkas untuk nomor surat <span class="font-bold text-gray-700">{{ successModal.nomorSurat }}</span>
-                telah berhasil diproses dan tersimpan di Google Drive.
+              <h3 class="text-2xl font-bold text-slate-800 mb-2">Simpan Berhasil</h3>
+              <p class="text-slate-500 text-sm leading-relaxed px-6">
+                Dokumen arsip surat telah berhasil disimpan dengan nomor registrasi:
               </p>
+              <p class="mt-2 text-slate-700 font-bold text-sm tracking-tight px-4 break-all">
+                {{ successModal.nomorSurat }}
+              </p>
+            </div>
 
-              <div class="space-y-3">
-                <div v-if="successModal.fileSurat" class="flex gap-2">
-                  <button @click="openPreview(successModal.fileSurat)"
-                    class="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2">
-                     Preview Surat
+            <div class="px-6 pb-8 space-y-4">
+              <!-- File Actions Grid -->
+              <div v-if="successModal.fileSurat" class="space-y-2">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Dokumen Surat</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <button @click="openPreview(successModal.fileSurat)" 
+                    class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
+                    <Eye :size="16" /> Preview
                   </button>
-                  <button
-                    @click="triggerDownload(successModal.fileSurat, `Surat_${successModal.nomorSurat.replace(/\//g, '_')}`)"
-                    class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all flex items-center justify-center border border-emerald-100">
-                     D
+                  <button @click="triggerDownload(successModal.fileSurat, `Surat_${successModal.nomorSurat.replace(/\//g, '_')}`)"
+                    class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
+                    <Download :size="16" /> Download
                   </button>
                 </div>
-
-                <div v-if="successModal.fileNotulensi" class="flex gap-2">
-                  <button @click="openPreview(successModal.fileNotulensi)"
-                    class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md flex items-center justify-center gap-2">
-                     Preview Notulensi
-                  </button>
-                  <button
-                    @click="triggerDownload(successModal.fileNotulensi, `Ntl_${successModal.nomorSurat.replace(/\//g, '_')}`)"
-                    class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all flex items-center justify-center border border-blue-100">
-                     D
-                  </button>
-                </div>
-
-                <button @click="successModal.isOpen = false"
-                  class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-xs hover:bg-gray-200 transition-all mt-4">
-                  TUTUP
-                </button>
               </div>
+
+              <div v-if="successModal.fileNotulensi" class="space-y-2">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Hasil Tindak Lanjut</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <button @click="openPreview(successModal.fileNotulensi)" 
+                    class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
+                    <Eye :size="16" /> Lihat Hasil
+                  </button>
+                  <button @click="triggerDownload(successModal.fileNotulensi, `Ntl_${successModal.nomorSurat.replace(/\//g, '_')}`)"
+                    class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
+                    <Download :size="16" /> Download
+                  </button>
+                </div>
+              </div>
+              
+              <button @click="successModal.isOpen = false"
+                class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]">
+                Tutup Jendela
+              </button>
             </div>
           </div>
         </div>
@@ -127,6 +144,7 @@ import FilePreviewModal from '../components/FilePreviewModal.vue'
 import ArsipSuratList from '../components/arsip-surat/ArsipSuratList.vue'
 import ArsipSuratForm from '../components/arsip-surat/ArsipSuratForm.vue'
 import NotulensiModal from '../components/arsip-surat/NotulensiModal.vue'
+import ArsipSuratDetail from '../components/arsip-surat/ArsipSuratDetail.vue'
 import { useDataStore } from '../stores/useDataStore'
 import api from '../config/api'
 import { triggerDownload } from '../utils/drive'
@@ -152,6 +170,11 @@ const currentPage = ref(1)
 
 const showPreview = ref(false)
 const previewUrl = ref('')
+
+const detailModal = ref({
+  isOpen: false,
+  data: {} as SuratData
+})
 
 const notificationModal = ref({
   isOpen: false,
@@ -363,7 +386,9 @@ const handleSubmit = async (updatedFormData: FormData, files: { fileSurat: File 
       fd.append('fileNotulensi', files.fileNotulensi)
     }
 
-    const response = await api.post('/api/surat', fd)
+    const response = await api.post('/api/surat', fd, {
+      headers: { 'Content-Type': undefined }
+    })
     const res = response.data
 
     isProcessing.value = false
@@ -416,6 +441,11 @@ const handleDelete = (id: string) => {
     },
     'Hapus Permanen'
   )
+}
+
+const handleViewDetail = (item: SuratData) => {
+  detailModal.value.data = item
+  detailModal.value.isOpen = true
 }
 
 onMounted(() => {

@@ -58,20 +58,23 @@ suratRouter.post('/', async (c) => {
             fileNotulensiUrl = await uploadFileToDrive(fnBody as File, folderId) || null;
         }
 
+        // Helper sanitasi: Konversi string kosong atau undefined menjadi null
+        const sanitize = (val: any) => (val === '' || val === undefined) ? null : val;
+
         const payload = {
-            tipeSurat: body.tipeSurat ?? body.tipe_surat ?? null,
-            kategoriSurat: body.kategoriSurat ?? body.kategori_surat ?? null,
-            sifatSurat: body.sifatSurat ?? body.sifat_surat ?? null,
-            nomorSurat: body.nomorSurat ?? body.nomor_surat ?? null,
-            tanggalMasuk: body.tanggalMasuk ?? body.tanggal_masuk ?? null,
-            tanggalSurat: body.tanggalSurat ?? body.tanggal_surat ?? null,
-            asalTujuan: body.asalTujuan ?? body.asal_tujuan ?? null,
-            perihal: body.perihal ?? body.perihal ?? null,
-            tglAcaraMulai: body.tglAcaraMulai ?? body.tgl_acara_mulai ?? null,
-            tglAcaraSelesai: body.tglAcaraSelesai ?? body.tgl_acara_selesai ?? null,
+            tipeSurat: sanitize(body.tipeSurat ?? body.tipe_surat),
+            kategoriSurat: sanitize(body.kategoriSurat ?? body.kategori_surat),
+            sifatSurat: sanitize(body.sifatSurat ?? body.sifat_surat),
+            nomorSurat: sanitize(body.nomorSurat ?? body.nomor_surat),
+            tanggalMasuk: sanitize(body.tanggalMasuk ?? body.tanggal_masuk),
+            tanggalSurat: sanitize(body.tanggalSurat ?? body.tanggal_surat),
+            asalTujuan: sanitize(body.asalTujuan ?? body.asal_tujuan),
+            perihal: sanitize(body.perihal ?? body.perihal),
+            tglAcaraMulai: sanitize(body.tglAcaraMulai ?? body.tgl_acara_mulai),
+            tglAcaraSelesai: sanitize(body.tglAcaraSelesai ?? body.tgl_acara_selesai),
             disposisiKe: body.disposisiKe ?? body.disposisi_ke ?? [],
-            tglDisposisi: body.tglDisposisi ?? body.tgl_disposisi ?? null,
-            tindakLanjut: body.tindakLanjut ?? body.tindak_lanjut ?? null,
+            tglDisposisi: sanitize(body.tglDisposisi ?? body.tgl_disposisi),
+            tindakLanjut: sanitize(body.tindakLanjut ?? body.tindak_lanjut),
             fileSurat: fileSuratUrl,
             fileNotulensi: fileNotulensiUrl,
             timPoksi: user.timPoksi || body.timPoksi || body.tim_poksi || '',

@@ -20,7 +20,6 @@ const api = axios.create({
   // pengiriman Cookie JWT (HttpOnly) lintas origin (CORS) ke backend Bun.
   withCredentials: true, 
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });

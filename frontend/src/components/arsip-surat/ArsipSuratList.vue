@@ -16,7 +16,7 @@
         </div>
 
         <button
-          class="bg-kementan-green text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-kementan-green/20 flex items-center gap-3 hover:bg-[#004d26] transition-all text-sm"
+          class="bg-kementan-green text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-kementan-green/20 flex items-center gap-3 hover:bg-[#004d26] transition-all text-sm active:scale-95"
           @click="openForm()">
           <Plus :size="18" />
           <span>Registrasi Surat Baru</span>
@@ -37,13 +37,13 @@
         </div>
 
         <div class="relative flex-1">
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" :size="18" />
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" :size="18" />
           <input v-model="localSearchQuery" type="text"
             placeholder="Cari berdasarkan nomor surat, perihal, atau asal tujuan..."
-            class="w-full bg-white border border-gray-300 rounded-xl py-3 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-600">
+            class="w-full bg-white border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 text-gray-900 outline-none focus:border-kementan-green focus:ring-4 focus:ring-kementan-green/10 transition-all shadow-sm text-sm font-medium placeholder:text-gray-400">
         </div>
         <button
-          class="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group"
+          class="flex items-center gap-2 px-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-gray-600 hover:text-kementan-green hover:border-kementan-green hover:bg-emerald-50 transition-all shadow-sm text-sm font-bold group active:scale-95"
           :disabled="isLoading" title="Refresh Data dari Server" @click="handleRefresh">
           <RefreshCw :size="18" :class="{ 'animate-spin': isLoading }" />
           <span class="hidden sm:inline">Refresh Data</span>
@@ -65,17 +65,14 @@
             <thead>
               <tr
                 class="bg-gray-50/80 text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-gray-200">
-                <th class="py-5 px-6">
-                  Dokumen & Asal/Tujuan
+                <th class="py-5 px-6 w-[30%]">
+                  Identitas Dokumen
                 </th>
-                <th class="py-5 px-4 text-center">
-                  Informasi
+                <th class="py-5 px-6 w-[40%]">
+                  Konten Utama & Perihal
                 </th>
-                <th class="py-5 px-6">
-                  Perihal & Status
-                </th>
-                <th class="py-5 px-6 text-center">
-                  Aksi Dokumen
+                <th class="py-5 px-6 text-center w-[30%]">
+                  Status & Aksi
                 </th>
               </tr>
             </thead>
@@ -83,109 +80,143 @@
               <template v-if="paginatedList.length > 0">
                 <tr v-for="(surat, i) in paginatedList" :key="surat.id" v-motion :initial="{ opacity: 0, y: 5 }"
                   :enter="{ opacity: 1, y: 0, transition: { delay: i * 30 } }"
-                  class="group hover:bg-emerald-50/30 transition-colors">
-                  <td class="py-4 px-6">
-                    <div>
-                      <div class="flex items-center gap-2 mb-1">
+                  class="group hover:bg-emerald-50/10 transition-colors">
+                  <!-- COLUMN 1: IDENTITAS (30%) -->
+                  <td class="py-5 px-6 align-top w-[30%]">
+                    <div class="flex flex-col gap-3">
+                      <div class="flex items-center gap-2">
                         <span
-                          class="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase border"
+                          class="inline-block px-2 py-0.5 rounded text-[9px] font-black tracking-widest uppercase border"
                           :class="surat.tipeSurat === 'Masuk' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-purple-50 text-purple-600 border-purple-100'">
                           {{ surat.tipeSurat }}
                         </span>
+                        <div
+                          class="px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-[8px] font-black text-gray-500 uppercase tracking-widest">
+                          {{ surat.timPoksi || 'UMUM' }}
+                        </div>
                       </div>
-                      <p class="text-sm font-bold text-gray-800">
-                        {{ surat.nomorSurat || '[Nomor Belum Diisi]' }}
-                      </p>
-                      <p class="text-[10px] text-gray-600 font-medium mt-0.5">
-                        {{ surat.asalTujuan }}
-                      </p>
-                      <p class="text-[10px] text-gray-700 font-bold tracking-widest mt-1 uppercase">
-                        {{ formatIndoDate(surat.tanggalSurat) }}
-                        <span v-if="surat.createdAt" class="mx-1 lowercase text-gray-500 font-normal">|</span>
-                        <span v-if="surat.createdAt" class="text-[9px] font-bold capitalize opacity-100">Dibuat: {{
-                          formatIndoDateTime(surat.createdAt) }}</span>
-                      </p>
-                    </div>
-                  </td>
-                  <td class="py-4 px-4 text-center">
-                    <div class="flex flex-col items-center gap-1.5">
-                      <span
-                        class="inline-block px-3 py-1 rounded-full text-[10px] font-bold border border-gray-200 bg-gray-50 uppercase tracking-tighter">
-                        {{ surat.kategoriSurat }}
-                      </span>
-                      <span class="text-[9px] font-bold uppercase tracking-widest" :class="{
-                        'text-red-500': surat.sifatSurat === 'Rahasia' || surat.sifatSurat === 'Penting',
-                        'text-amber-500': surat.sifatSurat === 'Segera',
-                        'text-kementan-green': surat.sifatSurat === 'Biasa'
-                      }">
-                        {{ surat.sifatSurat }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="py-4 px-6">
-                    <div class="max-w-md">
-                      <p class="text-xs text-gray-600 leading-relaxed font-medium line-clamp-2">
-                        {{ surat.perihal }}
-                      </p>
-                      <div v-if="surat.kategoriSurat === 'Undangan'" class="mt-1.5">
-                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold border"
-                          :class="surat.fileNotulensi ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'">
-                          <component :is="surat.fileNotulensi ? CheckCircle2 : AlertCircle" :size="11" />
-                          {{ surat.fileNotulensi ? 'Notulensi Tersedia' : 'Belum Ada Notulensi' }}
+                      <div class="space-y-1">
+                        <p class="text-sm font-bold text-gray-900 leading-tight truncate px-0.5" :title="surat.nomorSurat">
+                          {{ surat.nomorSurat || '[NOMOR BELUM DIISI]' }}
+                        </p>
+                        <div class="flex items-center gap-2 px-0.5">
+                          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                            {{ formatIndoDate(surat.tanggalSurat) }}
+                          </span>
+                          <span v-if="surat.createdAt" class="text-[9px] text-gray-300 font-medium italic border-l border-gray-200 pl-2">
+                            {{ formatIndoDateTime(surat.createdAt).split(' ')[1] }}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td class="py-4 px-6 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <!-- SURAT ACTIONS -->
-                      <div v-if="surat.fileSurat"
-                        class="flex gap-1 items-center bg-blue-50/50 p-1 rounded-xl border border-blue-100">
+
+                  <!-- COLUMN 2: KONTEN UTAMA (40%) -->
+                  <td class="py-5 px-6 align-top w-[40%]">
+                    <div class="space-y-3">
+                      <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Asal / Tujuan</p>
+                        <p class="text-sm font-bold text-gray-800 leading-tight uppercase tracking-tight line-clamp-1 truncate" :title="surat.asalTujuan">
+                          {{ surat.asalTujuan }}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Perihal</p>
+                        <p class="text-xs text-gray-600 leading-relaxed font-medium line-clamp-2 italic">
+                          "{{ surat.perihal }}"
+                        </p>
+                      </div>
+
+                      <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <span class="px-2 py-0.5 rounded bg-slate-50 border border-slate-100 text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                          {{ surat.kategoriSurat }}
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border"
+                          :class="{
+                            'bg-rose-50 text-rose-600 border-rose-100': surat.sifatSurat === 'Rahasia' || surat.sifatSurat === 'Penting',
+                            'bg-amber-50 text-amber-600 border-amber-100': surat.sifatSurat === 'Segera',
+                            'bg-emerald-50 text-emerald-600 border-emerald-100': surat.sifatSurat === 'Biasa'
+                          }">
+                          {{ surat.sifatSurat }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- COLUMN 3: STATUS & AKSI (30%) -->
+                  <td class="py-5 px-6 align-top w-[30%]">
+                    <div class="flex flex-col gap-3">
+                      <!-- Row 1: Status Badge -->
+                      <div class="flex justify-center">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm transition-all"
+                          :class="surat.fileNotulensi ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'">
+                          <component :is="surat.fileNotulensi ? CheckCircle2 : AlertCircle" :size="12" />
+                          {{ surat.fileNotulensi ? 'SELESAI' : 'MENUNGGU' }}
+                        </div>
+                      </div>
+
+                      <!-- Row 2: Unified Action Group (Info + File) -->
+                      <div class="flex items-center justify-center gap-1.5 bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100 shadow-inner">
+                        <!-- Info Button -->
                         <button
-                          class="px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
-                          title="Preview Surat" @click="openPreview(surat.fileSurat)">
-                          <Eye :size="12" /> Preview
+                          class="px-3 py-2 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all flex items-center gap-2 group/info"
+                          @click="emit('view-detail', surat)">
+                          <Info :size="15" />
+                          <span class="text-[9px] font-black uppercase tracking-tighter">Detail</span>
                         </button>
-                        <button
-                          class="p-1.5 bg-white rounded-lg text-indigo-600 border border-indigo-200 hover:bg-indigo-50 shadow-sm transition-all"
-                          title="Download Surat"
-                          @click="triggerDownload(surat.fileSurat, `Surat_${surat.nomorSurat.replace(/\//g, '_')}`)">
-                          <Download :size="12" />
+
+                        <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+
+                        <!-- File Actions -->
+                        <div v-if="surat.fileSurat" class="flex items-center gap-1">
+                          <button
+                            class="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-blue-200"
+                            title="Preview Surat" @click="openPreview(surat.fileSurat)">
+                            <Eye :size="14" />
+                          </button>
+                          <button
+                            class="p-2 bg-white text-slate-400 rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-blue-600 transition-all shadow-sm"
+                            title="Download Surat" @click="triggerDownload(surat.fileSurat, `Surat_${surat.nomorSurat.replace(/\//g, '_')}`)">
+                            <Download :size="14" />
+                          </button>
+                        </div>
+                        <div v-else class="text-[8px] font-black text-gray-300 italic px-2">TANPA FILE</div>
+                      </div>
+
+                      <!-- Row 3: Follow-up Action Area -->
+                      <div class="flex items-center justify-center">
+                        <div v-if="surat.fileNotulensi" class="flex items-center gap-2 bg-emerald-50/50 p-1.5 rounded-2xl border border-emerald-100 w-full max-w-[220px]">
+                           <button
+                              class="flex-1 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm"
+                              @click="openPreview(surat.fileNotulensi)">
+                              <FileCheck :size="13" /> LIHAT HASIL
+                            </button>
+                           <button
+                              class="p-2 bg-white text-emerald-600 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-all shadow-sm"
+                              title="Download Hasil"
+                              @click="triggerDownload(surat.fileNotulensi, `Ntl_${surat.nomorSurat.replace(/\//g, '_')}`)">
+                              <Download :size="13" />
+                            </button>
+                        </div>
+                        <button v-else
+                          class="w-full max-w-[220px] py-2.5 bg-white text-amber-600 rounded-2xl border-2 border-dashed border-amber-200 hover:bg-amber-50 hover:border-amber-400 hover:scale-[1.02] transition-all font-black text-[10px] flex items-center justify-center gap-2 uppercase tracking-widest shadow-sm"
+                          @click="openNotulensiModal(surat)">
+                          <NotebookPen :size="16" /> Tindak Lanjut
                         </button>
                       </div>
 
-                      <!-- NOTULENSI ACTIONS -->
-                      <div v-if="surat.fileNotulensi"
-                        class="flex gap-1 items-center bg-emerald-50/50 p-1 rounded-xl border border-emerald-100">
-                        <button
-                          class="px-2 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
-                          title="Preview Notulensi" @click="openPreview(surat.fileNotulensi)">
-                          <Eye :size="12" /> Preview
+                      <!-- Row 4: System Area (Sync with SPTJM style) -->
+                      <div class="flex items-center justify-center gap-2 pt-2 border-t border-gray-100">
+                         <button
+                          class="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm"
+                          @click="openForm(surat)">
+                          <Edit :size="12" /> Edit
                         </button>
-                        <button
-                          class="p-1.5 bg-white rounded-lg text-emerald-600 border border-emerald-200 hover:bg-emerald-50 shadow-sm transition-all"
-                          title="Download Notulensi"
-                          @click="triggerDownload(surat.fileNotulensi, `Ntl_${surat.nomorSurat.replace(/\//g, '_')}`)">
-                          <Download :size="12" />
-                        </button>
-                      </div>
-                      <button v-else-if="surat.kategoriSurat === 'Undangan'"
-                        class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
-                        title="Isi Notulensi / Tindak Lanjut" @click="openNotulensiModal(surat)">
-                        < NotebookPen :size="13" /> Isi Tindak Lanjut
-                      </button>
-
-                      <!-- GLOBAL ACTIONS -->
-                      <div class="flex gap-1 items-center ml-2 border-l pl-3 border-gray-100">
-                        <button
-                          class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
-                          title="Edit Data" @click="openForm(surat)">
-                          <Edit :size="13" /> Edit
-                        </button>
-                        <button
-                          class="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors font-bold text-[10px] flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
-                          title="Hapus Data" @click="handleDelete(surat.id)">
-                          <Trash2 :size="13" /> Hapus
+                         <button
+                          class="px-4 py-1.5 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 hover:bg-rose-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm"
+                          @click="handleDelete(surat.id)">
+                          <Trash2 :size="12" /> Hapus
                         </button>
                       </div>
                     </div>
@@ -193,12 +224,20 @@
                 </tr>
               </template>
               <tr v-else>
-                <td colspan="4" class="py-16 text-center">
-                  <div class="flex flex-col items-center gap-3">
-                    <Inbox :size="32" class="text-gray-400" />
-                    <p class="text-gray-600 font-bold text-sm uppercase tracking-widest">
-                      Data Tidak Ditemukan
-                    </p>
+                <td colspan="4" class="py-24 text-center">
+                  <div v-motion :initial="{ opacity: 0, scale: 0.9 }" :enter="{ opacity: 1, scale: 1 }"
+                    class="flex flex-col items-center gap-4">
+                    <div class="w-16 h-16 rounded-3xl bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
+                      <Inbox :size="32" class="text-gray-300" />
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-gray-800 font-black text-sm uppercase tracking-[0.2em]">
+                        Arsip Belum Ditemukan
+                      </p>
+                      <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                        Sesuaikan filter atau kata kunci pencarian Anda
+                      </p>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -206,22 +245,24 @@
           </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination (SPT Standard) -->
         <div v-if="filteredList.length > 0 && !isLoading"
           class="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
           <p class="text-xs text-gray-600 font-medium">
             Menampilkan <span class="font-bold text-gray-700">{{ (currentPage - 1) * ITEMS_PER_PAGE + 1 }}–{{
-              Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length) }}</span> dari <span
-              class="font-bold text-gray-700">{{ filteredList.length }}</span>
+              Math.min(currentPage *
+                ITEMS_PER_PAGE, filteredList.length) }}</span> dari <span class="font-bold text-gray-700">{{
+                filteredList.length
+              }}</span>
           </p>
           <div class="flex gap-1">
             <button :disabled="currentPage <= 1"
-              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
+              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-all shadow-sm"
               @click="currentPage--">
               <ChevronLeft :size="16" />
             </button>
             <button :disabled="currentPage >= totalPages"
-              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
+              class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-all shadow-sm"
               @click="currentPage++">
               <ChevronRight :size="16" />
             </button>
@@ -258,10 +299,11 @@ const emit = defineEmits<{
   (e: 'preview', url: string): void
   (e: 'download', url: string, filename: string): void
   (e: 'openNotulensi', item: SuratData): void
+  (e: 'view-detail', item: SuratData): void
 }>()
 
 const filterTabs = [
-  { value: 'Semua', label: 'Semua Surat' },
+  { value: 'Semua', label: 'Semua Arsip' },
   { value: 'Masuk', label: 'Surat Masuk' },
   { value: 'Keluar', label: 'Surat Keluar' },
   { value: 'BelumTindakLanjut', label: 'Belum Ada Hasil' },
@@ -307,3 +349,4 @@ function openNotulensiModal(item: SuratData) { emit('openNotulensi', item) }
 const filterTipe = localFilterTipe
 const currentPage = localCurrentPage
 </script>
+
