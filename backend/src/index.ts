@@ -1,6 +1,9 @@
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
+import { csrf } from 'hono/csrf';
+import { secureHeaders } from 'hono/secure-headers';
+import { compress } from 'hono/compress';
 import { apiLimiter } from './middleware/rateLimiter';
 import { customErrorHandler } from './middleware/errorHandler';
 import uploadRouter from './routes/upload';
@@ -36,6 +39,15 @@ app.use('*', cors({
   credentials: true,
 }));
 
+app.use('*', secureHeaders());
+app.use('*', compress());
+app.use('*', csrf({
+  origin: (origin) => {
+    // CSRF protection: memastikan request yang memodifikasi state berasal dari origin yang benar
+    return origin ? (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.endsWith('ditpl.web.id')) : true;
+  }
+}));
+
 app.use('/api/*', apiLimiter); // Apply rate limiting to all API routes
 app.use('*', logger());
 
@@ -57,6 +69,7 @@ app.route('/api/legacy-handler', legacyRouter);
 
 // Route dasar
 app.get('/', (c) => c.json({ status: 'ok', message: 'E-Office API is running' }));
+app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 export default {
   port: parseInt(process.env.PORT || '3000'),

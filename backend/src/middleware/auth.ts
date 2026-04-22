@@ -19,7 +19,11 @@ export const authMiddleware = async (c: Context, next: Next) => {
   }
 
   try {
-    const secret = process.env.JWT_SECRET || 'secret123!';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('FATAL ERROR: JWT_SECRET is not set.');
+      return c.json({ status: false, message: 'Internal Server Error: Missing configuration.' }, 500);
+    }
     const decoded = jwt.verify(token, secret) as JwtPayload;
     
     // Menyimpan data user ke dalam context dari Hono agar bisa diakses oleh route handler

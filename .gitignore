@@ -70,3 +70,14 @@ err.log
 .~lock.*
 graphify-out/
 .agent/
+
+# SvelteKit
+.svelte-kit/
+.wrangler/
+frontend-svelte/.svelte-kit/
+frontend-svelte/.wrangler/
+frontend-svelte/node_modules/
+frontend-svelte/build/
+frontend-svelte/package-lock.json
+frontend-svelte/.env
+frontend-svelte/.env.*

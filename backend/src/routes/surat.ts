@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { db } from '../db';
 import { surat } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { z } from 'zod';
 import { uploadFileToDrive } from '../services/drive.service';
 import { authMiddleware, type JwtPayload } from '../middleware/auth';
 
@@ -40,6 +41,49 @@ suratRouter.post('/', async (c) => {
         }
 
         const body = JSON.parse(dataStr);
+
+        // Validasi payload dengan Zod
+        const suratSchema = z.object({
+            id: z.string().optional().nullable(),
+            id_surat: z.string().optional().nullable(),
+            tipeSurat: z.string().optional().nullable(),
+            kategoriSurat: z.string().optional().nullable(),
+            sifatSurat: z.string().optional().nullable(),
+            nomorSurat: z.string().optional().nullable(),
+            tanggalMasuk: z.string().optional().nullable(),
+            tanggalSurat: z.string().optional().nullable(),
+            asalTujuan: z.string().optional().nullable(),
+            perihal: z.string().optional().nullable(),
+            tglAcaraMulai: z.string().optional().nullable(),
+            tglAcaraSelesai: z.string().optional().nullable(),
+            disposisiKe: z.array(z.string()).optional().nullable(),
+            tglDisposisi: z.string().optional().nullable(),
+            tindakLanjut: z.string().optional().nullable(),
+            timPoksi: z.string().optional().nullable(),
+            fileSurat: z.string().optional().nullable(),
+            fileNotulensi: z.string().optional().nullable(),
+            file_surat: z.string().optional().nullable(),
+            file_notulensi: z.string().optional().nullable(),
+            tipe_surat: z.string().optional().nullable(),
+            kategori_surat: z.string().optional().nullable(),
+            sifat_surat: z.string().optional().nullable(),
+            nomor_surat: z.string().optional().nullable(),
+            tanggal_masuk: z.string().optional().nullable(),
+            tanggal_surat: z.string().optional().nullable(),
+            asal_tujuan: z.string().optional().nullable(),
+            tgl_acara_mulai: z.string().optional().nullable(),
+            tgl_acara_selesai: z.string().optional().nullable(),
+            disposisi_ke: z.array(z.string()).optional().nullable(),
+            tgl_disposisi: z.string().optional().nullable(),
+            tindak_lanjut: z.string().optional().nullable(),
+            tim_poksi: z.string().optional().nullable(),
+        });
+
+        const parsedData = suratSchema.safeParse(body);
+        if (!parsedData.success) {
+            return c.json({ status: false, message: 'Validasi gagal', errors: parsedData.error.format() }, 400);
+        }
+
         // Biarkan body diparsing apa adanya, kita akan ambil field camelCase maupun snake_case untuk kompatibilitas sementara saat transisi
         let fileSuratUrl: string | null = body.fileSurat || body.file_surat || null;
         let fileNotulensiUrl: string | null = body.fileNotulensi || body.file_notulensi || null;
