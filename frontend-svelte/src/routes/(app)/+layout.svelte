@@ -5,19 +5,22 @@
 	let { data, children } = $props();
 </script>
 
-<div class="flex h-screen overflow-hidden bg-zinc-50 text-zinc-900">
-	<!-- Sidebar Responsif (Hidden di mobile, flex di desktop) -->
+<div class="h-screen flex overflow-hidden font-sans">
+	<!-- Sidebar Responsif -->
 	<Sidebar user={data.user} />
 
 	<!-- Main Content Area -->
-	<div class="flex w-0 flex-1 flex-col overflow-hidden">
-		<!-- Header Responsif (Hamburger di mobile) -->
+	<main class="flex-1 flex flex-col relative z-10 w-full overflow-hidden h-screen">
+		<!-- Header Responsif -->
 		<Header user={data.user} />
 
-		<main class="relative flex-1 overflow-y-auto focus:outline-none">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 py-6">
+		<section
+			class="p-4 lg:p-8 xl:p-10 overflow-y-auto flex-1 bg-transparent relative custom-scrollbar"
+			style="-webkit-overflow-scrolling: touch;"
+		>
+			<div class="h-full max-w-7xl mx-auto">
 				{@render children()}
 			</div>
-		</main>
-	</div>
+		</section>
+	</main>
 </div>

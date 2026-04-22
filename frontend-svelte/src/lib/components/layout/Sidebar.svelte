@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { appState } from '$lib/state/app.svelte';
 	import { getMenuForRole } from '$lib/config/menu';
-	import { LogOut, X } from 'lucide-svelte';
+	import { LogOut, X, ChevronRight } from 'lucide-svelte';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
@@ -23,45 +23,70 @@
 	Mobile/Small Tablet: Hidden by default, uses Sheet overlay when opened.
 -->
 
+{#snippet navContent()}
+	<div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-4 mt-2">
+		Menu Utama
+	</div>
+	{#each menuItems as item, i}
+		{@const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path))}
+		<!-- Section headers for different groups -->
+		{#if item.path === '/pegawai'}
+			<div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-4 mt-6">
+				Database
+			</div>
+		{/if}
+		<a
+			href={item.path}
+			onclick={() => appState.closeSidebar()}
+			class={cn(
+				'flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold',
+				isActive
+					? 'bg-kementan-green/10 text-kementan-green border border-kementan-green/20 shadow-sm'
+					: 'text-gray-700 hover:text-kementan-green hover:bg-gray-50'
+			)}
+		>
+			<div class={cn('transition-transform duration-300', isActive ? 'scale-110' : 'group-hover:scale-110')}>
+				<item.icon size={20} />
+			</div>
+			<span class="flex-1 text-left text-sm">{item.name}</span>
+			{#if isActive}
+				<ChevronRight size={14} class="text-kementan-green" />
+			{/if}
+		</a>
+	{/each}
+{/snippet}
+
 <!-- DESKTOP SIDEBAR -->
 <aside
-	class="hidden border-r bg-zinc-950 text-zinc-50 lg:flex lg:w-72 lg:flex-col"
+	class="hidden lg:flex lg:w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200 shadow-2xl shadow-black/5 flex-col"
 >
-	<div class="flex h-16 items-center border-b border-zinc-800 px-6">
-		<img src="/logo-pertanian.png" alt="Logo" class="mr-3 h-8 w-8" />
-		<div class="flex flex-col">
-			<span class="font-bold leading-tight">E-Office PL</span>
-			<span class="text-[10px] text-zinc-400">Direktorat Perlindungan Lahan</span>
+	<div class="p-6 flex items-center gap-3">
+		<div
+			class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 border border-gray-100"
+		>
+			<img src="/logo-pertanian.png" alt="Logo Kementan" class="w-full h-full object-contain" />
+		</div>
+		<div>
+			<h2 class="text-lg font-extrabold tracking-tight text-gray-800 leading-none">
+				E-OFFICE
+			</h2>
+			<span class="text-[9px] text-gray-500 font-bold tracking-[0.2em] uppercase">Dit. Lahan</span>
 		</div>
 	</div>
 
-	<nav class="flex-1 overflow-y-auto p-4 space-y-1">
-		{#each menuItems as item}
-			<a
-				href={item.path}
-				class={cn(
-					'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
-					currentPath.startsWith(item.path)
-						? 'bg-emerald-600 text-white'
-						: 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
-				)}
-			>
-				<item.icon class="h-5 w-5" />
-				{item.name}
-			</a>
-		{/each}
+	<nav class="flex-1 px-4 space-y-1 mt-2 overflow-y-auto custom-scrollbar">
+		{@render navContent()}
 	</nav>
 
-	<div class="border-t border-zinc-800 p-4">
+	<div class="p-4 mt-auto border-t border-gray-100">
 		<form method="POST" action="/logout">
-			<Button
-				variant="ghost"
-				class="w-full justify-start gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white"
+			<button
 				type="submit"
+				class="flex items-center gap-3 px-4 py-3 w-full hover:bg-red-50 rounded-xl text-gray-600 hover:text-red-500 transition-all font-semibold text-sm"
 			>
-				<LogOut class="h-5 w-5" />
-				Logout
-			</Button>
+				<LogOut size={18} />
+				<span class="underline-offset-4">Keluar Sistem</span>
+			</button>
 		</form>
 	</div>
 </aside>
@@ -70,45 +95,39 @@
 <Sheet.Root
 	bind:open={appState.isSidebarOpen}
 >
-	<Sheet.Content side="left" class="w-[85vw] max-w-[320px] bg-zinc-950 p-0 text-zinc-50 border-zinc-800 border-r">
-		<div class="flex h-16 items-center justify-between border-b border-zinc-800 px-6">
-			<div class="flex items-center">
-				<img src="/logo-pertanian.png" alt="Logo" class="mr-3 h-8 w-8" />
-				<span class="font-bold">E-Office PL</span>
+	<Sheet.Content side="left" class="w-[85vw] max-w-[320px] bg-white/95 backdrop-blur-xl p-0 border-gray-200 border-r">
+		<div class="p-6 flex justify-between items-center">
+			<div class="flex items-center gap-3">
+				<div
+					class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 border border-gray-100"
+				>
+					<img src="/logo-pertanian.png" alt="Logo Kementan" class="w-full h-full object-contain" />
+				</div>
+				<div>
+					<h2 class="text-lg font-extrabold tracking-tight text-gray-800 leading-none">
+						E-OFFICE
+					</h2>
+					<span class="text-[9px] text-gray-500 font-bold tracking-[0.2em] uppercase">Dit. Lahan</span>
+				</div>
 			</div>
-			<Button variant="ghost" size="icon" class="text-zinc-400 hover:text-white" onclick={() => appState.closeSidebar()}>
+			<Button variant="ghost" size="icon" class="text-gray-500" onclick={() => appState.closeSidebar()}>
 				<X class="h-5 w-5" />
 			</Button>
 		</div>
 
-		<nav class="flex-1 overflow-y-auto p-4 space-y-1">
-			{#each menuItems as item}
-				<a
-					href={item.path}
-					onclick={() => appState.closeSidebar()}
-					class={cn(
-						'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
-						currentPath.startsWith(item.path)
-							? 'bg-emerald-600 text-white'
-							: 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
-					)}
-				>
-					<item.icon class="h-5 w-5" />
-					{item.name}
-				</a>
-			{/each}
+		<nav class="flex-1 overflow-y-auto px-4 space-y-1 custom-scrollbar">
+			{@render navContent()}
 		</nav>
 
-		<div class="absolute bottom-0 w-full border-t border-zinc-800 p-4">
+		<div class="absolute bottom-0 w-full p-4 border-t border-gray-100">
 			<form method="POST" action="/logout">
-				<Button
-					variant="ghost"
-					class="w-full justify-start gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white"
+				<button
 					type="submit"
+					class="flex items-center gap-3 px-4 py-3 w-full hover:bg-red-50 rounded-xl text-gray-600 hover:text-red-500 transition-all font-semibold text-sm"
 				>
-					<LogOut class="h-5 w-5" />
-					Logout
-				</Button>
+					<LogOut size={18} />
+					<span class="underline-offset-4">Keluar Sistem</span>
+				</button>
 			</form>
 		</div>
 	</Sheet.Content>

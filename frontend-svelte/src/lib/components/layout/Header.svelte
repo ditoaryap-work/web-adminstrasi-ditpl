@@ -1,58 +1,59 @@
 <script lang="ts">
 	import { appState } from '$lib/state/app.svelte';
-	import { Menu, UserCircle, Bell, Settings, LogOut } from 'lucide-svelte';
+	import { Menu, LogOut } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 
 	let { user } = $props();
+
+	let userInitial = $derived((user?.nama || user?.username || 'A').charAt(0).toUpperCase());
 </script>
 
-<header class="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-	<!-- Mobile Menu Toggle -->
-	<Button
-		variant="ghost"
-		size="icon"
-		class="-m-2.5 p-2.5 text-zinc-700 lg:hidden"
-		onclick={() => appState.toggleSidebar()}
-	>
-		<span class="sr-only">Open sidebar</span>
-		<Menu class="h-6 w-6" aria-hidden="true" />
-	</Button>
+<header
+	class="h-16 lg:h-20 bg-white/70 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 lg:px-10 shadow-sm z-30 shrink-0"
+>
+	<div class="flex items-center gap-4">
+		<!-- Mobile Menu Toggle -->
+		<button class="lg:hidden text-gray-600 p-2" onclick={() => appState.toggleSidebar()}>
+			<span class="sr-only">Open sidebar</span>
+			<Menu size={24} />
+		</button>
+		<div class="h-8 w-[3px] bg-kementan-green rounded-full hidden md:block"></div>
+		<h1 class="text-xs lg:text-sm font-bold tracking-widest text-gray-600 uppercase hidden sm:block">
+			Dit. Penyediaan Lahan
+		</h1>
+	</div>
 
-	<!-- Separator for mobile -->
-	<div class="h-6 w-px bg-zinc-200 lg:hidden" aria-hidden="true"></div>
+	{#if user}
+		<div class="flex items-center gap-3 lg:gap-4">
+			<div class="text-right flex flex-col justify-center border-l border-gray-100 pl-4">
+				<p class="text-xs lg:text-sm font-bold text-gray-800 leading-none mb-1 text-right">
+					{user.nama || user.username || 'User'}
+				</p>
+				<span
+					class="text-[9px] lg:text-[10px] text-kementan-green font-bold tracking-widest uppercase bg-kementan-green/10 px-2 py-0.5 rounded-full border border-kementan-green/20 self-end whitespace-nowrap"
+				>
+					{user.timPoksi || user.role || 'Admin'}
+				</span>
+			</div>
 
-	<!-- Header Content -->
-	<div class="flex flex-1 items-center justify-between gap-x-4 self-stretch lg:gap-x-6">
-		<div class="flex flex-1">
-			<!-- Di sini bisa ditambah breadcrumb atau search bar kalau perlu -->
-		</div>
-
-		<div class="flex items-center gap-x-4 lg:gap-x-6">
-			<!-- Notifikasi Placeholder -->
-			<Button variant="ghost" size="icon" class="-m-2.5 p-2.5 text-zinc-400 hover:text-zinc-500">
-				<span class="sr-only">View notifications</span>
-				<Bell class="h-6 w-6" aria-hidden="true" />
-			</Button>
-
-			<!-- Separator -->
-			<div class="hidden lg:block lg:h-6 lg:w-px lg:bg-zinc-200" aria-hidden="true"></div>
-
-			<!-- User Profile Dropdown -->
+			<!-- Avatar with Dropdown -->
 			<DropdownMenu.Root>
-				<DropdownMenu.Trigger class="flex items-center gap-x-3 rounded-full hover:bg-zinc-50 p-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
-					<UserCircle class="h-8 w-8 text-zinc-400 bg-zinc-100 rounded-full" />
-					<span class="hidden lg:flex lg:items-center">
-						<span class="text-sm font-semibold leading-6 text-zinc-900" aria-hidden="true">
-							{user?.nama || user?.username || 'User'}
-						</span>
-					</span>
+				<DropdownMenu.Trigger class="relative group cursor-pointer focus:outline-none">
+					<div
+						class="absolute -inset-1 bg-gradient-to-r from-kementan-green to-emerald-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"
+					></div>
+					<div
+						class="relative w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full bg-gradient-to-br from-kementan-green to-emerald-600 text-white font-bold border-2 border-white shadow-sm text-sm lg:text-base select-none"
+					>
+						{userInitial}
+					</div>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end" class="w-56">
 					<DropdownMenu.Label>
 						<div class="flex flex-col space-y-1">
-							<p class="text-sm font-medium leading-none">{user?.nama || user?.username || 'User'}</p>
-							<p class="text-xs leading-none text-muted-foreground">{user?.role || 'Guest'}</p>
+							<p class="text-sm font-medium leading-none">{user.nama || user.username || 'User'}</p>
+							<p class="text-xs leading-none text-muted-foreground">{user.role || 'Guest'}</p>
 						</div>
 					</DropdownMenu.Label>
 					<DropdownMenu.Separator />
@@ -66,5 +67,5 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>
-	</div>
+	{/if}
 </header>
