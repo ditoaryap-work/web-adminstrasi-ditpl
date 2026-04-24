@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { appState } from '$lib/state/app.svelte';
 	import { getMenuForRole } from '$lib/config/menu';
 	import { LogOut, X, ChevronRight } from 'lucide-svelte';
@@ -15,6 +16,16 @@
 
 	// Tentukan state route aktif
 	let currentPath = $derived(page.url.pathname);
+
+	async function handleNavClick(path: string) {
+		appState.closeSidebar();
+		if (currentPath === path) {
+			// Sudah di halaman yang sama, refresh data
+			await invalidateAll();
+		} else {
+			await goto(path);
+		}
+	}
 </script>
 
 <!-- 
@@ -28,7 +39,7 @@
 		Menu Utama
 	</div>
 	{#each menuItems as item, i}
-		{@const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path))}
+		{@const isActive = currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path + '/'))}
 		<!-- Section headers for different groups -->
 		{#if item.path === '/pegawai'}
 			<div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-4 mt-6">
@@ -37,7 +48,13 @@
 		{/if}
 		<a
 			href={item.path}
-			onclick={() => appState.closeSidebar()}
+			onclick={(e) => {
+				if (currentPath === item.path) {
+					e.preventDefault();
+					invalidateAll();
+				}
+				appState.closeSidebar();
+			}}
 			class={cn(
 				'flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 group font-semibold',
 				isActive
@@ -58,7 +75,7 @@
 
 <!-- DESKTOP SIDEBAR -->
 <aside
-	class="hidden lg:flex lg:w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200 shadow-2xl shadow-black/5 flex-col"
+	class="hidden lg:flex lg:w-64 bg-white/80 backdrop-blur-xl border-r border-gray-200 shadow-2xl shadow-black/5 flex-col"
 >
 	<div class="p-6 flex items-center gap-3">
 		<div

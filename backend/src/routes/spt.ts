@@ -56,6 +56,23 @@ sptRouter.get('/', async (c) => {
    }
 });
 
+sptRouter.get('/:id', async (c) => {
+   try {
+       const id = c.req.param('id');
+       const user = c.get('user') as JwtPayload;
+       const result = await db.select().from(spt).where(eq(spt.id, id)).limit(1);
+       if (result.length === 0) return c.json({ status: false, message: 'Data SPT tidak ditemukan' }, 404);
+       
+       if (user.role !== 'Super Admin' && result[0].timPoksi !== user.timPoksi) {
+           return c.json({ status: false, message: 'Akses ditolak' }, 403);
+       }
+       
+       return c.json({ status: true, message: 'Data SPT dimuat', data: result[0] });
+   } catch(e) {
+       return c.json({ status: false, message: 'Gagal memuat detail SPT' }, 500);
+   }
+});
+
 // Helper untuk sanitasi body SPT (Convert "" to null)
 const sanitizeSptBody = (body: any) => {
     const sanitized: any = {};

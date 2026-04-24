@@ -49,6 +49,23 @@ sptjmRouter.get('/', async (c) => {
    }
 });
 
+sptjmRouter.get('/:id', async (c) => {
+   try {
+       const id = c.req.param('id');
+       const user = c.get('user') as JwtPayload;
+       const result = await db.select().from(sptjm).where(eq(sptjm.id, id)).limit(1);
+       if (result.length === 0) return c.json({ status: false, message: 'Data SPTJM tidak ditemukan' }, 404);
+       
+       if (user.role !== 'Super Admin' && result[0].timPoksi !== user.timPoksi) {
+           return c.json({ status: false, message: 'Akses ditolak' }, 403);
+       }
+       
+       return c.json({ status: true, message: 'Data SPTJM dimuat', data: result[0] });
+   } catch(e) {
+       return c.json({ status: false, message: 'Gagal memuat detail SPTJM' }, 500);
+   }
+});
+
 sptjmRouter.post('/', zValidator('json', sptjmSchemaValidator), async (c) => {
   try {
     const user = c.get('user') as JwtPayload;

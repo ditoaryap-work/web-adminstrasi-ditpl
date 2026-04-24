@@ -20,15 +20,14 @@ export interface RouteItem {
 
 export const APP_ROUTES: RouteItem[] = [
 	{ name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
-	{ name: 'Arsip Surat', path: '/arsip-surat', icon: Mail, roles: ['Super Admin', 'Admin'] },
-	{ name: 'SPT', path: '/spt', icon: FileText, roles: ['Super Admin', 'Admin', 'Pegawai'] },
-	{ name: 'SPTJM', path: '/sptjm', icon: CheckSquare, roles: ['Super Admin', 'PPK'] },
-	{ name: 'SPJ & Kwitansi', path: '/spj', icon: Receipt, roles: ['Super Admin', 'Admin'] },
-	{ name: 'Template DOCX', path: '/templates', icon: FileSignature, roles: ['Super Admin', 'Admin'] },
-	{ name: 'Data Pegawai', path: '/pegawai', icon: Users, roles: ['Super Admin'] },
-	{ name: 'Daftar Admin', path: '/admin', icon: Users, roles: ['Super Admin'] },
-	{ name: 'Pengaturan SBM', path: '/sbm', icon: Settings, roles: ['Super Admin'] },
-	{ name: 'Pengaturan Umum', path: '/settings', icon: Settings, roles: ['Super Admin'] }
+	{ name: 'Surat Tugas (SPT)', path: '/spt', icon: FileText, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
+	{ name: 'SPTJM (Biaya Rill)', path: '/sptjm', icon: CheckSquare, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
+	{ name: 'Kwitansi & SPD', path: '/kwitansi-spj', icon: Receipt, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
+	{ name: 'Arsip Persuratan', path: '/arsip-surat', icon: Mail, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
+	{ name: 'Data Pegawai', path: '/pegawai', icon: Users, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] },
+	{ name: 'Manajer Admin', path: '/admin', icon: Users, roles: ['Super Admin'] },
+	{ name: 'Sistem Template', path: '/templates', icon: FileSignature, roles: ['Super Admin'] },
+	{ name: 'Pengaturan Sistem', path: '/settings', icon: Settings, roles: ['Super Admin', 'Admin', 'Pegawai', 'PPK', 'Direktur'] }
 ];
 
 export function getMenuForRole(role: string): RouteItem[] {

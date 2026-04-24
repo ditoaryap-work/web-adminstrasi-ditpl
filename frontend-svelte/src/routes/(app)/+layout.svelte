@@ -1,11 +1,13 @@
 <script lang="ts">
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import Header from '$lib/components/layout/Header.svelte';
+	import { page } from '$app/stores';
+	import { fade } from 'svelte/transition';
 
 	let { data, children } = $props();
 </script>
 
-<div class="h-screen flex overflow-hidden font-sans">
+<div class="h-screen flex overflow-hidden font-sans bg-gray-50/50">
 	<!-- Sidebar Responsif -->
 	<Sidebar user={data.user} />
 
@@ -15,12 +17,14 @@
 		<Header user={data.user} />
 
 		<section
-			class="p-4 lg:p-8 xl:p-10 overflow-y-auto flex-1 bg-transparent relative custom-scrollbar"
+			class="p-4 lg:p-6 xl:p-8 overflow-y-auto flex-1 bg-transparent relative custom-scrollbar"
 			style="-webkit-overflow-scrolling: touch;"
 		>
-			<div class="h-full max-w-7xl mx-auto">
-				{@render children()}
-			</div>
+			{#key $page.url.pathname}
+				<div in:fade={{ duration: 200, delay: 50 }} out:fade={{ duration: 100 }}>
+					{@render children()}
+				</div>
+			{/key}
 		</section>
 	</main>
 </div>

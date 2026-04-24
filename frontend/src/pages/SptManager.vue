@@ -29,18 +29,12 @@
       @save="handleSubmit"
     />
 
-    <!-- Global Loading Overlay -->
-    <Teleport to="body">
-      <transition name="fade">
-        <div v-if="isProcessing"
-          class="fixed inset-0 z-[11000] flex flex-col items-center justify-center p-6 bg-slate-900/80">
-          <div class="w-16 h-16 border-4 border-kementan-green/30 border-t-kementan-green rounded-full animate-spin" />
-          <p class="mt-6 text-white font-bold tracking-widest uppercase animate-pulse">
-            Menyimpan Data...
-          </p>
-        </div>
-      </transition>
-    </Teleport>
+    <!-- Global Loading Overlay (Ported from Svelte) -->
+    <ProcessingOverlay
+      :is-processing="isProcessing"
+      title="Memproses Dokumen SPT"
+      message="Sistem sedang menyusun dokumen PDF dan mengunggahnya ke Google Drive. Mohon tunggu beberapa saat..."
+    />
 
     <!-- Global Notification Modal -->
     <GlobalModal :is-open="notificationModal.isOpen" :type="notificationModal.type" :title="notificationModal.title"
@@ -107,6 +101,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { CheckCircle, Eye, Download } from 'lucide-vue-next'
+import ProcessingOverlay from '../components/ProcessingOverlay.vue'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 import SptList from '../components/spt/SptList.vue'

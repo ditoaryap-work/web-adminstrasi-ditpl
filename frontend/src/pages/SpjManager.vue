@@ -84,6 +84,13 @@
       </transition>
     </Teleport>
 
+    <!-- Global Loading Overlay (Ported from Svelte) -->
+    <ProcessingOverlay
+      :is-processing="isSubmitting"
+      title="Memproses Kwitansi SPJ"
+      :message="processingMessage || 'Sistem sedang menyusun dokumen PDF dan mengunggahnya ke Google Drive. Mohon tunggu beberapa saat...'"
+    />
+
     <!-- GLOBAL NOTIF -->
     <GlobalModal :is-open="notificationModal.isOpen" :type="notificationModal.type" :title="notificationModal.title"
       :message="notificationModal.message" :confirm-text="notificationModal.confirmText"
@@ -98,6 +105,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { CheckCircle, Eye, Download } from 'lucide-vue-next'
+import ProcessingOverlay from '../components/ProcessingOverlay.vue'
 import GlobalModal from '../components/GlobalModal.vue'
 import FilePreviewModal from '../components/FilePreviewModal.vue'
 import SpjList from '../components/spj/SpjList.vue'
