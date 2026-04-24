@@ -8,7 +8,7 @@
 
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 lg:static lg:flex w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200 shadow-2xl shadow-black/5 flex-col z-50 transform transition-transform duration-300 ease-in-out"
+      class="fixed inset-y-0 left-0 lg:static lg:flex w-64 bg-white/80 backdrop-blur-xl border-r border-gray-200 shadow-2xl shadow-black/5 flex-col z-50 transform transition-transform duration-300 ease-in-out"
       :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
       <div class="p-6 flex justify-between items-center">
         <div class="flex items-center gap-3">
@@ -83,7 +83,7 @@
           </div>
 
           <div v-motion :initial="{ scale: 1 }" :hovered="{ scale: 1.05 }" class="relative group cursor-pointer"
-            @click="router.push('/admin')">
+            @click="router.push('/profile')">
             <div
               class="absolute -inset-1 bg-gradient-to-r from-kementan-green to-emerald-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300" />
             <div
@@ -119,27 +119,27 @@ import { AdminData } from '../types/api'
 
 import { useDataStore } from '../stores/useDataStore'
 const dataStore = useDataStore()
-
 const router = useRouter()
 const route = useRoute()
-const adminProfile = ref<AdminData | null>(null)
+const adminProfile = computed(() => dataStore.adminProfile)
 const isDev = import.meta.env.DEV
 const isSidebarOpen = ref(false)
 
 onMounted(() => {
-  const storedData = localStorage.getItem('adminData')
-  if (storedData) {
-    try {
-      const parsed = JSON.parse(storedData)
-      // CLEAN CODE: Robust Normalization for legacy and updated data structures
-      adminProfile.value = {
-        ...parsed,
-        namaAdmin: parsed.namaAdmin || parsed.nama_admin || parsed.nama,
-        role: parsed.role,
-        timPoksi: parsed.timPoksi || parsed.tim_poksi
+  if (!dataStore.adminProfile) {
+    const storedData = localStorage.getItem('adminData')
+    if (storedData) {
+      try {
+        const parsed = JSON.parse(storedData)
+        dataStore.setAdminProfile({
+          ...parsed,
+          namaAdmin: parsed.namaAdmin || parsed.nama_admin || parsed.nama,
+          role: parsed.role,
+          timPoksi: parsed.timPoksi || parsed.tim_poksi
+        })
+      } catch (e) {
+        console.error('Failed to parse admin data', e)
       }
-    } catch (e) {
-      console.error('Failed to parse admin data', e)
     }
   }
 })

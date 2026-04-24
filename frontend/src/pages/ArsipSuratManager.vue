@@ -59,25 +59,29 @@
           <div class="absolute inset-0" @click="successModal.isOpen = false" />
           
           <div v-motion :initial="{ opacity: 0, scale: 0.9, y: 20 }" :enter="{ opacity: 1, scale: 1, y: 0 }"
-            class="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100">
+            class="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-xl border border-slate-100 p-8">
             
-            <div class="pt-10 pb-6 text-center">
-              <div class="w-20 h-20 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-6">
-                <CheckCircle2 :size="40" class="text-emerald-500" />
-              </div>
+            <!-- Success Icon -->
+            <div class="w-20 h-20 bg-emerald-50 rounded-full mx-auto flex items-center justify-center mb-6">
+              <CheckCircle :size="40" class="text-emerald-500" />
+            </div>
+
+            <div class="text-center mb-8">
               <h3 class="text-2xl font-bold text-slate-800 mb-2">Simpan Berhasil</h3>
-              <p class="text-slate-500 text-sm leading-relaxed px-6">
+              <p class="text-slate-500 text-xs leading-relaxed px-4">
                 Dokumen arsip surat telah berhasil disimpan dengan nomor registrasi:
               </p>
-              <p class="mt-2 text-slate-700 font-bold text-sm tracking-tight px-4 break-all">
+              
+              <!-- Registration Number (No Copy) -->
+              <p class="mt-4 text-indigo-600 font-mono font-black text-sm tracking-tight break-all">
                 {{ successModal.nomorSurat }}
               </p>
             </div>
 
-            <div class="px-6 pb-8 space-y-4">
-              <!-- File Actions Grid -->
-              <div v-if="successModal.fileSurat" class="space-y-2">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Dokumen Surat</p>
+            <div class="space-y-6">
+              <!-- File Actions -->
+              <div v-if="successModal.fileSurat" class="space-y-3">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Dokumen Utama</p>
                 <div class="grid grid-cols-2 gap-3">
                   <button @click="openPreview(successModal.fileSurat)" 
                     class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
@@ -90,12 +94,12 @@
                 </div>
               </div>
 
-              <div v-if="successModal.fileNotulensi" class="space-y-2">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Hasil Tindak Lanjut</p>
+              <div v-if="successModal.fileNotulensi" class="space-y-3">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Hasil Tindak Lanjut</p>
                 <div class="grid grid-cols-2 gap-3">
                   <button @click="openPreview(successModal.fileNotulensi)" 
                     class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
-                    <Eye :size="16" /> Lihat Hasil
+                    <Files :size="16" /> Lihat Hasil
                   </button>
                   <button @click="triggerDownload(successModal.fileNotulensi, `Ntl_${successModal.nomorSurat.replace(/\//g, '_')}`)"
                     class="flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-600 rounded-2xl font-bold text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-200">
@@ -105,7 +109,7 @@
               </div>
               
               <button @click="successModal.isOpen = false"
-                class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]">
+                class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 transition-all active:scale-[0.98] mt-2">
                 Tutup Jendela
               </button>
             </div>
@@ -114,18 +118,12 @@
       </transition>
     </Teleport>
 
-    <!-- Global Loading Overlay -->
-    <Teleport to="body">
-      <transition name="fade">
-        <div v-if="isProcessing"
-          class="fixed inset-0 z-[11000] flex flex-col items-center justify-center p-6 bg-slate-900/80">
-          <div class="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
-          <p class="mt-6 text-white font-bold tracking-widest uppercase animate-pulse">
-            {{ processingMessage }}
-          </p>
-        </div>
-      </transition>
-    </Teleport>
+    <!-- Global Loading Overlay (Consistent with SPT/SPTJM) -->
+    <ProcessingOverlay
+      :is-processing="isProcessing"
+      :title="isEditMode ? 'Memperbarui Data' : 'Menyimpan Arsip'"
+      :message="processingMessage || 'Sistem sedang memproses dokumen dan mengunggah ke Google Drive...'"
+    />
 
     <!-- Global Notification Modal -->
     <GlobalModal :is-open="notificationModal.isOpen" :type="notificationModal.type" :title="notificationModal.title"
@@ -145,6 +143,17 @@ import ArsipSuratList from '../components/arsip-surat/ArsipSuratList.vue'
 import ArsipSuratForm from '../components/arsip-surat/ArsipSuratForm.vue'
 import NotulensiModal from '../components/arsip-surat/NotulensiModal.vue'
 import ArsipSuratDetail from '../components/arsip-surat/ArsipSuratDetail.vue'
+import ProcessingOverlay from '../components/ProcessingOverlay.vue'
+import { 
+  CheckCircle, 
+  Eye, 
+  Download, 
+  Copy, 
+  Check, 
+  Search, 
+  ArrowLeft,
+  Files
+} from 'lucide-vue-next'
 import { useDataStore } from '../stores/useDataStore'
 import api from '../config/api'
 import { triggerDownload } from '../utils/drive'
@@ -446,6 +455,11 @@ const handleDelete = (id: string) => {
 const handleViewDetail = (item: SuratData) => {
   detailModal.value.data = item
   detailModal.value.isOpen = true
+}
+
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+  showNotification('success', 'Berhasil Salin', 'Nomor registrasi telah disalin ke clipboard.')
 }
 
 onMounted(() => {

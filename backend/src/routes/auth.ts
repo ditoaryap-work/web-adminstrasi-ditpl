@@ -8,7 +8,10 @@ import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { authLimiter } from '../middleware/rateLimiter';
 
-const authRouter = new Hono();
+import { authMiddleware, JwtPayload } from '../middleware/auth';
+
+type HonoEnv = { Variables: { user: JwtPayload } };
+const authRouter = new Hono<HonoEnv>();
 
 // Skema Validasi Input Login (OWASP Injection Defense)
 const loginSchema = z.object({
@@ -87,6 +90,44 @@ authRouter.post('/logout', (c) => {
     sameSite: 'Strict'
   });
   return c.json({ status: true, message: 'Anda telah berhasil log out dari sistem.' });
+});
+
+// Update Profile: Untuk user yang sedang login mengubah data dirinya sendiri
+const updateProfileSchema = z.object({
+  namaAdmin: z.string().min(3, "Nama minimal 3 karakter").max(100),
+  password: z.string().min(6, "Password minimal 6 karakter").max(100).optional()
+});
+
+authRouter.put('/profile', authMiddleware, zValidator('json', updateProfileSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ status: false, message: 'Format data tidak valid: ' + result.error.issues[0]?.message, errors: result.error.issues }, 400);
+  }
+}), async (c) => {
+  try {
+    const user = c.get('user');
+    const { namaAdmin, password } = c.req.valid('json');
+
+    const updateData: any = {
+      nama: namaAdmin
+    };
+
+    if (password) {
+      updateData.passwordHash = await Bun.password.hash(password);
+    }
+
+    await db.update(users).set(updateData).where(eq(users.id, user.userId));
+
+    return c.json({ 
+      status: true, 
+      message: 'Profil berhasil diperbarui.',
+      data: {
+        namaAdmin: namaAdmin
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return c.json({ status: false, message: 'Gagal memperbarui profil.' }, 500);
+  }
 });
 
 export default authRouter;

@@ -12,6 +12,7 @@ export const useDataStore = defineStore('data', {
     sbmData: [] as SbmData[],
     suratData: [] as SuratData[],
     spjData: [] as SpjData[],
+    adminProfile: null as any,
     lastFetchTime: {
       spt: 0,
       sptjm: 0,
@@ -65,6 +66,10 @@ export const useDataStore = defineStore('data', {
     setSpjData(data: SpjData[]) {
       this.spjData = data
       this.lastFetchTime.spj = Date.now()
+    },
+    
+    setAdminProfile(data: any) {
+      this.adminProfile = data
     },
 
     invalidateCache(type: 'spt' | 'sptjm' | 'pegawai' | 'sbm' | 'surat' | 'spj' | 'all') {

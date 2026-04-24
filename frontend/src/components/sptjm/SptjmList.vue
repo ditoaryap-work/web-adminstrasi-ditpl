@@ -187,6 +187,12 @@
               @click="localCurrentPage--">
               <ChevronLeft :size="16" />
             </button>
+            <button v-for="page in visiblePages" :key="page"
+              class="w-8 h-8 rounded-lg text-xs font-bold transition-all"
+              :class="page === safePage ? 'bg-kementan-green text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'"
+              @click="localCurrentPage = page">
+              {{ page }}
+            </button>
             <button :disabled="safePage >= totalPages"
               class="p-1.5 rounded-lg border bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-30"
               @click="localCurrentPage++">
@@ -245,6 +251,17 @@ const filteredList = computed(() => {
 const totalPages = computed(() => Math.ceil(filteredList.value.length / ITEMS_PER_PAGE) || 1)
 const safePage = computed(() => Math.min(localCurrentPage.value, totalPages.value))
 const paginatedList = computed(() => filteredList.value.slice((safePage.value - 1) * ITEMS_PER_PAGE, safePage.value * ITEMS_PER_PAGE))
+
+const visiblePages = computed(() => {
+  const pages: number[] = []
+  const start = Math.max(1, safePage.value - 2)
+  const end = Math.min(totalPages.value, start + 4)
+  const finalStart = Math.max(1, end - 4)
+  for (let i = finalStart; i <= end; i++) {
+    if (i >= 1) pages.push(i)
+  }
+  return pages
+})
 
 function triggerDownload(url: string, filename: string) { emit('download', url, filename) }
 function openPreview(url: string) { emit('preview', url) }

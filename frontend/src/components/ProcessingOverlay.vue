@@ -19,8 +19,7 @@
 
           <!-- Description -->
           <p class="text-sm text-gray-500 font-medium leading-relaxed">
-            {{ message || 'Sistem sedang menyusun dokumen PDF dan mengunggahnya ke Google Drive. Mohon tunggu beberapa
-            saat...' }}
+            {{ message || 'Sistem sedang menyusun dokumen PDF dan mengunggahnya ke Google Drive. Mohon tunggu beberapa saat...' }}
           </p>
         </div>
       </div>

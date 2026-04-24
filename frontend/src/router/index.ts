@@ -11,6 +11,7 @@ const AdminManager = () => import('../pages/AdminManager.vue')
 const ArsipSuratManager = () => import('../pages/ArsipSuratManager.vue')
 const TemplateManager = () => import('../pages/TemplateManager.vue')
 const SettingsManager = () => import('../pages/SettingsManager.vue')
+const Profile = () => import('../pages/Profile.vue')
 
 const routes = [
   { path: '/login', name: 'Login', component: Login },
@@ -28,6 +29,7 @@ const routes = [
       { path: 'admin', name: 'AdminManager', component: AdminManager },
       { path: 'templates', name: 'TemplateManager', component: TemplateManager },
       { path: 'settings', name: 'SettingsManager', component: SettingsManager },
+      { path: 'profile', name: 'Profile', component: Profile },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
