@@ -1,7 +1,7 @@
 # Hand-Off Context — E-Office Dit. PL
 
-> Dokumen ini berisi ringkasan status terkini proyek untuk mempermudah handoff ke sesi AI baru.
-> **Terakhir diperbarui:** 2026-04-19
+> Dokumen ini berisi ringkasan status terkini proyek untuk mempermudah handoff ke Tim IT untuk dilanjutkan.
+> **Terakhir diperbarui:** 2026-07-08
 
 ---
 
